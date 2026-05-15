@@ -97,7 +97,33 @@ grep '\[WARN\]' ~/.sync-gh-board/logs/*.log
 
 ## Recurring sync
 
-Add a cron job to sync every hour (no log redirect needed — sync.sh handles it):
+### macOS (recommended) — launchd
+
+launchd is more reliable than cron on macOS: it survives sleep/wake cycles and
+starts automatically on login.
+
+A ready-to-use plist is provided. Install it with:
+
+```bash
+cp launchd/com.your-username.sync-gh-board.plist ~/Library/LaunchAgents/
+# Edit the plist to set your username and script path, then:
+launchctl load ~/Library/LaunchAgents/com.your-username.sync-gh-board.plist
+```
+
+Useful commands:
+
+```bash
+# Check status (shows last exit code)
+launchctl list | grep sync-gh-board
+
+# Trigger a manual run immediately
+launchctl start com.your-username.sync-gh-board
+
+# Disable
+launchctl unload ~/Library/LaunchAgents/com.your-username.sync-gh-board.plist
+```
+
+### Linux / alternative — cron
 
 ```bash
 (crontab -l 2>/dev/null; echo "0 * * * * /path/to/sync-gh-board/sync.sh") | crontab -

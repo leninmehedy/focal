@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS launchd agent for sync-gh-board.
+
+  Setup:
+    1. Copy this file to ~/Library/LaunchAgents/
+    2. Replace YOUR_USERNAME with your macOS username (run: whoami)
+    3. Replace /path/to/sync-gh-board with the absolute path to this repo
+    4. Load it: launchctl load ~/Library/LaunchAgents/com.YOUR_USERNAME.sync-gh-board.plist
+
+  Useful commands:
+    launchctl list | grep sync-gh-board          # check status / last exit code
+    launchctl start com.YOUR_USERNAME.sync-gh-board  # run immediately
+    launchctl unload ~/Library/LaunchAgents/...  # disable
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.YOUR_USERNAME.sync-gh-board</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/path/to/sync-gh-board/sync.sh</string>
+    </array>
+
+    <!-- Run every hour (3600 seconds). Adjust as needed. -->
+    <key>StartInterval</key>
+    <integer>3600</integer>
+
+    <!-- Run once immediately when loaded -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <false/>
+
+    <!-- launchd stderr fallback (sync.sh writes to ~/.sync-gh-board/logs/) -->
+    <key>StandardOutPath</key>
+    <string>/Users/YOUR_USERNAME/.sync-gh-board/logs/launchd.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/YOUR_USERNAME/.sync-gh-board/logs/launchd-error.log</string>
+
+    <!-- Ensure PATH includes Homebrew so gh CLI is found -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>/Users/YOUR_USERNAME</string>
+    </dict>
+</dict>
+</plist>

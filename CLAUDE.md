@@ -36,8 +36,17 @@ Kanban board bidirectionally with origin repo project boards.
    ```
 
 4. **Schedule recurring sync** (hourly is a good default):
+
+   **macOS (launchd — recommended):**
    ```bash
-   (crontab -l 2>/dev/null; echo "0 * * * * $(pwd)/sync.sh >> ~/.sync-gh-board/logs.log 2>&1") | crontab -
+   cp launchd/com.your-username.sync-gh-board.plist ~/Library/LaunchAgents/
+   # Edit the plist: replace YOUR_USERNAME and /path/to/sync-gh-board
+   launchctl load ~/Library/LaunchAgents/com.your-username.sync-gh-board.plist
+   ```
+
+   **Linux / alternative (cron):**
+   ```bash
+   (crontab -l 2>/dev/null; echo "0 * * * * $(pwd)/sync.sh") | crontab -
    ```
 
 ## Common tasks

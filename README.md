@@ -66,18 +66,41 @@ by Solo Weaver / Solo Operator style projects):
 Status matching is emoji-normalized — `🏗 In progress` and `In progress` are
 treated as the same status, so minor cosmetic differences don't break the sync.
 
-## Recurring sync
+## Logging
 
-Add a cron job to sync every hour:
+Logs are written to `~/.sync-gh-board/logs/YYYY-MM-DD.log` (one file per
+day, naturally self-rotating). Override the directory via `LOG_DIR` in
+`config.sh`. When running interactively, logs are also printed to stdout.
 
-```bash
-(crontab -l 2>/dev/null; echo "0 * * * * /path/to/sync-gh-board/sync.sh >> ~/.local/log/sync-gh-board.log 2>&1") | crontab -
+**Format:**
+```
+[2026-05-15 17:09:10] [INFO ] Board: #3 (PVT_kwHOAAxhrc4BXwuQ)
+[2026-05-15 17:09:14] [INFO ] Adding: https://github.com/hashgraph/solo-operator/issues/1005
+[2026-05-15 17:09:47] [WARN ] 'In Progress' not found in "@jeromy-cannon's project" — skipping
+[2026-05-15 17:31:22] [INFO ] Sync complete — added: 3  inherited: 3  pushed: 1  stale: 0  log: /...
 ```
 
-View logs:
+**Severity levels:** `[INFO ]`, `[WARN ]`, `[ERROR]`
+
+**Summary line** — every run ends with a count of: issues added, statuses
+inherited from origin, statuses pushed to origin, and stale items moved to Done.
+
+View today's log:
+```bash
+tail -f ~/.sync-gh-board/logs/$(date '+%Y-%m-%d').log
+```
+
+Grep for warnings:
+```bash
+grep '\[WARN\]' ~/.sync-gh-board/logs/*.log
+```
+
+## Recurring sync
+
+Add a cron job to sync every hour (no log redirect needed — sync.sh handles it):
 
 ```bash
-tail -f ~/.local/log/sync-gh-board.log
+(crontab -l 2>/dev/null; echo "0 * * * * /path/to/sync-gh-board/sync.sh") | crontab -
 ```
 
 ## File reference
@@ -92,7 +115,7 @@ tail -f ~/.local/log/sync-gh-board.log
 
 ## State file
 
-Sync state is stored at `~/.local/state/sync-gh-board-state.json` (configurable
+Sync state is stored at `~/.sync-gh-board/state.json` (configurable
 in `config.sh`). It records the last-known status of each tracked issue so the
 sync can detect what changed between runs. Delete it to reset the baseline.
 

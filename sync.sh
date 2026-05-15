@@ -26,7 +26,25 @@ fi
 # shellcheck source=config.sh
 source "$CONFIG_FILE"
 
-log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
+# ── Logging ───────────────────────────────────────────────────────────────────
+# Log directory defaults to ~/.sync-gh-board/logs; override via LOG_DIR in config.sh.
+LOG_DIR="${LOG_DIR:-${HOME}/.sync-gh-board/logs}"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/$(date '+%Y-%m-%d').log"
+
+_log() {
+  local level="$1"; shift
+  local line="[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $*"
+  echo "$line" >> "$LOG_FILE"
+  # Also print to stdout when running interactively (terminal attached)
+  [[ -t 1 ]] && echo "$line"
+}
+log()   { _log "INFO " "$@"; }
+warn()  { _log "WARN " "$@"; }
+error() { _log "ERROR" "$@"; }
+
+# Track summary counters
+_added=0; _pushed=0; _stale=0; _inherited=0
 
 TMPDIR_SYNC=$(mktemp -d)
 trap 'rm -rf "$TMPDIR_SYNC"' EXIT
@@ -96,7 +114,7 @@ set_personal_status() {
   local option_id
   option_id=$(personal_option_id "$status_name")
   if [[ -z "$option_id" ]]; then
-    log "  WARN: No personal board option for '$status_name' — skipping"
+    warn "No personal board option for '$status_name' — skipping"
     return
   fi
   gh api graphql -f query="
@@ -154,7 +172,7 @@ push_origin_status() {
     }
   " 2>/dev/null || true)
 
-  [[ -z "$field_data" ]] && { log "    WARN: could not fetch fields for '$o_project_title'"; return; }
+  [[ -z "$field_data" ]] && { warn "Could not fetch fields for '$o_project_title'"; return; }
 
   read -r o_field_id o_option_id < <(echo "$field_data" | python3 -c "
 $NORMALIZE_PY
@@ -172,7 +190,7 @@ for node in d['data']['node']['fields']['nodes']:
 " 2>/dev/null || true)
 
   if [[ -z "${o_field_id:-}" || -z "${o_option_id:-}" ]]; then
-    log "    WARN: '$status_name' not found in '$o_project_title' — skipping"
+    warn "'$status_name' not found in '$o_project_title' — skipping"
     return
   fi
 
@@ -186,8 +204,8 @@ for node in d['data']['node']['fields']['nodes']:
       }) { projectV2Item { id } }
     }
   " > /dev/null \
-    && log "    ✔ Updated '$o_project_title' → $status_name" \
-    || log "    WARN: mutation failed for '$o_project_title'"
+    && log "  ✔ Pushed '$status_name' → '$o_project_title'" \
+    || warn "Mutation failed for '$o_project_title'"
 }
 
 # ── Step 1: Add open assigned issues ──────────────────────────────────────────
@@ -212,8 +230,9 @@ for repo in "${REPOS[@]}"; do
 
   while IFS= read -r url; do
     echo "$url" >> "$OPEN_URLS_FILE"
-    log "  Adding: $url"
+    log "Adding: $url"
     gh project item-add "$BOARD_NUMBER" --owner "$BOARD_OWNER" --url "$url" 2>/dev/null || true
+    (( _added++ )) || true
   done <<< "$issues"
 done
 
@@ -290,12 +309,13 @@ if [[ -s "$ACTIONS_FILE" ]]; then
 
     case "$action" in
       SET_DONE)
-        log "  → Stale (closed/unassigned): $url"
+        log "Stale (closed/unassigned): $url"
         set_personal_status "$item_id" "$DONE_STATUS"
+        (( _stale++ )) || true
         ;;
 
       INHERIT_ORIGIN)
-        log "  → New item, inheriting origin status: $url"
+        log "New item, inheriting origin status: $url"
         origin_status=""
         origin_project_id=""
         while IFS= read -r oi; do
@@ -311,7 +331,7 @@ if [[ -s "$ACTIONS_FILE" ]]; then
         if [[ -n "$origin_status" ]]; then
           personal_status=$(translate_status "$origin_project_id" "$origin_status")
           personal_status="${personal_status:-$origin_status}"
-          log "    Setting '$personal_status' (from origin: '$origin_status')"
+          log "  Inherited '$personal_status' (origin: '$origin_status')"
           set_personal_status "$item_id" "$personal_status"
           python3 - "$STATE_FILE" "$url" "$personal_status" <<'PYEOF'
 import sys, json
@@ -321,13 +341,14 @@ state[url] = {'personal_status': status, 'origin_status': status}
 with open(sp, 'w') as f: json.dump(state, f, indent=2)
 PYEOF
         else
-          log "    No origin project status — setting 🆕 New"
+          log "  No origin project status — setting 🆕 New"
           set_personal_status "$item_id" "🆕 New"
         fi
+        (( _inherited++ )) || true
         ;;
 
       PUSH_TO_ORIGIN)
-        log "  → Pushing '$status' to origin: $url"
+        log "Pushing '$status' to origin: $url"
         while IFS= read -r oi; do
           [[ -z "$oi" ]] && continue
           o_pid=$(echo "$oi"   | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['projectId'])")
@@ -335,6 +356,7 @@ PYEOF
           o_title=$(echo "$oi" | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['projectTitle'])")
           push_origin_status "$o_pid" "$o_iid" "$o_title" "$status"
         done < <(get_origin_project_items "$url")
+        (( _pushed++ )) || true
         ;;
     esac
   done < "$ACTIONS_FILE"
@@ -342,4 +364,4 @@ else
   log "  No status changes to sync."
 fi
 
-log "=== Sync complete ==="
+log "Sync complete — added: $_added  inherited: $_inherited  pushed: $_pushed  stale: $_stale  log: $LOG_FILE"

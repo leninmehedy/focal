@@ -37,7 +37,7 @@ Kanban board bidirectionally with origin repo project boards.
 
 4. **Schedule recurring sync** (hourly is a good default):
    ```bash
-   (crontab -l 2>/dev/null; echo "0 * * * * $(pwd)/sync.sh >> ~/.local/log/sync-gh-board.log 2>&1") | crontab -
+   (crontab -l 2>/dev/null; echo "0 * * * * $(pwd)/sync.sh >> ~/.sync-gh-board/logs.log 2>&1") | crontab -
    ```
 
 ## Common tasks
@@ -49,14 +49,29 @@ overwrite `config.sh`, so prefer manual edits after initial setup.
 ### Reset sync state
 Delete the state file to re-baseline all item statuses from origin:
 ```bash
-rm ~/.local/state/sync-gh-board-state.json
+rm ~/.sync-gh-board/state.json
 ```
 The next sync run will treat all board items as new and re-inherit origin statuses.
 
 ### Check logs
+Logs go to `~/.sync-gh-board/logs/YYYY-MM-DD.log` (one file per day).
 ```bash
-tail -f ~/.local/log/sync-gh-board.log
+# Follow today's log
+tail -f ~/.sync-gh-board/logs/$(date '+%Y-%m-%d').log
+
+# Grep warnings across all days
+grep '\[WARN\]' ~/.sync-gh-board/logs/*.log
+
+# Check last sync summary
+grep 'Sync complete' ~/.sync-gh-board/logs/$(date '+%Y-%m-%d').log | tail -1
 ```
+
+**Log format:**
+```
+[YYYY-MM-DD HH:MM:SS] [LEVEL] message
+```
+Levels: `[INFO ]`, `[WARN ]`, `[ERROR]`. Every run ends with a summary line
+showing counts: `added`, `inherited`, `pushed`, `stale`.
 
 ### Debug a specific issue
 Run `sync.sh` with `bash -x` to trace execution:
@@ -71,7 +86,7 @@ re-run `./setup.sh` — it will re-inspect and offer fixes again.
 
 ## Architecture notes
 
-- **State file** (`~/.local/state/sync-gh-board-state.json`) — a JSON map of
+- **State file** (`~/.sync-gh-board/state.json`) — a JSON map of
   `issue_url → {personal_status, origin_status}`. Tracks what was last seen so
   the script can detect diffs between runs.
 - **Conflict resolution** — personal board wins. If both sides changed, the
@@ -95,6 +110,7 @@ re-run `./setup.sh` — it will re-inspect and offer fixes again.
 | `DONE_STATUS` | Exact name of the Done option (e.g. `✅ Done`) |
 | `REPOS` | Array of `owner/repo` strings to sync |
 | `STATE_FILE` | Path to the JSON state file |
+| `LOG_DIR` | Directory for daily log files (default: `~/.sync-gh-board/logs`) |
 
 ## Things to be careful about
 

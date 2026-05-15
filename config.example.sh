@@ -35,4 +35,9 @@ DONE_STATUS="✅ Done"
 
 # ── State ─────────────────────────────────────────────────────────────────────
 # Where to store the sync state between runs.
-STATE_FILE="${HOME}/.local/state/sync-gh-board-state.json"
+STATE_FILE="${HOME}/.sync-gh-board/state.json"
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+# Directory for log files. One file per day: YYYY-MM-DD.log
+# Logs are written here AND to stdout when running interactively.
+LOG_DIR="${HOME}/.sync-gh-board/logs"

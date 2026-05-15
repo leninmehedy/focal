@@ -491,7 +491,7 @@ BOARD_NUMBER="$BOARD_NUMBER"
 ASSIGNEE="$ASSIGNEE"
 STATUS_FIELD_ID="$STATUS_FIELD_ID"
 DONE_STATUS="$DONE_STATUS"
-STATE_FILE="\${HOME}/.local/state/sync-gh-board-state.json"
+STATE_FILE="\${HOME}/.sync-gh-board/state.json"
 
 REPOS=(
 $(printf '%s' "$REPOS_SH")
@@ -508,6 +508,6 @@ echo ""
 echo "Next steps:"
 echo "  • Run a one-off sync:        ./sync.sh"
 echo "  • Schedule hourly sync (cron):"
-echo "      (crontab -l 2>/dev/null; echo \"0 * * * * $(pwd)/sync.sh >> ~/.local/log/sync-gh-board.log 2>&1\") | crontab -"
-echo "  • View logs:                 tail -f ~/.local/log/sync-gh-board.log"
+echo "      (crontab -l 2>/dev/null; echo \"0 * * * * $(pwd)/sync.sh\") | crontab -"
+echo "  • View logs:                 tail -f ~/.sync-gh-board/logs/\$(date '+%Y-%m-%d').log"
 echo ""

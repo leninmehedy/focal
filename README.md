@@ -3,6 +3,20 @@
 Bidirectional sync between your personal GitHub Projects Kanban board and
 origin repo project boards across any number of repositories.
 
+## The problem
+
+If you contribute to many GitHub repositories, each with its own project board,
+planning your day looks like this: open repo A's board, find your cards, open
+repo B's board, find your cards, repeat for every repo you're involved in.
+By the time you've done the rounds, you've lost 20 minutes and you still don't
+have a single prioritized view of what you're supposed to do today.
+
+**sync-gh-board solves this.** Create one personal Kanban board — your command
+center — and let this tool keep it in sync with every project board you
+contribute to. All issues assigned to you flow in automatically. You prioritize
+and move cards in one place. Status changes flow back out to the origin projects
+so your teammates always see up-to-date progress. No more board-hopping.
+
 ## What it does
 
 - **Pull** — Open issues assigned to you are automatically added to your personal board. New items inherit their status from the origin project.

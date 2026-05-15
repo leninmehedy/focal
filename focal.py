@@ -40,6 +40,33 @@ def _migrate_legacy_config() -> None:
             _typer.echo(f"Migrated {name} → {new}")
 
 
+def _load_config(require: bool = True) -> "tuple[dict, Path]":
+    """Load ~/.focal/config.json and return (config_dict, config_path).
+
+    If require=True and the file is missing, print a clear actionable error and exit.
+    If require=False and the file is missing, return ({}, path) so callers can warn
+    and proceed with degraded functionality (no board integration).
+    """
+    import json as _json
+
+    _migrate_legacy_config()
+    config_path = FOCAL_HOME / "config.json"
+    if not config_path.exists():
+        if require:
+            from rich.console import Console
+
+            Console().print(
+                "\n[bold red]Focal is not configured.[/bold red]\n\n"
+                "Run [bold]focal board setup[/bold] to set up your personal board and config.\n"
+                "This is required before using PM commands so Focal knows which board\n"
+                "to add epics and stories to, and which GitHub account to use.\n"
+            )
+            raise typer.Exit(1)
+        return {}, config_path
+    with open(config_path) as f:
+        return _json.load(f), config_path
+
+
 # ── focal board ───────────────────────────────────────────────────────────────
 
 
@@ -177,16 +204,9 @@ def pm_epic_create(
     sp: int = typer.Option(None, "--sp", help="Story point estimate (skips prompt)"),
 ):
     """Create a GitHub epic and update docs/focal/epics.md."""
-    import json as _json
-
     from focal.pm.epic_cmd import run
 
-    config: dict = {}
-    config_path = FOCAL_HOME / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
-
+    config, _ = _load_config(require=True)
     run(repo, repo_root.resolve(), config, title=title, description=description, sp=sp)
 
 
@@ -206,16 +226,9 @@ def pm_story_create(
     sp: int = typer.Option(None, "--sp", help="Story point estimate (skips prompt)"),
 ):
     """Create a story linked to an epic and update docs/focal/epics.md."""
-    import json as _json
-
     from focal.pm.story_cmd import run
 
-    config: dict = {}
-    config_path = FOCAL_HOME / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
-
+    config, _ = _load_config(require=True)
     run(
         repo,
         repo_root.resolve(),
@@ -259,15 +272,14 @@ def pm_plan(
     ),
 ):
     """Generate or update docs/focal/iteration-planning.md."""
-    import json as _json
-
     from focal.pm.plan_cmd import run
 
-    config: dict = {}
-    config_path = FOCAL_HOME / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
+    config, _ = _load_config(require=False)
+    if not config:
+        typer.echo(
+            "Note: no board config found — board integration will be skipped. Run: focal board setup",
+            err=True,
+        )
 
     # Parse goals string into dict
     goals_dict: dict | None = None
@@ -322,15 +334,14 @@ def pm_retro(
     notes: str = typer.Option(None, "--notes", help="Free-form notes (skips prompt)"),
 ):
     """Log a completed iteration and update docs/focal/retro-log.md."""
-    import json as _json
-
     from focal.pm.retro_cmd import run
 
-    config: dict = {}
-    config_path = FOCAL_HOME / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
+    config, _ = _load_config(require=False)
+    if not config:
+        typer.echo(
+            "Note: no board config found — board integration will be skipped. Run: focal board setup",
+            err=True,
+        )
 
     # Parse action items
     action_items: list[dict] | None = None
@@ -370,16 +381,14 @@ def pm_status(
     ),
 ):
     """Print a live terminal summary of the current iteration progress."""
-    import json as _json
-
     from focal.pm.status_cmd import run
 
-    config: dict = {}
-    config_path = FOCAL_HOME / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
-
+    config, _ = _load_config(require=False)
+    if not config:
+        typer.echo(
+            "Note: no board config found — board integration will be skipped. Run: focal board setup",
+            err=True,
+        )
     run(repo, repo_root.resolve(), config, refresh=refresh)
 
 
@@ -396,16 +405,9 @@ def cache_refresh(
     ),
 ):
     """Re-fetch all epic/story state from GitHub and update docs/focal/.cache/."""
-    import json as _json
-
     from focal.pm.sync_state_cmd import run
 
-    config: dict = {}
-    config_path = FOCAL_HOME / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
-
+    config, _ = _load_config(require=True)
     run(repo, repo_root.resolve(), config)
 
 
@@ -416,7 +418,6 @@ def cache_refresh_all(
     ),
 ):
     """Re-fetch state for all PM-managed repos registered in ~/.focal/config.json."""
-    import json as _json
 
     from rich.console import Console
 
@@ -424,13 +425,8 @@ def cache_refresh_all(
     from focal.pm import pm_state
     from focal.pm.sync_state_cmd import run
 
-    _migrate_legacy_config()
     console = Console()
-    config_path = FOCAL_HOME / "config.json"
-    if not config_path.exists():
-        typer.echo("ERROR: config.json not found. Run: focal board setup", err=True)
-        raise typer.Exit(1)
-
+    config_dict, config_path = _load_config(require=True)
     cfg = Config.load(config_path)
 
     if not force and not cfg.auto_cache_refresh:
@@ -446,10 +442,6 @@ def cache_refresh_all(
             "[yellow]No PM repos registered. Run [bold]focal pm init[/bold] for each repo first.[/yellow]"
         )
         raise typer.Exit(0)
-
-    config_dict: dict = {}
-    with open(config_path) as f:
-        config_dict = _json.load(f)
 
     errors = 0
     skipped = 0
@@ -500,13 +492,8 @@ def cache_status():
     from focal.config import Config
     from focal.pm import pm_state
 
-    _migrate_legacy_config()
     console = Console()
-    config_path = FOCAL_HOME / "config.json"
-    if not config_path.exists():
-        typer.echo("ERROR: config.json not found. Run: focal board setup", err=True)
-        raise typer.Exit(1)
-
+    _, config_path = _load_config(require=True)
     cfg = Config.load(config_path)
 
     auto = (

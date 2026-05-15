@@ -10,7 +10,7 @@ and markdown files in your repo. No Jira, no Linear, no external tools.
 
 - `focal board setup` completed (personal board configured)
 - `gh` CLI authenticated with `repo` and `project` scopes
-- A GitHub Projects v2 board on the target repo
+- A GitHub Projects v2 board configured in `config.json` (set during `focal board setup`)
 
 ---
 
@@ -71,16 +71,24 @@ capable AI agent already knows how to operate it before you say a word.
 
 ## Quick-start (commands only)
 
+All commands work interactively (prompts) without flags, or fully non-interactively
+when all flags are supplied — useful for scripting and AI agents.
+
 ```bash
+# Interactive — prompts for all inputs
 python3 focal.py pm init owner/repo
 python3 focal.py pm epic-create owner/repo
 python3 focal.py pm story-create owner/repo
 python3 focal.py pm plan owner/repo
 python3 focal.py pm retro owner/repo
 python3 focal.py pm status owner/repo
-
-# pull in externally created issues
 python3 focal.py cache refresh owner/repo
+
+# Non-interactive — common flags (see each command section for full reference)
+python3 focal.py pm epic-create owner/repo --title "Title" --description "..." --sp 8
+python3 focal.py pm story-create owner/repo --epic E1 --title "Title" --sp 3
+python3 focal.py pm plan owner/repo --weeks 2 --start 2026-05-19 --team "alice:8,bob:6"
+python3 focal.py pm retro owner/repo --iteration I1 --goal-met --notes "..."
 ```
 
 ---

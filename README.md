@@ -80,13 +80,18 @@ Then just say:
 
 ### Ongoing use — things you can ask your agent
 
-Once set up, your agent can manage Focal for you in plain language:
+Once set up, your agent can manage both board sync and PM workflows in plain language:
 
+**Board sync**
 - *"Add hashgraph/solo-operator to my sync"*
 - *"Why is issue #42 still showing as New?"*
-- *"Reset and re-sync everything from scratch"*
 - *"Show me warnings from the last sync"*
-- *"The hourly sync stopped running — what's wrong?"*
+
+**Project management**
+- *"Read our design doc and create the epics and stories"*
+- *"Plan I1 — 2-week sprint, me and @bob at 8 SP each, starting Monday"*
+- *"What's our iteration status?"*
+- *"Log the I1 retro — we hit our goal, no blockers, estimates were a bit off"*
 
 ---
 

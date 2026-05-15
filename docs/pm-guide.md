@@ -8,7 +8,7 @@ and markdown files in your repo. No Jira, no Linear, no external tools.
 
 ## Prerequisites
 
-- `focal setup` completed (personal board configured)
+- `focal board setup` completed (personal board configured)
 - `gh` CLI authenticated with `repo` and `project` scopes
 - A GitHub Projects v2 board on the target repo
 
@@ -36,17 +36,20 @@ Step 4  focal pm epic-create owner/repo    # repeat per epic
         focal pm story-create owner/repo   # repeat per story
 
 Step 5  focal pm plan owner/repo
-        └─ generates docs/focal/iteration-planning.md from GitHub state
+        └─ generates docs/focal/iteration-planning.md from local cache
 
 Step 6  focal board sync                   # runs hourly via scheduler
         └─ keeps personal board in sync during delivery
 
 Step 7  focal pm retro owner/repo          # at end of each iteration
-        └─ logs velocity to docs/focal/retro-log.md
+        └─ logs velocity + retrospective to docs/focal/retro-log.md
 
-Step 8  focal pm status owner/repo         # any time
+Step 8  focal pm status owner/repo         # any time during an iteration
         └─ live terminal summary of current iteration
 ```
+
+**Tip:** run `focal cache refresh owner/repo` any time to pull in issues created or
+updated directly on GitHub (outside Focal commands).
 
 ### Step 3 in detail — planning with an AI agent
 
@@ -68,13 +71,16 @@ capable AI agent already knows how to operate it before you say a word.
 
 ## Quick-start (commands only)
 
-```
+```bash
 python3 focal.py pm init owner/repo
 python3 focal.py pm epic-create owner/repo
 python3 focal.py pm story-create owner/repo
 python3 focal.py pm plan owner/repo
 python3 focal.py pm retro owner/repo
 python3 focal.py pm status owner/repo
+
+# pull in externally created issues
+python3 focal.py cache refresh owner/repo
 ```
 
 ---
@@ -157,7 +163,7 @@ as its primary input — it does not need to infer the structure from the rest o
 
 Bootstrap a repo with the Focal project management structure. Safe to re-run — existing files are never overwritten.
 
-```
+```bash
 python3 focal.py pm init <owner/repo> [--repo-root PATH]
 ```
 
@@ -169,7 +175,7 @@ python3 focal.py pm init <owner/repo> [--repo-root PATH]
 | `.github/ISSUE_TEMPLATE/story.md` | GitHub issue template for stories |
 | `docs/focal/epics.md` | Epic/story tracker with SP rollups |
 | `docs/focal/iteration-planning.md` | Capacity, schedule, and risk register |
-| `docs/focal/retro-log.md` | Velocity history per iteration |
+| `docs/focal/retro-log.md` | Velocity and retrospective history |
 | `docs/focal/design/` | Directory for per-feature design records |
 
 **Labels created:** `epic` (purple) · `story` (blue)
@@ -193,12 +199,12 @@ $ python3 focal.py pm init leninmehedy/my-project
 
 ---
 
-### `focal pm epic create`
+### `focal pm epic-create`
 
 Guided wizard to create a GitHub epic issue and record it in `docs/focal/epics.md`.
 
-```
-python3 focal.py pm epic create --repo <owner/repo> [--repo-root PATH]
+```bash
+python3 focal.py pm epic-create <owner/repo> [--repo-root PATH]
 ```
 
 **What it does:**
@@ -207,12 +213,12 @@ python3 focal.py pm epic create --repo <owner/repo> [--repo-root PATH]
 2. Creates a GitHub Issue with the `epic` label, assigned to you
 3. Adds the issue to your project board
 4. Appends a structured entry to `docs/focal/epics.md` with an auto-incremented ID (E1, E2, …)
-5. Commits `docs/focal/epics.md`
+5. Updates the local state cache and commits `docs/focal/epics.md`
 
 **Epic format in `docs/focal/epics.md`:**
 
 ```markdown
-## E3 — Add OAuth support · #42 · 21 SP
+## E3 — Add OAuth support · [#42](https://github.com/.../issues/42) · 21 SP
 
 Allow users to log in with GitHub and Google.
 
@@ -223,49 +229,51 @@ Allow users to log in with GitHub and Google.
 **Example:**
 
 ```
-$ python3 focal.py pm epic create --repo leninmehedy/my-project
+$ python3 focal.py pm epic-create leninmehedy/my-project
   Title: Add OAuth support
   Description: Allow users to log in with GitHub and Google.
   Estimate (SP): 21
   ✔ Created issue #42 — Epic: Add OAuth support
   ✔ Added to project board
   ✔ docs/focal/epics.md updated (E3)
+  ✔ Local state updated
   ✔ Committed
 ```
 
 ---
 
-### `focal pm story create`
+### `focal pm story-create`
 
 Create a story issue attached to an existing epic.
 
-```
-python3 focal.py pm story create --repo <owner/repo> [--repo-root PATH]
+```bash
+python3 focal.py pm story-create <owner/repo> [--repo-root PATH]
 ```
 
 **What it does:**
 
-1. Lists open epics and prompts you to select one
+1. Lists open epics from local state and prompts you to select one
 2. Prompts for story title, description, and SP estimate
 3. Creates a GitHub Issue with the `story` label, linked as sub-issue to the epic
 4. Adds the issue to the project board with SP set
 5. Appends the story row to the epic's table in `docs/focal/epics.md` (auto-numbered 1.1, 1.2, …)
-6. Commits `docs/focal/epics.md`
+6. Updates the local state cache and commits `docs/focal/epics.md`
 
 **Example:**
 
 ```
-$ python3 focal.py pm story create --repo leninmehedy/my-project
+$ python3 focal.py pm story-create leninmehedy/my-project
   Select epic:
-    1. E3 — Add OAuth support (#42) · 21 SP
+    1  E3 — Add OAuth support (#42) · 21 SP
   Choice: 1
-  Title: Implement GitHub OAuth flow
+  Story title: Implement GitHub OAuth flow
   Description: Add GitHub OAuth callback endpoint and session handling.
   Estimate (SP): 5
   ✔ Created issue #43 — Implement GitHub OAuth flow
   ✔ Linked as sub-issue to #42
   ✔ Story point set: 5 SP
   ✔ docs/focal/epics.md updated (3.1)
+  ✔ Local state updated
   ✔ Committed
 ```
 
@@ -279,58 +287,75 @@ $ python3 focal.py pm story create --repo leninmehedy/my-project
 
 ### `focal pm plan`
 
-Generate or update `docs/focal/iteration-planning.md` from current GitHub Issues state.
+Generate or update `docs/focal/iteration-planning.md` from the local state cache.
 
-```
-python3 focal.py pm plan --repo <owner/repo> [--repo-root PATH] [--iteration N]
+```bash
+python3 focal.py pm plan <owner/repo> [--repo-root PATH] [--refresh]
 ```
 
 **What it does:**
 
-1. Reads all open stories, their SP, assignees, and current status
-2. Prompts for iteration length, start date, team members, and capacity per person
-3. Prompts for PTO/travel dates (reduces capacity for affected iterations)
-4. Groups stories into iterations by SP capacity
-5. Identifies risks: stories with no estimate, unassigned epics, blocked items
-6. Writes structured markdown to `docs/focal/iteration-planning.md`
+1. Reads all open stories, their SP, assignees, and current status from local cache
+2. Prompts for iteration length (weeks) and start date
+3. Prompts for team members and capacity (SP/iteration) per person
+4. Prompts for PTO/travel dates — reduces capacity for affected iterations automatically
+5. Prompts for an iteration goal for each planned iteration (used later in `retro`)
+6. Groups stories into iterations by SP capacity (greedy, highest-known-SP first)
+7. Identifies risks: stories without estimates, unassigned stories, blocked items
+8. Writes structured markdown to `docs/focal/iteration-planning.md`
+9. Persists the iteration schedule to local state and commits
 
-**Use `--iteration N`** to plan a specific iteration without regenerating the full document.
+Use `--refresh` to re-fetch all story state from GitHub before planning.
 
 **Example:**
 
 ```
-$ python3 focal.py pm plan --repo leninmehedy/my-project
+$ python3 focal.py pm plan leninmehedy/my-project
   Iteration length (weeks) [2]: 2
   Start date [2026-05-18]: 2026-05-18
-  Team members (comma-separated GitHub handles): leninmehedy,collaborator
+  GitHub handles (comma-separated): leninmehedy,collaborator
   Capacity for @leninmehedy (SP/iter) [8]: 8
   Capacity for @collaborator (SP/iter) [8]: 6
-  Any PTO/travel? (y/N): y
-    @leninmehedy away Jun 27–Jul 4 (affects I4)
-  ✔ 3 epics · 14 stories · 62 SP total scope
-  ✔ Projected delivery: I6 (Aug 9, 2026)
-  ✔ docs/focal/iteration-planning.md updated
+  Any PTO or travel? (y/N): y
+    @leninmehedy away from: 2026-06-27
+    @leninmehedy away until: 2026-07-04
+
+  Iteration goals (used in retro — blank to skip)
+  I1 goal: Ship auth middleware refactor
+  I2 goal: Close E2 OAuth epic
+
+  ✔ docs/focal/iteration-planning.md written
+  ✔ Local state updated
+  ✔ Committed
+  Plan generated — 4 iteration(s)
 ```
+
+**Tip:** if stories were created or updated outside Focal, run `focal cache refresh` before
+`focal pm plan` to ensure the plan reflects current GitHub state.
 
 ---
 
 ### `focal pm retro`
 
-Close out a completed iteration and update `docs/focal/retro-log.md`.
+Close out a completed iteration and append a retrospective record to `docs/focal/retro-log.md`.
 
-```
-python3 focal.py pm retro --repo <owner/repo> [--repo-root PATH] [--iteration N]
+```bash
+python3 focal.py pm retro <owner/repo> [--repo-root PATH] [--refresh]
 ```
 
 **What it does:**
 
-1. Reads planned stories for the iteration from `docs/focal/iteration-planning.md`
-2. Checks GitHub Issues for which are closed (delivered) vs still open (carry-over)
-3. Prompts for a slip reason per carry-over story
-4. Calculates velocity: planned SP, delivered SP, carry-over SP
-5. Appends a structured iteration record to `docs/focal/retro-log.md`
-6. Updates the cumulative velocity table
-7. Commits `docs/focal/retro-log.md`
+1. Lists planned iterations and prompts you to select one
+2. Checks GitHub Issues live to split stories into delivered vs carry-over
+3. Prompts for a slip reason code per carry-over story
+4. Asks whether the iteration goal was met (reads the goal set during `focal pm plan`)
+5. Prompts for what went well and what to improve (bulleted lists)
+6. Prompts for action items with owner and optional due date
+7. Calculates velocity: planned SP, delivered SP, carry-over SP
+8. Appends a structured block to `docs/focal/retro-log.md`
+9. Updates the cumulative velocity table and commits
+
+Use `--refresh` to re-fetch all story state from GitHub before logging.
 
 **Slip reason codes:**
 
@@ -338,72 +363,157 @@ python3 focal.py pm retro --repo <owner/repo> [--repo-root PATH] [--iteration N]
 |------|---------|
 | `SCOPE` | Story was larger than estimated |
 | `BLOCKED` | External dependency or blocker |
-| `LEAVE` | Engineer on leave |
-| `TRAVEL` | Engineer travelling |
-| `CARRY` | Deliberate carry-over (deprioritised) |
-| `REPRIORITY` | Reprioritised in favour of something else |
+| `LEAVE` | Engineer on unplanned leave |
+| `TRAVEL` | Engineer travelling / at conference |
+| `CARRY` | Underestimated — carries forward |
+| `REPRIORITY` | Deprioritised by stakeholder |
 
 **Example:**
 
 ```
-$ python3 focal.py pm retro --repo leninmehedy/my-project --iteration 1
-  Iteration I1 (May 18 – May 31) — planned 22 SP
+$ python3 focal.py pm retro leninmehedy/my-project
+  Select iteration to close:
+    1  I1 — 2026-05-18 → 2026-05-31  (14 SP)
+  Choice: 1
 
-  #43 Implement GitHub OAuth flow — CLOSED ✔
-  #44 Add Google OAuth flow — OPEN
-    Slip reason [SCOPE/BLOCKED/LEAVE/TRAVEL/CARRY/REPRIORITY]: SCOPE
-    Notes: took longer than estimated due to session handling edge cases
+  Checking GitHub issue status for 3 stories...
+  ✔ Delivered: 2 stories · Carry-over: 1 story
 
-  Planned: 22 SP · Delivered: 17 SP · Carry-over: 5 SP
-  ✔ docs/focal/retro-log.md updated (I1)
+  Slip reasons (for carry-over stories)
+  #44 Add Google OAuth flow [5 SP]: SCOPE
+    Optional note: session handling took longer than expected
+
+  Iteration goal: Ship auth middleware refactor
+  Goal met? [Y/n]: Y
+
+  What went well? (one per line, blank to finish)
+    • Pairing sessions kept blockers short
+    •
+
+  What to improve? (one per line, blank to finish)
+    • SP estimates for auth work were too optimistic
+    •
+
+  Action items (blank handle to finish)
+    Owner handle: leninmehedy
+    @leninmehedy: action: Re-estimate carry-over stories before I2
+    Due date: 2026-06-02
+    Owner handle:
+
+  Free-form notes: Good iteration overall despite scope slip on #44.
+
+  ✔ docs/focal/retro-log.md updated
   ✔ Committed
+  Retro logged — I1
+  Planned: 14 SP · Delivered: 9 SP · Carry-over: 5 SP
 ```
 
 **Record appended to `docs/focal/retro-log.md`:**
 
 ```markdown
-## I1 - May 18 (May 18 – May 31)
+## I1 — May 18, 2026 – May 31, 2026
+
+### Goal
+
+> Ship auth middleware refactor
+
+**Met:** ✅ Yes
 
 ### Planned
-- @leninmehedy: #43 GitHub OAuth (5 SP) · #44 Google OAuth (5 SP) · ...
+- @leninmehedy: [#43](https://github.com/.../issues/43) GitHub OAuth flow (5 SP)
+- @leninmehedy: [#44](https://github.com/.../issues/44) Google OAuth flow (5 SP)
+- @leninmehedy: [#45](https://github.com/.../issues/45) Auth middleware (4 SP)
 
 ### Delivered
-- @leninmehedy: #43
+- @leninmehedy: [#43](https://github.com/.../issues/43) GitHub OAuth flow (5 SP)
+- @leninmehedy: [#45](https://github.com/.../issues/45) Auth middleware (4 SP)
 
 ### Velocity
-- Planned: 22 SP · Delivered: 17 SP · Carry-over: 5 SP
+
+- Planned: **14 SP** · Delivered: **9 SP** · Carry-over: **5 SP**
 
 ### Slip Reasons
-- #44 — SCOPE — took longer than estimated due to session handling edge cases
+
+- [#44](https://github.com/.../issues/44) Google OAuth flow — **SCOPE** — session handling took longer than expected
+
+### What went well
+
+- Pairing sessions kept blockers short
+
+### What to improve
+
+- SP estimates for auth work were too optimistic
+
+### Action items
+
+- [ ] @leninmehedy: Re-estimate carry-over stories before I2 (by 2026-06-02)
 
 ### Notes
+
+Good iteration overall despite scope slip on #44.
+
+---
 ```
 
 ---
 
 ### `focal pm status`
 
-Print a live terminal summary of the current iteration without opening GitHub.
+Print a live terminal summary of the current iteration.
 
+```bash
+python3 focal.py pm status <owner/repo> [--repo-root PATH] [--refresh]
 ```
-python3 focal.py pm status --repo <owner/repo>
-```
+
+Reads story state from the local cache. Use `--refresh` to pull the latest status
+from GitHub before displaying (adds a "Last synced" timestamp to the output).
 
 **Example output:**
 
 ```
-Focal Board — Iteration 1 (May 18 – May 31)
-─────────────────────────────────────────────
- Delivered   ████████░░░░  12 / 22 SP (55%)
- In progress  2 stories · 5 SP
- Blocked      1 story   · 3 SP
- Not started  3 stories · 2 SP
+  ◎  Focal — status (leninmehedy/my-project)
 
- Days remaining: 6
- Projected delivery: 17 SP (77%)
+Focal Board — I1 (May 18 – May 31)
+────────────────────────────────────────────────────────
+  Delivered       ████████░░░░░░░░░░░░░░░░  9 / 14 SP (64%)
+  In progress     2 stories · 5 SP
+  Blocked         0 stories · 0 SP
+  Not started     1 story   · 0 SP
+
+  Days remaining:  6
+  Projected:       13 SP (93%)
 ```
 
-Reads live from GitHub Issues + Projects. No local state file required.
+Blocked stories are listed in detail below the summary if any are present.
+
+---
+
+### `focal cache refresh`
+
+Re-fetch all epic, story, and project-board state from GitHub and update the local cache.
+
+```bash
+python3 focal.py cache refresh <owner/repo> [--repo-root PATH]
+```
+
+**When to run:**
+
+- Issues were created or updated directly on GitHub (outside Focal commands)
+- Project board statuses were changed manually
+- Before `focal pm plan` or `focal pm retro` when you want guaranteed fresh data
+  (or use the `--refresh` flag on those commands directly)
+
+The local cache at `docs/focal/.cache/focal-state.json` is the source of truth for
+`plan`, `retro`, and `status`. GitHub is always the authority — the cache is just a
+read-through for speed.
+
+**Example:**
+
+```
+$ python3 focal.py cache refresh leninmehedy/my-project
+  ✔ Synced 3 epics, 14 stories
+  ✔ Last synced: 2026-05-18T09:42:11+00:00
+```
 
 ---
 
@@ -413,14 +523,16 @@ Reads live from GitHub Issues + Projects. No local state file required.
 your-repo/
   .github/
     ISSUE_TEMPLATE/
-      epic.md               ← GitHub template for epic issues
-      story.md              ← GitHub template for story issues
+      epic.md                    ← GitHub template for epic issues
+      story.md                   ← GitHub template for story issues
   docs/
     focal/
-        epics.md                ← epic/story tracker, updated by focal epic/story create
-      iteration-planning.md   ← capacity + schedule, updated by focal pm plan
-      retro-log.md            ← velocity history, updated by focal pm retro
-      design/                 ← per-feature design records (manual)
+      epics.md                   ← epic/story tracker, updated by epic-create/story-create
+      iteration-planning.md      ← capacity + schedule, updated by focal pm plan
+      retro-log.md               ← velocity + retrospective history, updated by focal pm retro
+      design/                    ← per-feature design records (manual)
+      .cache/
+        focal-state.json         ← local state cache (do not edit manually)
 ```
 
 ---
@@ -439,6 +551,8 @@ focal/
     ISSUE_TEMPLATE/
       epic.md
       story.md
+    design/
+      design-template.md
 ```
 
 Changes to these files take effect the next time you run `focal pm init` on a new repo.

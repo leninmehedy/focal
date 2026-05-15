@@ -88,8 +88,16 @@ def _git_commit(repo_root: Path, message: str) -> None:
     )
 
 
-def run(repo: str, repo_root: Path, config: dict) -> None:
-    """Interactive wizard — create a GitHub story and update docs/focal/epics.md."""
+def run(
+    repo: str,
+    repo_root: Path,
+    config: dict,
+    epic_id: str | None = None,
+    title: str | None = None,
+    description: str | None = None,
+    sp: int | None = None,
+) -> None:
+    """Create a GitHub story and update docs/focal/epics.md."""
     console.print(f"\n[bold cyan]  ◎  Focal — story create ({repo})[/bold cyan]\n")
 
     epics_path = repo_root / "docs" / "focal" / "epics.md"
@@ -109,29 +117,39 @@ def run(repo: str, repo_root: Path, config: dict) -> None:
         )
         return
 
-    # Select epic
-    console.print("Select epic:\n")
-    for i, e in enumerate(epics, 1):
-        console.print(
-            f"  [bold]{i}[/bold]  {e['id']} — {e['title']} (#{e['issue_number']}) · {e['sp']} SP"
-        )
-    choice = Prompt.ask("\nChoice", default="1")
-    try:
-        epic = epics[int(choice) - 1]
-    except (ValueError, IndexError):
-        console.print("[red]Invalid choice.[/red]")
-        return
+    # Select epic — by ID flag or interactive
+    if epic_id is not None:
+        epic = next((e for e in epics if e["id"].upper() == epic_id.upper()), None)
+        if not epic:
+            console.print(f"[red]Epic '{epic_id}' not found in local state.[/red]")
+            return
+        console.print(f"Epic: [bold]{epic['id']}[/bold] — {epic['title']}")
+    else:
+        console.print("Select epic:\n")
+        for i, e in enumerate(epics, 1):
+            console.print(
+                f"  [bold]{i}[/bold]  {e['id']} — {e['title']} (#{e['issue_number']}) · {e['sp']} SP"
+            )
+        choice = Prompt.ask("\nChoice", default="1")
+        try:
+            epic = epics[int(choice) - 1]
+        except (ValueError, IndexError):
+            console.print("[red]Invalid choice.[/red]")
+            return
 
     story_id = _next_story_id(epics_path, epic["id"])
     console.print(f"\nNext story ID: [bold]{story_id}[/bold]\n")
 
-    title = Prompt.ask("Story title")
-    description = Prompt.ask("Description (one line)")
-    sp_raw = Prompt.ask("Estimate (story points)", default="0")
-    try:
-        sp = int(sp_raw)
-    except ValueError:
-        sp = 0
+    if title is None:
+        title = Prompt.ask("Story title")
+    if description is None:
+        description = Prompt.ask("Description (one line)")
+    if sp is None:
+        sp_raw = Prompt.ask("Estimate (story points)", default="0")
+        try:
+            sp = int(sp_raw)
+        except ValueError:
+            sp = 0
 
     assignee = config.get("assignee", "")
     board_number = config.get("board_number")

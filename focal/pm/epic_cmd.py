@@ -59,8 +59,15 @@ def _git_commit(repo_root: Path, message: str) -> None:
     )
 
 
-def run(repo: str, repo_root: Path, config: dict) -> None:
-    """Interactive wizard — create a GitHub epic and update docs/epics.md."""
+def run(
+    repo: str,
+    repo_root: Path,
+    config: dict,
+    title: str | None = None,
+    description: str | None = None,
+    sp: int | None = None,
+) -> None:
+    """Create a GitHub epic and update docs/focal/epics.md."""
     console.print(f"\n[bold cyan]  ◎  Focal — epic create ({repo})[/bold cyan]\n")
 
     epics_path = repo_root / "docs" / "focal" / "epics.md"
@@ -73,13 +80,16 @@ def run(repo: str, repo_root: Path, config: dict) -> None:
     epic_id = _next_epic_id(epics_path)
     console.print(f"Next epic ID: [bold]{epic_id}[/bold]\n")
 
-    title = Prompt.ask("Epic title")
-    description = Prompt.ask("Description (one line)")
-    sp_raw = Prompt.ask("Estimate (story points)", default="0")
-    try:
-        sp = int(sp_raw)
-    except ValueError:
-        sp = 0
+    if title is None:
+        title = Prompt.ask("Epic title")
+    if description is None:
+        description = Prompt.ask("Description (one line)")
+    if sp is None:
+        sp_raw = Prompt.ask("Estimate (story points)", default="0")
+        try:
+            sp = int(sp_raw)
+        except ValueError:
+            sp = 0
 
     assignee = config.get("assignee", "")
     board_number = config.get("board_number")

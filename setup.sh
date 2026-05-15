@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 # Thin wrapper — delegates to the Python CLI.
-exec python3 "$(dirname "$0")/focal.py" setup "$@"
+exec python3 "$(dirname "$0")/focal.py" board setup "$@"

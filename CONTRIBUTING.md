@@ -36,8 +36,8 @@ version and generate the changelog automatically.
 
 ## Local development tips
 
-- Run a sync: `python3 focal.py sync` — logs go to `~/.focal/logs/`
-- Run setup: `python3 focal.py setup`
+- Run a sync: `python3 focal.py board sync` — logs go to `~/.focal/logs/`
+- Run setup: `python3 focal.py board setup`
 - Reset state: `rm ~/.focal/state.json` — next sync re-inherits all statuses
 - `config.json` and `status_map.json` are gitignored — never commit them
 - All GitHub API calls are in `focal/gh.py` — good starting point for new features

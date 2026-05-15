@@ -24,6 +24,8 @@
         <string>/bin/bash</string>
         <string>/path/to/focal/sync.sh</string>
     </array>
+    <!-- sync.sh is a thin wrapper: exec python3 focal.py sync
+         Make sure python3 is on your PATH above, or use the full path. -->
 
     <!-- Run every hour (3600 seconds). Adjust as needed. -->
     <key>StartInterval</key>

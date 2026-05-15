@@ -1,5 +1,9 @@
+config.json
 config.sh
 status_map.json
 state/
 *.log
 ~/.focal/
+__pycache__/
+*.pyc
+.venv/

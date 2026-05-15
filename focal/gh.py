@@ -1,0 +1,123 @@
+"""Thin wrapper around the gh CLI. All GitHub I/O goes through here."""
+import json
+import subprocess
+from typing import Any, Optional
+
+
+def _run(*args: str) -> str:
+    result = subprocess.run(["gh"] + list(args), capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or f"gh {args[0]} failed")
+    return result.stdout.strip()
+
+
+def _graphql(query: str) -> Any:
+    out = _run("api", "graphql", "-f", f"query={query}")
+    return json.loads(out)
+
+
+# ── Project metadata ──────────────────────────────────────────────────────────
+
+def project_id(number: int, owner: str) -> str:
+    out = _run("project", "view", str(number), "--owner", owner, "--format", "json", "--jq", ".id")
+    return out
+
+
+def project_fields(number: int, owner: str) -> list[dict]:
+    out = _run("project", "field-list", str(number), "--owner", owner, "--format", "json")
+    return json.loads(out).get("fields", [])
+
+
+def project_items(number: int, owner: str, limit: int = 500) -> list[dict]:
+    out = _run(
+        "project", "item-list", str(number), "--owner", owner,
+        "--limit", str(limit), "--format", "json",
+    )
+    return json.loads(out).get("items", [])
+
+
+# ── Issue listing ─────────────────────────────────────────────────────────────
+
+def open_assigned_issues(repo: str, assignee: str, limit: int = 500) -> list[str]:
+    out = _run(
+        "issue", "list", "--repo", repo, "--assignee", assignee,
+        "--state", "open", "--limit", str(limit), "--json", "url", "--jq", ".[].url",
+    )
+    return [line.strip() for line in out.splitlines() if line.strip()]
+
+
+# ── Project item mutations ────────────────────────────────────────────────────
+
+def add_item(number: int, owner: str, url: str) -> None:
+    _run("project", "item-add", str(number), "--owner", owner, "--url", url)
+
+
+def set_item_field(project_id: str, item_id: str, field_id: str, option_id: str) -> None:
+    _graphql(f"""
+      mutation {{
+        updateProjectV2ItemFieldValue(input: {{
+          projectId: "{project_id}"
+          itemId: "{item_id}"
+          fieldId: "{field_id}"
+          value: {{ singleSelectOptionId: "{option_id}" }}
+        }}) {{ projectV2Item {{ id }} }}
+      }}
+    """)
+
+
+# ── Issue → origin project items ─────────────────────────────────────────────
+
+def issue_project_items(issue_url: str) -> list[dict]:
+    data = _graphql(f"""
+      query {{
+        resource(url: "{issue_url}") {{
+          ... on Issue {{
+            projectItems(first: 20) {{
+              nodes {{
+                id
+                project {{ id title }}
+                fieldValueByName(name: "Status") {{
+                  ... on ProjectV2ItemFieldSingleSelectValue {{ name optionId }}
+                }}
+              }}
+            }}
+          }}
+        }}
+      }}
+    """)
+    nodes = (
+        data.get("data", {})
+        .get("resource", {})
+        .get("projectItems", {})
+        .get("nodes", [])
+    )
+    return [
+        {
+            "itemId": n["id"],
+            "projectId": n["project"]["id"],
+            "projectTitle": n["project"]["title"],
+            "status": (n.get("fieldValueByName") or {}).get("name", ""),
+        }
+        for n in nodes
+    ]
+
+
+def origin_status_field(project_id: str) -> Optional[dict]:
+    """Return the Status single-select field (with options) for an origin project."""
+    data = _graphql(f"""
+      query {{
+        node(id: "{project_id}") {{
+          ... on ProjectV2 {{
+            fields(first: 20) {{
+              nodes {{
+                ... on ProjectV2SingleSelectField {{ id name options {{ id name }} }}
+              }}
+            }}
+          }}
+        }}
+      }}
+    """)
+    for node in data["data"]["node"]["fields"]["nodes"]:
+        if node.get("name") == "Status":
+            return node
+    return None

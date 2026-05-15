@@ -35,21 +35,20 @@ always see up-to-date progress. No more board-hopping.
 ```bash
 git clone https://github.com/leninmehedy/focal.git
 cd focal
-chmod +x setup.sh sync.sh
-./setup.sh
+pip3 install -r requirements.txt
+python3 focal.py setup
 ```
 
-`setup.sh` will guide you through everything interactively and generate `config.sh`.
-
-Then run a sync manually:
+The setup wizard guides you through everything interactively and generates
+`config.json`. Then run a sync manually to verify:
 
 ```bash
-./sync.sh
+python3 focal.py sync
 ```
 
 ## Selecting repos
 
-During `setup.sh` you can choose one of three modes:
+During setup you can choose one of three modes:
 
 | Mode | Description |
 |---|---|
@@ -57,7 +56,7 @@ During `setup.sh` you can choose one of three modes:
 | **Interactive select** | Browse and pick from your accessible repos |
 | **Full scan** | Scans ALL repos you have access to (slow — may take minutes) |
 
-You can edit the `REPOS` array in `config.sh` at any time to add or remove repos.
+You can edit the `repos` array in `config.json` at any time to add or remove repos.
 
 ## Status column alignment
 
@@ -82,7 +81,7 @@ treated as the same status, so minor cosmetic differences don't break the sync.
 ## Logging
 
 Logs are written to `~/.focal/logs/YYYY-MM-DD.log` (one file per day, naturally
-self-rotating). Override the directory via `LOG_DIR` in `config.sh`. When
+self-rotating). Override the directory via `log_dir` in `config.json`. When
 running interactively, logs are also printed to stdout.
 
 **Format:**

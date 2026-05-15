@@ -2,14 +2,38 @@
 """Focal CLI — bidirectional GitHub Projects sync + project management."""
 
 from pathlib import Path
+from typing import Optional
 
 import typer
+
+VERSION = "1.3.0"
 
 app = typer.Typer(
     name="focal",
     help="Focal — sync your personal GitHub Projects board and manage project delivery.",
     no_args_is_help=True,
 )
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"focal {VERSION}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: Optional[bool] = typer.Option(
+        None,
+        "--version",
+        "-V",
+        callback=_version_callback,
+        is_eager=True,
+        help="Show version and exit.",
+    ),
+) -> None:
+    pass
+
 
 # focal board — personal board sync commands
 board_app = typer.Typer(help="Personal board sync commands.")

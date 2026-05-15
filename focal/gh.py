@@ -54,7 +54,16 @@ def project_items(number: int, owner: str, limit: int = 500) -> list[dict]:
         "--format",
         "json",
     )
-    return json.loads(out).get("items", [])
+    items = json.loads(out).get("items", [])
+    if len(items) >= limit:
+        import warnings
+
+        warnings.warn(
+            f"project_items: fetched {len(items)} items (hit the {limit}-item cap). "
+            "Some board statuses may be missing — board sync may be incomplete.",
+            stacklevel=2,
+        )
+    return items
 
 
 # ── Issue listing ─────────────────────────────────────────────────────────────

@@ -97,18 +97,24 @@ def run(repo: str, repo_root: Path) -> None:
 
     design_dir = repo_root / "docs" / "focal" / "design"
     design_dir.mkdir(parents=True, exist_ok=True)
-    gitkeep = design_dir / ".gitkeep"
-    if not gitkeep.exists():
-        gitkeep.touch()
+    _copy_template(
+        TEMPLATES_DIR / "design" / "design-template.md",
+        design_dir / "design-template.md",
+        repo,
+    )
     console.print(f"  [green]✔[/green] {design_dir}/")
 
     console.print("\n[bold green]Init complete![/bold green]\n")
     console.print("Next steps:")
     console.print(
-        f"  Create your first epic:  [bold]python3 focal.py pm epic create --repo {repo}[/bold]"
+        "  1. Write a design doc:   [bold]cp templates/design/design-template.md "
+        "docs/focal/design/D001-my-feature.md[/bold]"
     )
     console.print(
-        "  Commit the scaffold:     [bold]git add docs/focal/ .github/ISSUE_TEMPLATE/ && "
+        f"  2. Create your first epic:  [bold]python3 focal.py pm epic-create {repo}[/bold]"
+    )
+    console.print(
+        "  3. Commit the scaffold:  [bold]git add docs/focal/ .github/ISSUE_TEMPLATE/ && "
         "git commit -m 'chore: focal init'[/bold]"
     )
     console.print("\nCanonical Status columns for your GitHub Projects board:")

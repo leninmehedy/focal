@@ -5,9 +5,11 @@ from pathlib import Path
 
 from rich.console import Console
 
-from . import templates
-
 console = Console()
+
+# Templates live in <focal_root>/templates/ so users can customise them
+FOCAL_ROOT = Path(__file__).parent.parent.parent
+TEMPLATES_DIR = FOCAL_ROOT / "templates"
 
 LABELS = [
     ("epic", "5319E7", "Large feature — parent of stories"),
@@ -31,7 +33,7 @@ def _gh(*args: str) -> tuple[int, str, str]:
 
 
 def _ensure_label(repo: str, name: str, color: str, description: str) -> None:
-    rc, _, _ = _gh(
+    _, out, _ = _gh(
         "label",
         "list",
         "--repo",
@@ -39,24 +41,11 @@ def _ensure_label(repo: str, name: str, color: str, description: str) -> None:
         "--json",
         "name",
         "--jq",
-        f'.[].name | select(. == "{name}")',
+        f'[.[].name] | contains(["{name}"])',
     )
-    if rc == 0 and name:
-        # Check if label already exists
-        rc2, out, _ = _gh(
-            "label",
-            "list",
-            "--repo",
-            repo,
-            "--json",
-            "name",
-            "--jq",
-            f'[.[].name] | contains(["{name}"])',
-        )
-        if out == "true":
-            console.print(f"  [dim]label '{name}' already exists — skipping[/dim]")
-            return
-
+    if out == "true":
+        console.print(f"  [dim]label '{name}' already exists — skipping[/dim]")
+        return
     rc, _, err = _gh(
         "label",
         "create",
@@ -75,14 +64,16 @@ def _ensure_label(repo: str, name: str, color: str, description: str) -> None:
         console.print(f"  [green]✔[/green] Label '{name}' ready")
 
 
-def _write_file(path: Path, content: str, overwrite: bool = False) -> bool:
-    if path.exists() and not overwrite:
-        console.print(f"  [dim]{path} already exists — skipping[/dim]")
-        return False
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content)
-    console.print(f"  [green]✔[/green] {path}")
-    return True
+def _copy_template(src: Path, dest: Path, repo: str) -> None:
+    if dest.exists():
+        console.print(
+            f"  [dim]{dest.relative_to(dest.anchor)} already exists — skipping[/dim]"
+        )
+        return
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    content = src.read_text().replace("{repo}", repo)
+    dest.write_text(content)
+    console.print(f"  [green]✔[/green] {dest}")
 
 
 def run(repo: str, repo_root: Path) -> None:
@@ -96,35 +87,29 @@ def run(repo: str, repo_root: Path) -> None:
 
     # ── Issue templates ───────────────────────────────────────────────────────
     console.rule("[bold]Step 2: Issue templates[/bold]")
-    template_dir = repo_root / ".github" / "ISSUE_TEMPLATE"
-    _write_file(template_dir / "epic.md", templates.EPIC_ISSUE_TEMPLATE)
-    _write_file(template_dir / "story.md", templates.STORY_ISSUE_TEMPLATE)
+    for tmpl in (TEMPLATES_DIR / "ISSUE_TEMPLATE").iterdir():
+        _copy_template(tmpl, repo_root / ".github" / "ISSUE_TEMPLATE" / tmpl.name, repo)
 
     # ── Docs scaffold ─────────────────────────────────────────────────────────
     console.rule("[bold]Step 3: Docs scaffold[/bold]")
-    docs_dir = repo_root / "docs"
-    _write_file(docs_dir / "epics.md", templates.EPICS_MD.format(repo=repo))
-    _write_file(
-        docs_dir / "iteration-planning.md",
-        templates.ITERATION_PLANNING_MD.format(repo=repo),
-    )
-    _write_file(docs_dir / "retro-log.md", templates.RETRO_LOG_MD)
-    design_dir = docs_dir / "design"
+    for tmpl in ("epics.md", "iteration-planning.md", "retro-log.md"):
+        _copy_template(TEMPLATES_DIR / tmpl, repo_root / "docs" / tmpl, repo)
+
+    design_dir = repo_root / "docs" / "design"
     design_dir.mkdir(parents=True, exist_ok=True)
     gitkeep = design_dir / ".gitkeep"
     if not gitkeep.exists():
         gitkeep.touch()
-        console.print(f"  [green]✔[/green] {design_dir}/")
+    console.print(f"  [green]✔[/green] {design_dir}/")
 
     console.print("\n[bold green]Init complete![/bold green]\n")
     console.print("Next steps:")
     console.print(
-        "  Create your first epic:  [bold]python3 focal.py epic create --repo "
-        + repo
-        + "[/bold]"
+        f"  Create your first epic:  [bold]python3 focal.py epic create --repo {repo}[/bold]"
     )
     console.print(
-        "  Commit the scaffold:     [bold]git add docs/ .github/ISSUE_TEMPLATE/ && git commit -m 'chore: focal init'[/bold]"
+        "  Commit the scaffold:     [bold]git add docs/ .github/ISSUE_TEMPLATE/ && "
+        "git commit -m 'chore: focal init'[/bold]"
     )
     console.print("\nCanonical Status columns for your GitHub Projects board:")
     for col in CANONICAL_STATUS_COLUMNS:

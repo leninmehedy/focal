@@ -193,7 +193,18 @@ def create_issue(
         os.unlink(body_file)
     # url looks like https://github.com/owner/repo/issues/123
     number = int(url.rstrip("/").split("/")[-1])
-    return {"number": number, "url": url}
+    # Fetch integer database ID needed for sub-issues API
+    # Fetch integer database ID needed for sub-issues API via GraphQL
+    owner, name = repo.split("/")
+    data = _graphql(f"""
+      query {{
+        repository(owner: "{owner}", name: "{name}") {{
+          issue(number: {number}) {{ databaseId }}
+        }}
+      }}
+    """)
+    db_id = data["data"]["repository"]["issue"]["databaseId"]
+    return {"number": number, "url": url, "id": db_id}
 
 
 def set_item_number_field(
@@ -228,3 +239,15 @@ def add_item_get_id(number: int, owner: str, url: str) -> str:
         ".id",
     )
     return out
+
+
+def link_sub_issue(repo: str, parent_number: int, child_id: int) -> None:
+    """Link child issue as a sub-issue of parent using the GitHub sub-issues API."""
+    _run(
+        "api",
+        "--method",
+        "POST",
+        f"repos/{repo}/issues/{parent_number}/sub_issues",
+        "-F",
+        f"sub_issue_id={child_id}",
+    )

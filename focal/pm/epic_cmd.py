@@ -47,7 +47,7 @@ def _append_epic(
 
 def _git_commit(repo_root: Path, message: str) -> None:
     subprocess.run(
-        ["git", "add", "docs/epics.md"],
+        ["git", "add", "docs/focal/epics.md"],
         cwd=repo_root,
         capture_output=True,
     )
@@ -62,7 +62,7 @@ def run(repo: str, repo_root: Path, config: dict) -> None:
     """Interactive wizard — create a GitHub epic and update docs/epics.md."""
     console.print(f"\n[bold cyan]  ◎  Focal — epic create ({repo})[/bold cyan]\n")
 
-    epics_path = repo_root / "docs" / "epics.md"
+    epics_path = repo_root / "docs" / "focal" / "epics.md"
     if not epics_path.exists():
         console.print(
             "[red]docs/epics.md not found. Run [bold]focal pm init[/bold] first.[/red]"

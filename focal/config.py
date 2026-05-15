@@ -16,7 +16,7 @@ class Config:
     # Set to false to disable launchd/cron auto-refresh; run manually instead.
     auto_cache_refresh: bool = True
     # Skip auto-refresh for a repo if its tracked issue count exceeds this limit.
-    max_tracked_issues: int = 200
+    max_tracked_issues: int = 500
     state_file: Path = field(
         default_factory=lambda: Path.home() / ".focal" / "state.json"
     )
@@ -35,7 +35,7 @@ class Config:
             repos=d["repos"],
             pm_repos=d.get("pm_repos", []),
             auto_cache_refresh=d.get("auto_cache_refresh", True),
-            max_tracked_issues=d.get("max_tracked_issues", 200),
+            max_tracked_issues=d.get("max_tracked_issues", 500),
             state_file=Path(d.get("state_file", "~/.focal/state.json")).expanduser(),
             log_dir=Path(d.get("log_dir", "~/.focal/logs")).expanduser(),
         )

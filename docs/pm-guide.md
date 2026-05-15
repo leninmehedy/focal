@@ -511,7 +511,7 @@ python3 focal.py cache status
 ```
 
 ```
-Focal cache status  (auto-refresh: enabled  |  limit: 200 issues)
+Focal cache status  (auto-refresh: enabled  |  limit: 500 issues)
 
  Repo                     Epics  Stories  Total  Last synced                    Status
  hashgraph/solo-operator      3       18     21  2026-05-16 08:00 UTC (2h ago)  ✔ ok
@@ -560,7 +560,7 @@ keys to `~/.focal/config.json`:
 | Key | Default | Effect |
 |---|---|---|
 | `auto_cache_refresh` | `true` | Set to `false` to disable the launchd/cron scheduler entirely |
-| `max_tracked_issues` | `200` | `refresh-all` skips repos exceeding this tracked issue count |
+| `max_tracked_issues` | `500` | `refresh-all` skips repos exceeding this tracked issue count |
 
 When `auto_cache_refresh` is false, the scheduler job exits immediately. Refresh
 manually on your own schedule:

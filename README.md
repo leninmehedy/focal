@@ -200,7 +200,7 @@ Run `focal pm init owner/repo` for each repo to register it automatically.
 
 ```json
 "auto_cache_refresh": false,   // disable the scheduler; refresh manually with --force
-"max_tracked_issues": 200      // skip repos with more tracked epics+stories than this
+"max_tracked_issues": 500      // skip repos with more tracked epics+stories than this
 ```
 
 Check cache health across all repos at any time:

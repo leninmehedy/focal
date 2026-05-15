@@ -175,7 +175,7 @@ to see how stale each repo's cache actually is before deciding whether to refres
 | Key | Default | Effect |
 |---|---|---|
 | `auto_cache_refresh` | `true` | Set to `false` to disable the launchd/cron scheduler; run manually with `--force` |
-| `max_tracked_issues` | `200` | Repos with more tracked epics + stories than this are skipped by `refresh-all` |
+| `max_tracked_issues` | `500` | Repos with more tracked epics + stories than this are skipped by `refresh-all` |
 
 If a repo is skipped due to the limit, refresh it individually:
 ```

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Focal CLI — bidirectional GitHub Projects sync."""
+"""Focal CLI — bidirectional GitHub Projects sync + project management."""
 
 from pathlib import Path
 
@@ -7,9 +7,13 @@ import typer
 
 app = typer.Typer(
     name="focal",
-    help="Focal — sync your personal GitHub Projects board with origin repo boards.",
+    help="Focal — sync your personal GitHub Projects board and manage project delivery.",
     no_args_is_help=True,
 )
+
+# Sub-app for project management commands
+pm_app = typer.Typer(help="Project management commands (epics, stories, planning).")
+app.add_typer(pm_app, name="pm")
 
 SCRIPT_DIR = Path(__file__).parent
 
@@ -45,6 +49,21 @@ def setup():
     from focal.wizard import run
 
     run(SCRIPT_DIR)
+
+
+@app.command()
+def init(
+    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
+    repo_root: Path = typer.Option(
+        Path("."),
+        "--repo-root",
+        help="Local path to the repo root (default: current directory)",
+    ),
+):
+    """Bootstrap a repo with Focal project management structure."""
+    from focal.pm.init_cmd import run
+
+    run(repo, repo_root.resolve())
 
 
 if __name__ == "__main__":

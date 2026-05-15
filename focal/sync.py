@@ -3,7 +3,8 @@ import re
 from pathlib import Path
 from typing import Optional
 
-from . import gh, log, state as state_mod
+from . import gh, log
+from . import state as state_mod
 from .config import Config
 
 
@@ -46,7 +47,11 @@ class Syncer:
         mapped = self.status_map.get(project_id, {}).get(origin_status, origin_status)
         target = normalize(mapped)
         return next(
-            (o["name"] for o in self.personal_options if normalize(o["name"]) == target),
+            (
+                o["name"]
+                for o in self.personal_options
+                if normalize(o["name"]) == target
+            ),
             None,
         )
 
@@ -60,11 +65,17 @@ class Syncer:
     def _push_to_origin(self, origin_item: dict, status_name: str) -> None:
         field = gh.origin_status_field(origin_item["projectId"])
         if not field:
-            self.log.warning(f"Could not fetch Status field for '{origin_item['projectTitle']}'")
+            self.log.warning(
+                f"Could not fetch Status field for '{origin_item['projectTitle']}'"
+            )
             return
         target = normalize(status_name)
         option_id = next(
-            (o["id"] for o in field.get("options", []) if normalize(o["name"]) == target),
+            (
+                o["id"]
+                for o in field.get("options", [])
+                if normalize(o["name"]) == target
+            ),
             None,
         )
         if not option_id:
@@ -147,10 +158,18 @@ class Syncer:
                         origin_project_id = oi["projectId"]
 
                 if origin_status:
-                    personal = self._translate(origin_project_id, origin_status) or origin_status
-                    self.log.info(f"  Inherited '{personal}' (origin: '{origin_status}')")
+                    personal = (
+                        self._translate(origin_project_id, origin_status)
+                        or origin_status
+                    )
+                    self.log.info(
+                        f"  Inherited '{personal}' (origin: '{origin_status}')"
+                    )
                     self._set_personal_status(item_id, personal)
-                    new_state[url] = {"personal_status": personal, "origin_status": personal}
+                    new_state[url] = {
+                        "personal_status": personal,
+                        "origin_status": personal,
+                    }
                 else:
                     self.log.info("  No origin project status — setting 🆕 New")
                     self._set_personal_status(item_id, "🆕 New")

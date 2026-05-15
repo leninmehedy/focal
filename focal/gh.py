@@ -1,4 +1,5 @@
 """Thin wrapper around the gh CLI. All GitHub I/O goes through here."""
+
 import json
 import subprocess
 from typing import Any, Optional
@@ -18,41 +19,77 @@ def _graphql(query: str) -> Any:
 
 # ── Project metadata ──────────────────────────────────────────────────────────
 
+
 def project_id(number: int, owner: str) -> str:
-    out = _run("project", "view", str(number), "--owner", owner, "--format", "json", "--jq", ".id")
+    out = _run(
+        "project",
+        "view",
+        str(number),
+        "--owner",
+        owner,
+        "--format",
+        "json",
+        "--jq",
+        ".id",
+    )
     return out
 
 
 def project_fields(number: int, owner: str) -> list[dict]:
-    out = _run("project", "field-list", str(number), "--owner", owner, "--format", "json")
+    out = _run(
+        "project", "field-list", str(number), "--owner", owner, "--format", "json"
+    )
     return json.loads(out).get("fields", [])
 
 
 def project_items(number: int, owner: str, limit: int = 500) -> list[dict]:
     out = _run(
-        "project", "item-list", str(number), "--owner", owner,
-        "--limit", str(limit), "--format", "json",
+        "project",
+        "item-list",
+        str(number),
+        "--owner",
+        owner,
+        "--limit",
+        str(limit),
+        "--format",
+        "json",
     )
     return json.loads(out).get("items", [])
 
 
 # ── Issue listing ─────────────────────────────────────────────────────────────
 
+
 def open_assigned_issues(repo: str, assignee: str, limit: int = 500) -> list[str]:
     out = _run(
-        "issue", "list", "--repo", repo, "--assignee", assignee,
-        "--state", "open", "--limit", str(limit), "--json", "url", "--jq", ".[].url",
+        "issue",
+        "list",
+        "--repo",
+        repo,
+        "--assignee",
+        assignee,
+        "--state",
+        "open",
+        "--limit",
+        str(limit),
+        "--json",
+        "url",
+        "--jq",
+        ".[].url",
     )
     return [line.strip() for line in out.splitlines() if line.strip()]
 
 
 # ── Project item mutations ────────────────────────────────────────────────────
 
+
 def add_item(number: int, owner: str, url: str) -> None:
     _run("project", "item-add", str(number), "--owner", owner, "--url", url)
 
 
-def set_item_field(project_id: str, item_id: str, field_id: str, option_id: str) -> None:
+def set_item_field(
+    project_id: str, item_id: str, field_id: str, option_id: str
+) -> None:
     _graphql(f"""
       mutation {{
         updateProjectV2ItemFieldValue(input: {{
@@ -66,6 +103,7 @@ def set_item_field(project_id: str, item_id: str, field_id: str, option_id: str)
 
 
 # ── Issue → origin project items ─────────────────────────────────────────────
+
 
 def issue_project_items(issue_url: str) -> list[dict]:
     data = _graphql(f"""

@@ -1,4 +1,5 @@
 """Interactive setup wizard — guides a new user through configuring Focal."""
+
 import re
 import subprocess
 import sys
@@ -15,6 +16,7 @@ console = Console()
 
 
 # ── Prerequisite checks ───────────────────────────────────────────────────────
+
 
 def _check_prerequisites() -> bool:
     console.rule("[bold]Step 1: Checking prerequisites[/bold]")
@@ -50,8 +52,11 @@ def _check_prerequisites() -> bool:
 
 # ── Board URL parsing ─────────────────────────────────────────────────────────
 
+
 def _parse_board_url(url: str) -> tuple[str, int]:
-    m = re.match(r"https://github\.com/(?:users|orgs)/([^/]+)/projects/(\d+)", url.strip())
+    m = re.match(
+        r"https://github\.com/(?:users|orgs)/([^/]+)/projects/(\d+)", url.strip()
+    )
     if not m:
         raise ValueError(
             "Could not parse board URL. Expected format: "
@@ -61,6 +66,7 @@ def _parse_board_url(url: str) -> tuple[str, int]:
 
 
 # ── Repo selection ────────────────────────────────────────────────────────────
+
 
 def _select_repos() -> list[str]:
     console.rule("[bold]Step 3: Select repos to sync[/bold]")
@@ -79,7 +85,9 @@ def _select_repos() -> list[str]:
             if not r:
                 break
             if "/" not in r:
-                console.print("[yellow]  Format must be owner/repo — try again[/yellow]")
+                console.print(
+                    "[yellow]  Format must be owner/repo — try again[/yellow]"
+                )
                 continue
             repos.append(r.strip())
         return repos
@@ -87,19 +95,33 @@ def _select_repos() -> list[str]:
     # Choices 2 and 3: list repos from gh
     limit = "100" if choice == "2" else "1000"
     if choice == "3":
-        console.print("\n[yellow]Scanning all accessible repos (may take a minute)...[/yellow]")
+        console.print(
+            "\n[yellow]Scanning all accessible repos (may take a minute)...[/yellow]"
+        )
 
     raw = subprocess.run(
-        ["gh", "repo", "list", "--limit", limit, "--json", "nameWithOwner",
-         "--jq", ".[].nameWithOwner"],
-        capture_output=True, text=True,
+        [
+            "gh",
+            "repo",
+            "list",
+            "--limit",
+            limit,
+            "--json",
+            "nameWithOwner",
+            "--jq",
+            ".[].nameWithOwner",
+        ],
+        capture_output=True,
+        text=True,
     )
     all_repos = [r.strip() for r in raw.stdout.splitlines() if r.strip()]
     if not all_repos:
         console.print("[red]No repos found.[/red]")
         return []
 
-    console.print(f"\nFound [bold]{len(all_repos)}[/bold] repos. Enter numbers to select (comma-separated):\n")
+    console.print(
+        f"\nFound [bold]{len(all_repos)}[/bold] repos. Enter numbers to select (comma-separated):\n"
+    )
     for i, r in enumerate(all_repos, 1):
         console.print(f"  [dim]{i:4}.[/dim]  {r}")
 
@@ -114,6 +136,7 @@ def _select_repos() -> list[str]:
 
 
 # ── Status column inspection ──────────────────────────────────────────────────
+
 
 def _inspect_status_columns(
     repos: list[str],
@@ -131,9 +154,19 @@ def _inspect_status_columns(
     for repo in repos:
         # Find projects for this repo
         raw = subprocess.run(
-            ["gh", "project", "list", "--owner", repo.split("/")[0],
-             "--format", "json", "--jq", f'[.projects[] | select(.url | contains("{repo}"))]'],
-            capture_output=True, text=True,
+            [
+                "gh",
+                "project",
+                "list",
+                "--owner",
+                repo.split("/")[0],
+                "--format",
+                "json",
+                "--jq",
+                f'[.projects[] | select(.url | contains("{repo}"))]',
+            ],
+            capture_output=True,
+            text=True,
         )
         try:
             projects = [p for p in __import__("json").loads(raw.stdout or "[]")]
@@ -179,6 +212,7 @@ def _inspect_status_columns(
 
 
 # ── Main wizard ───────────────────────────────────────────────────────────────
+
 
 def run(script_dir: Path) -> None:
     console.print("\n[bold cyan]  ◎  Focal Setup Wizard[/bold cyan]\n")
@@ -234,10 +268,13 @@ def run(script_dir: Path) -> None:
 
     # Status column inspection (optional)
     status_map: dict = {}
-    if Confirm.ask("\nInspect and align Status columns across origin projects?", default=True):
+    if Confirm.ask(
+        "\nInspect and align Status columns across origin projects?", default=True
+    ):
         status_map = _inspect_status_columns(repos, personal_options, status_map)
         if status_map:
             import json
+
             sm_path = script_dir / "status_map.json"
             with open(sm_path, "w") as f:
                 json.dump(status_map, f, indent=2)
@@ -260,4 +297,6 @@ def run(script_dir: Path) -> None:
     console.print("\n[bold green]Setup complete![/bold green]\n")
     console.print("Next steps:")
     console.print("  Run a one-off sync:  [bold]python3 focal.py sync[/bold]")
-    console.print("  Follow logs:         [bold]tail -f ~/.focal/logs/$(date '+%Y-%m-%d').log[/bold]")
+    console.print(
+        "  Follow logs:         [bold]tail -f ~/.focal/logs/$(date '+%Y-%m-%d').log[/bold]"
+    )

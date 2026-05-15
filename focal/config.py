@@ -11,7 +11,9 @@ class Config:
     status_field_id: str
     done_status: str
     repos: list[str]
-    state_file: Path = field(default_factory=lambda: Path.home() / ".focal" / "state.json")
+    state_file: Path = field(
+        default_factory=lambda: Path.home() / ".focal" / "state.json"
+    )
     log_dir: Path = field(default_factory=lambda: Path.home() / ".focal" / "logs")
 
     @classmethod

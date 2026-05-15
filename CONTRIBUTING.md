@@ -16,18 +16,28 @@ version and generate the changelog automatically.
 ## Workflow
 
 1. Fork the repo and create a branch from `main`.
-2. Make your changes. Run linting locally before pushing:
+2. Install dependencies:
    ```bash
-   shellcheck sync.sh setup.sh
-   shfmt --diff --indent 2 sync.sh setup.sh
+   pip install -r requirements.txt
+   pip install ruff
    ```
-3. Open a pull request against `main`. CI will run shellcheck and shfmt automatically.
-4. Once merged, semantic-release will tag and publish a new release if the
+3. Make your changes. Run linting locally before pushing:
+   ```bash
+   # Python lint + format check
+   ruff check focal.py focal/
+   ruff format --check focal.py focal/
+
+   # Shell wrappers
+   shellcheck sync.sh setup.sh
+   ```
+4. Open a pull request against `main`. CI will run all checks automatically.
+5. Once merged, semantic-release will tag and publish a new release if the
    commit type warrants one.
 
 ## Local development tips
 
-- Test changes by running `./sync.sh` directly — it logs to `~/.focal/logs/`.
-- Use `bash -x ./sync.sh 2>&1 | head -100` to trace execution.
-- Reset state with `rm ~/.focal/state.json` to re-run a clean sync.
-- `config.sh` and `status_map.json` are gitignored — never commit them.
+- Run a sync: `python3 focal.py sync` — logs go to `~/.focal/logs/`
+- Run setup: `python3 focal.py setup`
+- Reset state: `rm ~/.focal/state.json` — next sync re-inherits all statuses
+- `config.json` and `status_map.json` are gitignored — never commit them
+- All GitHub API calls are in `focal/gh.py` — good starting point for new features

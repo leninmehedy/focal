@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Focal CLI — bidirectional GitHub Projects sync."""
+
 from pathlib import Path
 
 import typer
@@ -22,7 +23,9 @@ def sync():
 
     config_path = SCRIPT_DIR / "config.json"
     if not config_path.exists():
-        typer.echo("ERROR: config.json not found. Run: python3 focal.py setup", err=True)
+        typer.echo(
+            "ERROR: config.json not found. Run: python3 focal.py setup", err=True
+        )
         raise typer.Exit(1)
 
     cfg = Config.load(config_path)
@@ -40,6 +43,7 @@ def sync():
 def setup():
     """Interactive wizard — configure Focal for the first time."""
     from focal.wizard import run
+
     run(SCRIPT_DIR)
 
 

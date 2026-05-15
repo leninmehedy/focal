@@ -5,20 +5,49 @@ on:
     branches: [main]
 
 jobs:
-  lint:
-    name: Shell lint & format
+  shell-lint:
+    name: Shell lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install shellcheck and shfmt
-        run: |
-          sudo apt-get install -y shellcheck
-          curl -sSL https://github.com/mvdan/sh/releases/download/v3.8.0/shfmt_v3.8.0_linux_amd64 \
-            -o /usr/local/bin/shfmt && chmod +x /usr/local/bin/shfmt
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
 
       - name: shellcheck
         run: shellcheck sync.sh setup.sh
 
-      - name: shfmt (check formatting)
-        run: shfmt --diff --indent 2 sync.sh setup.sh
+  python-lint:
+    name: Python lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: ruff check (lint)
+        run: ruff check focal.py focal/
+
+      - name: ruff format (check only)
+        run: ruff format --check focal.py focal/
+
+  python-test:
+    name: Python imports
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Verify imports
+        run: python3 -c "from focal.config import Config; from focal.sync import Syncer; from focal import gh, log, state; print('OK')"

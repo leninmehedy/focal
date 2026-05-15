@@ -410,13 +410,18 @@ def cache_refresh(
 
 
 @cache_app.command("refresh-all")
-def cache_refresh_all():
+def cache_refresh_all(
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Ignore auto_cache_refresh flag and size limits."
+    ),
+):
     """Re-fetch state for all PM-managed repos registered in ~/.focal/config.json."""
     import json as _json
 
     from rich.console import Console
 
     from focal.config import Config
+    from focal.pm import pm_state
     from focal.pm.sync_state_cmd import run
 
     _migrate_legacy_config()
@@ -427,6 +432,15 @@ def cache_refresh_all():
         raise typer.Exit(1)
 
     cfg = Config.load(config_path)
+
+    if not force and not cfg.auto_cache_refresh:
+        console.print(
+            "[yellow]Auto cache refresh is disabled (auto_cache_refresh: false in config).[/yellow]\n"
+            "Run manually with [bold]focal cache refresh-all --force[/bold] or "
+            "set [bold]auto_cache_refresh: true[/bold] in ~/.focal/config.json to re-enable."
+        )
+        raise typer.Exit(0)
+
     if not cfg.pm_repos:
         console.print(
             "[yellow]No PM repos registered. Run [bold]focal pm init[/bold] for each repo first.[/yellow]"
@@ -438,18 +452,134 @@ def cache_refresh_all():
         config_dict = _json.load(f)
 
     errors = 0
+    skipped = 0
     for entry in cfg.pm_repos:
         repo = entry["repo"]
-        repo_root = entry["repo_root"]
-        console.print(f"\n[bold cyan]Refreshing {repo}[/bold cyan] ({repo_root})")
+        repo_root = Path(entry["repo_root"])
+
+        # Count tracked issues before fetching
+        state = pm_state.load(repo_root)
+        tracked = len(state["epics"]) + sum(
+            len(e.get("stories", [])) for e in state["epics"]
+        )
+        if not force and tracked > cfg.max_tracked_issues:
+            console.print(
+                f"\n[yellow]⚠[/yellow]  Skipping [bold]{repo}[/bold] — "
+                f"{tracked} tracked issues exceeds limit of {cfg.max_tracked_issues}.\n"
+                f"   Run [bold]focal cache refresh {repo} --repo-root {repo_root}[/bold] manually, "
+                f"or raise [bold]max_tracked_issues[/bold] in ~/.focal/config.json."
+            )
+            skipped += 1
+            continue
+
+        console.print(
+            f"\n[bold cyan]Refreshing {repo}[/bold cyan] ({tracked} tracked issues)"
+        )
         try:
-            run(repo, Path(repo_root), config_dict)
+            run(repo, repo_root, config_dict)
         except Exception as e:
             console.print(f"  [red]✖[/red] {e}")
             errors += 1
 
+    if skipped:
+        console.print(
+            f"\n[yellow]{skipped} repo(s) skipped due to size limit.[/yellow]"
+        )
     if errors:
         raise typer.Exit(1)
+
+
+@cache_app.command("status")
+def cache_status():
+    """Show cache health: last sync time, tracked issue counts, and auto-refresh config."""
+    from datetime import datetime, timezone
+
+    from rich.console import Console
+    from rich.table import Table
+
+    from focal.config import Config
+    from focal.pm import pm_state
+
+    _migrate_legacy_config()
+    console = Console()
+    config_path = FOCAL_HOME / "config.json"
+    if not config_path.exists():
+        typer.echo("ERROR: config.json not found. Run: focal board setup", err=True)
+        raise typer.Exit(1)
+
+    cfg = Config.load(config_path)
+
+    auto = (
+        "[green]enabled[/green]"
+        if cfg.auto_cache_refresh
+        else "[yellow]disabled[/yellow]"
+    )
+    console.print(
+        f"\n[bold]Focal cache status[/bold]  (auto-refresh: {auto}  |  limit: {cfg.max_tracked_issues} issues)\n"
+    )
+
+    if not cfg.pm_repos:
+        console.print(
+            "[dim]No PM repos registered. Run [bold]focal pm init[/bold] first.[/dim]"
+        )
+        raise typer.Exit(0)
+
+    table = Table(show_header=True, header_style="bold")
+    table.add_column("Repo")
+    table.add_column("Epics", justify="right")
+    table.add_column("Stories", justify="right")
+    table.add_column("Total", justify="right")
+    table.add_column("Last synced")
+    table.add_column("Status")
+
+    now = datetime.now(timezone.utc)
+    for entry in cfg.pm_repos:
+        repo = entry["repo"]
+        repo_root = Path(entry["repo_root"])
+        state = pm_state.load(repo_root)
+
+        epics = len(state["epics"])
+        stories = sum(len(e.get("stories", [])) for e in state["epics"])
+        total = epics + stories
+
+        last_synced = state.get("last_synced")
+        if last_synced:
+            dt = datetime.fromisoformat(last_synced)
+            age_h = (now - dt).total_seconds() / 3600
+            synced_str = dt.strftime("%Y-%m-%d %H:%M UTC")
+            if age_h < 1:
+                age_label = "[green]< 1h ago[/green]"
+            elif age_h < 24:
+                age_label = f"[green]{age_h:.0f}h ago[/green]"
+            elif age_h < 72:
+                age_label = f"[yellow]{age_h / 24:.0f}d ago[/yellow]"
+            else:
+                age_label = f"[red]{age_h / 24:.0f}d ago[/red]"
+        else:
+            synced_str = "never"
+            age_label = "[red]never[/red]"
+
+        if total > cfg.max_tracked_issues:
+            size_status = f"[yellow]⚠ over limit ({total})[/yellow]"
+        else:
+            size_status = "[green]✔ ok[/green]"
+
+        table.add_row(
+            repo,
+            str(epics),
+            str(stories),
+            str(total),
+            f"{synced_str} ({age_label})",
+            size_status,
+        )
+
+    console.print(table)
+    console.print()
+
+    if not cfg.auto_cache_refresh:
+        console.print(
+            "[dim]Auto-refresh is off. Run [bold]focal cache refresh-all --force[/bold] to refresh manually.[/dim]"
+        )
 
 
 if __name__ == "__main__":

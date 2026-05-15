@@ -24,6 +24,20 @@ cache_app = typer.Typer(help="Manage the local state cache (docs/focal/.cache/).
 app.add_typer(cache_app, name="cache")
 
 SCRIPT_DIR = Path(__file__).parent
+FOCAL_HOME = Path.home() / ".focal"
+
+
+def _migrate_legacy_config() -> None:
+    """Move config.json / status_map.json from SCRIPT_DIR to FOCAL_HOME if needed."""
+    FOCAL_HOME.mkdir(parents=True, exist_ok=True)
+    for name in ("config.json", "status_map.json"):
+        old = SCRIPT_DIR / name
+        new = FOCAL_HOME / name
+        if old.exists() and not new.exists():
+            old.rename(new)
+            import typer as _typer
+
+            _typer.echo(f"Migrated {name} → {new}")
 
 
 # ── focal board ───────────────────────────────────────────────────────────────
@@ -36,7 +50,8 @@ def board_sync():
     from focal.config import Config
     from focal.sync import Syncer, load_status_map
 
-    config_path = SCRIPT_DIR / "config.json"
+    _migrate_legacy_config()
+    config_path = FOCAL_HOME / "config.json"
     if not config_path.exists():
         typer.echo(
             "ERROR: config.json not found. Run: python3 focal.py board setup", err=True
@@ -45,7 +60,7 @@ def board_sync():
 
     cfg = Config.load(config_path)
     logger = log.setup(cfg.log_dir)
-    status_map = load_status_map(SCRIPT_DIR / "status_map.json")
+    status_map = load_status_map(FOCAL_HOME / "status_map.json")
 
     try:
         Syncer(cfg, status_map).run()
@@ -59,7 +74,8 @@ def board_setup():
     """Interactive wizard — configure Focal for the first time."""
     from focal.wizard import run
 
-    run(SCRIPT_DIR)
+    _migrate_legacy_config()
+    run(FOCAL_HOME)
 
 
 # ── focal reset ───────────────────────────────────────────────────────────────
@@ -79,10 +95,10 @@ def reset(
     console = Console()
     console.print("\n[bold red]  ⚠  Focal Reset[/bold red]\n")
     console.print("This will remove:")
-    console.print(f"  • {SCRIPT_DIR / 'config.json'}")
-    console.print(f"  • {SCRIPT_DIR / 'status_map.json'}")
-    console.print("  • ~/.focal/state.json")
-    console.print("  • ~/.focal/logs/")
+    console.print(f"  • {FOCAL_HOME / 'config.json'}")
+    console.print(f"  • {FOCAL_HOME / 'status_map.json'}")
+    console.print(f"  • {FOCAL_HOME / 'state.json'}")
+    console.print(f"  • {FOCAL_HOME / 'logs'}/")
     console.print("  • ~/Library/LaunchAgents/com.*.focal.plist  (if installed)\n")
 
     if not yes and not Confirm.ask("Proceed?", default=False):
@@ -90,7 +106,7 @@ def reset(
 
     removed = []
 
-    for path in (SCRIPT_DIR / "config.json", SCRIPT_DIR / "status_map.json"):
+    for path in (FOCAL_HOME / "config.json", FOCAL_HOME / "status_map.json"):
         if path.exists():
             path.unlink()
             removed.append(str(path))
@@ -153,7 +169,7 @@ def pm_epic_create(
     from focal.pm.epic_cmd import run
 
     config: dict = {}
-    config_path = SCRIPT_DIR / "config.json"
+    config_path = FOCAL_HOME / "config.json"
     if config_path.exists():
         with open(config_path) as f:
             config = _json.load(f)
@@ -182,7 +198,7 @@ def pm_story_create(
     from focal.pm.story_cmd import run
 
     config: dict = {}
-    config_path = SCRIPT_DIR / "config.json"
+    config_path = FOCAL_HOME / "config.json"
     if config_path.exists():
         with open(config_path) as f:
             config = _json.load(f)
@@ -235,7 +251,7 @@ def pm_plan(
     from focal.pm.plan_cmd import run
 
     config: dict = {}
-    config_path = SCRIPT_DIR / "config.json"
+    config_path = FOCAL_HOME / "config.json"
     if config_path.exists():
         with open(config_path) as f:
             config = _json.load(f)
@@ -298,7 +314,7 @@ def pm_retro(
     from focal.pm.retro_cmd import run
 
     config: dict = {}
-    config_path = SCRIPT_DIR / "config.json"
+    config_path = FOCAL_HOME / "config.json"
     if config_path.exists():
         with open(config_path) as f:
             config = _json.load(f)
@@ -346,7 +362,7 @@ def pm_status(
     from focal.pm.status_cmd import run
 
     config: dict = {}
-    config_path = SCRIPT_DIR / "config.json"
+    config_path = FOCAL_HOME / "config.json"
     if config_path.exists():
         with open(config_path) as f:
             config = _json.load(f)
@@ -372,7 +388,7 @@ def cache_refresh(
     from focal.pm.sync_state_cmd import run
 
     config: dict = {}
-    config_path = SCRIPT_DIR / "config.json"
+    config_path = FOCAL_HOME / "config.json"
     if config_path.exists():
         with open(config_path) as f:
             config = _json.load(f)

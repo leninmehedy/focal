@@ -214,7 +214,7 @@ def _inspect_status_columns(
 # ── Main wizard ───────────────────────────────────────────────────────────────
 
 
-def _manage_existing(script_dir: Path, config_path: Path) -> None:
+def _manage_existing(focal_home: Path, config_path: Path) -> None:
     """Handle re-runs when config.json already exists."""
     cfg = Config.load(config_path)
 
@@ -303,12 +303,13 @@ def _manage_existing(script_dir: Path, config_path: Path) -> None:
     raise typer.Exit(0)
 
 
-def run(script_dir: Path) -> None:
+def run(focal_home: Path) -> None:
     console.print("\n[bold cyan]  ◎  Focal Setup Wizard[/bold cyan]\n")
 
-    config_path = script_dir / "config.json"
+    focal_home.mkdir(parents=True, exist_ok=True)
+    config_path = focal_home / "config.json"
     if config_path.exists():
-        _manage_existing(script_dir, config_path)
+        _manage_existing(focal_home, config_path)
         # Only reaches here if choice == "3" (full reconfigure)
 
     if not _check_prerequisites():
@@ -369,7 +370,7 @@ def run(script_dir: Path) -> None:
         if status_map:
             import json
 
-            sm_path = script_dir / "status_map.json"
+            sm_path = focal_home / "status_map.json"
             with open(sm_path, "w") as f:
                 json.dump(status_map, f, indent=2)
             console.print(f"[green]✔[/green] Written: {sm_path}")

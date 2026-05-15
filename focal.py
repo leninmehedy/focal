@@ -207,6 +207,58 @@ def pm_plan(
     run(repo, repo_root.resolve(), config, refresh=refresh)
 
 
+@pm_app.command("retro")
+def pm_retro(
+    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
+    repo_root: Path = typer.Option(
+        Path("."),
+        "--repo-root",
+        help="Local path to the repo root (default: current directory)",
+    ),
+    refresh: bool = typer.Option(
+        False, "--refresh", help="Re-fetch state from GitHub before logging retro."
+    ),
+):
+    """Log a completed iteration and update docs/focal/retro-log.md."""
+    import json as _json
+
+    from focal.pm.retro_cmd import run
+
+    config: dict = {}
+    config_path = SCRIPT_DIR / "config.json"
+    if config_path.exists():
+        with open(config_path) as f:
+            config = _json.load(f)
+
+    run(repo, repo_root.resolve(), config, refresh=refresh)
+
+
+@pm_app.command("status")
+def pm_status(
+    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
+    repo_root: Path = typer.Option(
+        Path("."),
+        "--repo-root",
+        help="Local path to the repo root (default: current directory)",
+    ),
+    refresh: bool = typer.Option(
+        False, "--refresh", help="Re-fetch state from GitHub before displaying status."
+    ),
+):
+    """Print a live terminal summary of the current iteration progress."""
+    import json as _json
+
+    from focal.pm.status_cmd import run
+
+    config: dict = {}
+    config_path = SCRIPT_DIR / "config.json"
+    if config_path.exists():
+        with open(config_path) as f:
+            config = _json.load(f)
+
+    run(repo, repo_root.resolve(), config, refresh=refresh)
+
+
 # ── focal cache ───────────────────────────────────────────────────────────────
 
 

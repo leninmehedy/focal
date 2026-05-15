@@ -8,9 +8,8 @@ and markdown files in your repo. No Jira, no Linear, no external tools.
 
 ## Prerequisites
 
-- `focal board setup` completed (personal board configured)
+- `focal board setup` completed — writes `~/.focal/config.json` with your board and account details
 - `gh` CLI authenticated with `repo` and `project` scopes
-- A GitHub Projects v2 board configured in `config.json` (set during `focal board setup`)
 
 ---
 
@@ -187,6 +186,8 @@ python3 focal.py pm init <owner/repo> [--repo-root PATH]
 | `docs/focal/design/` | Directory for per-feature design records |
 
 **Labels created:** `epic` (purple) · `story` (blue)
+
+**Auto-registers the repo** — after init, the repo is added to `pm_repos` in `~/.focal/config.json` so `focal cache refresh-all` picks it up automatically. To remove a repo from tracking: `focal pm remove-repo owner/repo`.
 
 **Customise templates:** Edit files in `focal/templates/` before running init.
 Your changes will be applied to every repo you initialise.

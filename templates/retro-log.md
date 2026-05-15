@@ -4,24 +4,46 @@ Slip reason codes: `SCOPE` · `BLOCKED` · `LEAVE` · `TRAVEL` · `CARRY` · `RE
 
 ---
 
-<!-- Iterations are appended below by `focal retro` -->
+<!-- Iterations are appended below by `focal pm retro` -->
 
 <!--
-## I1 - <start date> (<date range>)
+## I1 — May 19, 2026 – Jun 1, 2026
+
+### Goal
+
+> Ship auth middleware refactor and close E2
+
+**Met:** ✅ Yes
 
 ### Planned
 - @handle: #N story title (N SP)
 
 ### Delivered
-- @handle: #N
+- @handle: #N story title (N SP)
 
 ### Velocity
+
 - Planned: N SP · Delivered: N SP · Carry-over: N SP
 
 ### Slip Reasons
-<!-- Format: #issue — CODE — reason -->
+
+- #N story title — **CODE** — optional note
+
+### What went well
+
+- ...
+
+### What to improve
+
+- ...
+
+### Action items
+
+- [ ] @handle: action item (by YYYY-MM-DD)
 
 ### Notes
+
+Free-form notes.
 
 ---
 -->

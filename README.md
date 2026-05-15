@@ -1,32 +1,44 @@
 # Focal
 
-Your personal command center for GitHub Issues — one Kanban board that stays in
-sync with every project board you contribute to.
+Your personal command center for GitHub — one Kanban board that stays in sync
+with every project you contribute to, plus a full project management CLI for
+running delivery end-to-end without leaving the terminal.
 
-> **Built with AI. Best set up with AI.**
-> Focal ships with [`AGENTS.md`](AGENTS.md) so any capable AI coding agent can
-> clone, configure, and run it for you — no manual steps required.
+> **Built with AI. Best used with AI.**
+> Focal ships with [`AGENTS.md`](AGENTS.md) so any capable AI agent (Claude Code,
+> Cursor, Codex) can set it up, run PM commands, and manage your backlog on your
+> behalf — no manual steps required.
 
 ## The problem
 
 If you contribute to many GitHub repositories, each with its own project board,
-planning your day looks like this: open repo A's board, find your cards, open
-repo B's board, find your cards, repeat for every repo you're involved in.
-By the time you've done the rounds, you've lost 20 minutes and you still don't
-have a single prioritized view of what you're supposed to do today.
+planning your day means opening every repo board one by one. By the time you've
+done the rounds, you've lost 20 minutes and still don't have a single prioritized
+view of your work.
 
-**Focal solves this.** Create one personal Kanban board — your command center —
-and let Focal keep it in sync with every project board you contribute to. All
-issues assigned to you flow in automatically. You prioritize and move cards in
-one place. Status changes flow back out to the origin projects so your teammates
-always see up-to-date progress. No more board-hopping.
+And when it comes to planning a release — creating epics, estimating stories,
+building an iteration schedule, logging retros — you're either doing it in Jira
+(context switch) or in your head (no record).
+
+**Focal solves both.** One personal Kanban board that syncs everywhere, plus a
+PM CLI that manages your entire delivery lifecycle in GitHub and markdown — no
+external tools, no context switching.
 
 ## What it does
 
+### Board sync
 - **Pull** — Open issues assigned to you are automatically added to your personal board. New items inherit their status from the origin project.
 - **Push** — When you move a card on your personal board, the status change is pushed to all origin projects the issue belongs to.
 - **Stale** — When an issue is closed or unassigned from you, it is moved to your Done column automatically.
 - **Conflict resolution** — Your personal board wins. If both sides change between syncs, your board's status is pushed to origin.
+
+### PM CLI
+- **`focal pm init`** — bootstrap any repo with epics tracker, iteration planning doc, retro log, and design doc templates
+- **`focal pm epic-create`** / **`story-create`** — create GitHub issues, link sub-issues, set SP on the board — all in one command
+- **`focal pm plan`** — build an iteration schedule from your backlog: team capacity, PTO reduction, greedy SP assignment, risk identification
+- **`focal pm retro`** — close out an iteration: delivered vs carry-over, slip reason codes, goal met?, what went well, action items
+- **`focal pm status`** — live terminal dashboard: progress bar, blocked stories, projected delivery
+- **`focal cache refresh`** — pull latest GitHub state into the local cache anytime
 
 ---
 
@@ -176,17 +188,70 @@ tail -f ~/.focal/logs/$(date '+%Y-%m-%d').log   # follow live
 grep 'WARN' ~/.focal/logs/*.log                  # see all warnings
 ```
 
+---
+
+## PM CLI — manage delivery end-to-end
+
+The PM commands work on any target repo, not just Focal itself. Point them at
+whatever repo you're managing.
+
+### Quick start
+
+```bash
+# Bootstrap a repo
+python3 focal.py pm init owner/repo --repo-root /path/to/repo
+
+# Create backlog
+python3 focal.py pm epic-create owner/repo --title "OAuth support" --sp 21
+python3 focal.py pm story-create owner/repo --epic E1 --title "GitHub OAuth flow" --sp 5
+
+# Plan iterations
+python3 focal.py pm plan owner/repo --weeks 2 --team "alice:8,bob:6"
+
+# During delivery
+python3 focal.py pm status owner/repo
+
+# End of iteration
+python3 focal.py pm retro owner/repo --iteration I1 --goal-met
+
+# Sync cache if issues were created outside Focal
+python3 focal.py cache refresh owner/repo
+```
+
+All commands work interactively (prompts) if you omit the flags, or fully
+non-interactively (flags only) for scripting and AI agent use.
+
+### AI-native workflow
+
+A project manager can describe work to Claude Code and Claude will run the
+focal commands:
+
+> *"Read our design doc and create the epics and stories"*
+> *"Plan I1 for me and @bob, 2-week sprint starting Monday"*
+> *"Log the I1 retro — we hit our goal, estimates were a bit off"*
+
+Claude reads [`AGENTS.md`](AGENTS.md) automatically, so it already knows the
+full command surface and non-interactive flags before you ask.
+
+For the full PM workflow — design docs, breakdown hints, Impact tables, and the
+delivery cycle — see [`docs/pm-guide.md`](docs/pm-guide.md).
+
+---
+
 ## File reference
 
 | File | Purpose |
 |---|---|
-| `focal.py` | CLI entry point — `python3 focal.py board sync` / `setup` |
-| `focal/` | Python package — all sync and wizard logic |
+| `focal.py` | CLI entry point — all commands |
+| `focal/` | Python package — sync, wizard, PM modules |
+| `focal/pm/` | PM command modules (epic, story, plan, retro, status) |
+| `templates/` | Markdown templates copied by `focal pm init` |
+| `docs/pm-guide.md` | Full PM workflow guide |
 | `sync.sh` / `setup.sh` | Thin shell wrappers (for launchd / cron) |
 | `config.json` | Your personal config — **gitignored, never commit** |
 | `config.example.json` | Template showing all config keys |
 | `status_map.json` | Auto-generated status name mappings — **gitignored** |
-| `AGENTS.md` | AI agent onboarding guide — read automatically by Claude Code, Codex, etc. |
+| `AGENTS.md` | AI agent guide — read automatically by Claude Code, Codex, etc. |
 
 ## State file
 

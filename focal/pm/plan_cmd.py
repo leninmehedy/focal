@@ -340,8 +340,24 @@ def _git_commit(repo_root: Path, message: str) -> None:
 # ── Main entry ────────────────────────────────────────────────────────────────
 
 
-def run(repo: str, repo_root: Path, config: dict, refresh: bool = False) -> None:
-    """Generate or update docs/focal/iteration-planning.md."""
+def run(
+    repo: str,
+    repo_root: Path,
+    config: dict,
+    refresh: bool = False,
+    weeks: int | None = None,
+    start_date: str | None = None,
+    team: str | None = None,
+    pto: list[str] | None = None,
+    goals: dict[str, str] | None = None,
+) -> None:
+    """Generate or update docs/focal/iteration-planning.md.
+
+    Non-interactive args:
+      team      — comma-separated "handle:sp" pairs, e.g. "alice:8,bob:6"
+      pto       — list of "handle:YYYY-MM-DD:YYYY-MM-DD" strings
+      goals     — dict mapping iteration label to goal string, e.g. {"I1": "Ship auth"}
+    """
     console.print(f"\n[bold cyan]  ◎  Focal — plan ({repo})[/bold cyan]\n")
 
     state = pm_state.load(repo_root)
@@ -369,19 +385,44 @@ def run(repo: str, repo_root: Path, config: dict, refresh: bool = False) -> None
 
     # Iteration parameters
     console.print("[bold]Iteration parameters[/bold]")
-    weeks_raw = Prompt.ask("Iteration length (weeks)", default="2")
-    weeks = int(weeks_raw) if weeks_raw.isdigit() else 2
+    if weeks is None:
+        weeks_raw = Prompt.ask("Iteration length (weeks)", default="2")
+        weeks = int(weeks_raw) if weeks_raw.isdigit() else 2
 
     today = date.today()
-    default_start = _next_monday(today).isoformat()
-    start_raw = Prompt.ask("Start date (YYYY-MM-DD)", default=default_start)
-    try:
-        start = _parse_date(start_raw)
-    except ValueError:
-        start = _next_monday(today)
+    if start_date is None:
+        default_start = _next_monday(today).isoformat()
+        start_raw = Prompt.ask("Start date (YYYY-MM-DD)", default=default_start)
+        try:
+            start = _parse_date(start_raw)
+        except ValueError:
+            start = _next_monday(today)
+    else:
+        try:
+            start = _parse_date(start_date)
+        except ValueError:
+            start = _next_monday(today)
 
-    # Estimate number of iterations needed
-    members = _prompt_team(config)
+    # Team & capacity
+    if team is not None:
+        members = []
+        for part in team.split(","):
+            part = part.strip()
+            if ":" in part:
+                handle, sp_raw = part.rsplit(":", 1)
+                try:
+                    sp_int = int(sp_raw)
+                except ValueError:
+                    sp_int = 8
+            else:
+                handle, sp_int = part, 8
+            if handle:
+                members.append({"handle": handle.lstrip("@"), "sp_per_iter": sp_int})
+        if not members:
+            members = _prompt_team(config)
+    else:
+        members = _prompt_team(config)
+
     base_cap = sum(m["sp_per_iter"] for m in members)
     if base_cap > 0:
         num_iters = max(1, -(-total_sp // base_cap) + 1)  # ceiling + 1 buffer
@@ -390,7 +431,40 @@ def run(repo: str, repo_root: Path, config: dict, refresh: bool = False) -> None
     num_iters = min(num_iters, 24)  # cap at 24
 
     iters = _build_iterations(start, weeks, num_iters, members)
-    iters = _prompt_pto(members, iters)
+
+    # PTO
+    if pto is not None:
+        for entry in pto:
+            parts = entry.split(":")
+            if len(parts) == 3:
+                handle, away_start_s, away_end_s = parts
+                try:
+                    away_start = _parse_date(away_start_s)
+                    away_end = _parse_date(away_end_s)
+                except ValueError:
+                    continue
+                member = next(
+                    (m for m in members if m["handle"] == handle.lstrip("@")), None
+                )
+                if not member:
+                    continue
+                full_sp = member["sp_per_iter"]
+                for it in iters:
+                    iter_start = _parse_date(it["start"])
+                    iter_end_d = _parse_date(it["end"])
+                    if away_start <= iter_end_d and away_end >= iter_start:
+                        overlap_days = (
+                            min(away_end, iter_end_d) - max(away_start, iter_start)
+                        ).days + 1
+                        iter_days = (iter_end_d - iter_start).days + 1
+                        reduction = round(full_sp * overlap_days / iter_days)
+                        it["capacity_sp"] = max(0, it["capacity_sp"] - reduction)
+                        it.setdefault("notes", []).append(
+                            f"@{handle} away {_format_date(away_start)}–{_format_date(away_end)}"
+                        )
+    else:
+        iters = _prompt_pto(members, iters)
+
     iters = _assign_stories_to_iters(open_stories, iters)
 
     # Trim trailing empty iterations
@@ -398,6 +472,18 @@ def run(repo: str, repo_root: Path, config: dict, refresh: bool = False) -> None
         iters.pop()
     if not iters:
         iters = _build_iterations(start, weeks, 1, members)
+
+    # Iteration goals
+    if goals is not None:
+        for it in iters:
+            it["goal"] = goals.get(it["label"], "")
+    else:
+        console.print(
+            "\n[bold]Iteration goals[/bold] (used in retro — blank to skip)\n"
+        )
+        for it in iters:
+            goal = Prompt.ask(f"  {it['label']} goal", default="")
+            it["goal"] = goal.strip()
 
     risks = _identify_risks(open_stories)
 

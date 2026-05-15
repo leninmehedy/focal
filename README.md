@@ -76,7 +76,7 @@ day, naturally self-rotating). Override the directory via `LOG_DIR` in
 ```
 [2026-05-15 17:09:10] [INFO ] Board: #3 (PVT_kwHOAAxhrc4BXwuQ)
 [2026-05-15 17:09:14] [INFO ] Adding: https://github.com/hashgraph/solo-operator/issues/1005
-[2026-05-15 17:09:47] [WARN ] 'In Progress' not found in "@jeromy-cannon's project" — skipping
+[2026-05-15 17:09:47] [WARN ] 'In Progress' not found in "some-org's project" — skipping
 [2026-05-15 17:31:22] [INFO ] Sync complete — added: 3  inherited: 3  pushed: 1  stale: 0  log: /...
 ```
 

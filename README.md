@@ -168,7 +168,30 @@ changed between runs. Delete it to reset the baseline.
 - The `gh` token must have `project` scope for both your personal board and any
   origin org projects you want to write to.
 
-## Using with Claude Code
+## Using with an AI agent (Claude Code, Codex, etc.)
 
-See [CLAUDE.md](CLAUDE.md) for instructions on using Claude Code to manage and
-extend Focal.
+Focal ships with an [AGENTS.md](AGENTS.md) that AI coding agents read
+automatically on startup. This means you can set up and manage Focal entirely
+through conversation — no need to read documentation manually.
+
+**First-time setup:**
+```bash
+git clone https://github.com/leninmehedy/focal.git
+cd focal
+claude        # Claude Code CLI
+# or: open the folder in VS Code with the Claude Code extension
+```
+
+Once Claude Code is open, just say:
+> *"Set up Focal for me"*
+
+Claude will check prerequisites, run the setup wizard, verify the first sync,
+and install the scheduler — asking you only for the things it can't infer
+(your board URL and which repos to track).
+
+**Ongoing use — things you can ask Claude:**
+- *"Add hashgraph/solo-operator to my sync"*
+- *"Why is issue #42 still showing as New?"*
+- *"Reset and re-sync everything from scratch"*
+- *"Show me warnings from the last sync"*
+- *"The hourly sync stopped running — what's wrong?"*

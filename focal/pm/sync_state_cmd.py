@@ -1,4 +1,4 @@
-"""focal pm sync-state — refresh local state cache from GitHub."""
+"""focal cache refresh — refresh local state cache from GitHub."""
 
 from pathlib import Path
 
@@ -11,7 +11,7 @@ console = Console()
 
 def run(repo: str, repo_root: Path, config: dict) -> None:
     """Re-fetch all epic/story status from GitHub and update local cache."""
-    console.print(f"\n[bold cyan]  ◎  Focal — sync-state ({repo})[/bold cyan]\n")
+    console.print(f"\n[bold cyan]  ◎  Focal — cache refresh ({repo})[/bold cyan]\n")
 
     state = pm_state.load(repo_root)
     if not state["epics"]:

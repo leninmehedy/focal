@@ -348,7 +348,7 @@ def run(repo: str, repo_root: Path, config: dict, refresh: bool = False) -> None
     if not state["epics"]:
         console.print(
             "[red]No epics in local state. "
-            "Run [bold]focal pm sync-state[/bold] or create epics first.[/red]"
+            "Run [bold]focal cache refresh[/bold] or create epics first.[/red]"
         )
         return
 

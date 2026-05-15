@@ -48,11 +48,12 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-STATE_FILE = ".focal-state.json"
+CACHE_DIR = ".cache"
+STATE_FILE = "focal-state.json"
 
 
 def state_path(repo_root: Path) -> Path:
-    return repo_root / "docs" / "focal" / STATE_FILE
+    return repo_root / "docs" / "focal" / CACHE_DIR / STATE_FILE
 
 
 def load(repo_root: Path) -> dict:

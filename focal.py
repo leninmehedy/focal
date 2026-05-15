@@ -19,6 +19,10 @@ app.add_typer(board_app, name="board")
 pm_app = typer.Typer(help="Project management commands (epics, stories, planning).")
 app.add_typer(pm_app, name="pm")
 
+# focal cache — local state cache management
+cache_app = typer.Typer(help="Manage the local state cache (docs/focal/.cache/).")
+app.add_typer(cache_app, name="cache")
+
 SCRIPT_DIR = Path(__file__).parent
 
 
@@ -177,29 +181,6 @@ def pm_story_create(
     run(repo, repo_root.resolve(), config)
 
 
-@pm_app.command("sync-state")
-def pm_sync_state(
-    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
-    repo_root: Path = typer.Option(
-        Path("."),
-        "--repo-root",
-        help="Local path to the repo root (default: current directory)",
-    ),
-):
-    """Refresh local state cache from GitHub (epics, stories, project status)."""
-    import json as _json
-
-    from focal.pm.sync_state_cmd import run
-
-    config: dict = {}
-    config_path = SCRIPT_DIR / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
-
-    run(repo, repo_root.resolve(), config)
-
-
 @pm_app.command("plan")
 def pm_plan(
     repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
@@ -224,6 +205,32 @@ def pm_plan(
             config = _json.load(f)
 
     run(repo, repo_root.resolve(), config, refresh=refresh)
+
+
+# ── focal cache ───────────────────────────────────────────────────────────────
+
+
+@cache_app.command("refresh")
+def cache_refresh(
+    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
+    repo_root: Path = typer.Option(
+        Path("."),
+        "--repo-root",
+        help="Local path to the repo root (default: current directory)",
+    ),
+):
+    """Re-fetch all epic/story state from GitHub and update docs/focal/.cache/."""
+    import json as _json
+
+    from focal.pm.sync_state_cmd import run
+
+    config: dict = {}
+    config_path = SCRIPT_DIR / "config.json"
+    if config_path.exists():
+        with open(config_path) as f:
+            config = _json.load(f)
+
+    run(repo, repo_root.resolve(), config)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/leninmehedy/focal/compare/v1.0.0...v1.1.0) (2026-05-15)
+
+
+### Features
+
+* rewrite core in Python ([8982ec3](https://github.com/leninmehedy/focal/commit/8982ec351d62d638ae8d86f7e3e73a4bb53cea72))
+
 # 1.0.0 (2026-05-15)
 
 

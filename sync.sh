@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# sync.sh — Bidirectional sync between your personal GitHub Projects board
+# sync.sh — Focal: bidirectional sync between your personal GitHub Projects board
 #            and the origin project boards across your tracked repos.
 #
 # Pull:  Open issues assigned to you → added to personal board.
@@ -27,8 +27,8 @@ fi
 source "$CONFIG_FILE"
 
 # ── Logging ───────────────────────────────────────────────────────────────────
-# Log directory defaults to ~/.sync-gh-board/logs; override via LOG_DIR in config.sh.
-LOG_DIR="${LOG_DIR:-${HOME}/.sync-gh-board/logs}"
+# Log directory defaults to ~/.focal/logs; override via LOG_DIR in config.sh.
+LOG_DIR="${LOG_DIR:-${HOME}/.focal/logs}"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/$(date '+%Y-%m-%d').log"
 

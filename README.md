@@ -1,7 +1,7 @@
-# sync-gh-board
+# Focal
 
-Bidirectional sync between your personal GitHub Projects Kanban board and
-origin repo project boards across any number of repositories.
+Your personal command center for GitHub Issues — one Kanban board that stays in
+sync with every project board you contribute to.
 
 ## The problem
 
@@ -11,11 +11,11 @@ repo B's board, find your cards, repeat for every repo you're involved in.
 By the time you've done the rounds, you've lost 20 minutes and you still don't
 have a single prioritized view of what you're supposed to do today.
 
-**sync-gh-board solves this.** Create one personal Kanban board — your command
-center — and let this tool keep it in sync with every project board you
-contribute to. All issues assigned to you flow in automatically. You prioritize
-and move cards in one place. Status changes flow back out to the origin projects
-so your teammates always see up-to-date progress. No more board-hopping.
+**Focal solves this.** Create one personal Kanban board — your command center —
+and let Focal keep it in sync with every project board you contribute to. All
+issues assigned to you flow in automatically. You prioritize and move cards in
+one place. Status changes flow back out to the origin projects so your teammates
+always see up-to-date progress. No more board-hopping.
 
 ## What it does
 
@@ -33,8 +33,8 @@ so your teammates always see up-to-date progress. No more board-hopping.
 ## Quick start
 
 ```bash
-git clone https://github.com/leninmehedy/sync-gh-board.git
-cd sync-gh-board
+git clone https://github.com/leninmehedy/focal.git
+cd focal
 chmod +x setup.sh sync.sh
 ./setup.sh
 ```
@@ -70,8 +70,7 @@ to your personal board. It will:
    (e.g. projects you don't own) — this maps origin status names to your
    personal board names at sync time
 
-Recommended personal board Status columns (consistent with the emoji set used
-by Solo Weaver / Solo Operator style projects):
+Recommended personal board Status columns:
 
 ```
 🆕 New  ·  📋 Backlog  ·  🔖 Ready  ·  🏗 In progress  ·  ✋ Blocked  ·  👀 In review  ·  ✅ Done
@@ -82,14 +81,14 @@ treated as the same status, so minor cosmetic differences don't break the sync.
 
 ## Logging
 
-Logs are written to `~/.sync-gh-board/logs/YYYY-MM-DD.log` (one file per
-day, naturally self-rotating). Override the directory via `LOG_DIR` in
-`config.sh`. When running interactively, logs are also printed to stdout.
+Logs are written to `~/.focal/logs/YYYY-MM-DD.log` (one file per day, naturally
+self-rotating). Override the directory via `LOG_DIR` in `config.sh`. When
+running interactively, logs are also printed to stdout.
 
 **Format:**
 ```
 [2026-05-15 17:09:10] [INFO ] Board: #3 (PVT_kwHOAAxhrc4BXwuQ)
-[2026-05-15 17:09:14] [INFO ] Adding: https://github.com/hashgraph/solo-operator/issues/1005
+[2026-05-15 17:09:14] [INFO ] Adding: https://github.com/some-org/some-repo/issues/42
 [2026-05-15 17:09:47] [WARN ] 'In Progress' not found in "some-org's project" — skipping
 [2026-05-15 17:31:22] [INFO ] Sync complete — added: 3  inherited: 3  pushed: 1  stale: 0  log: /...
 ```
@@ -101,12 +100,12 @@ inherited from origin, statuses pushed to origin, and stale items moved to Done.
 
 View today's log:
 ```bash
-tail -f ~/.sync-gh-board/logs/$(date '+%Y-%m-%d').log
+tail -f ~/.focal/logs/$(date '+%Y-%m-%d').log
 ```
 
 Grep for warnings:
 ```bash
-grep '\[WARN\]' ~/.sync-gh-board/logs/*.log
+grep '\[WARN\]' ~/.focal/logs/*.log
 ```
 
 ## Recurring sync
@@ -119,28 +118,28 @@ starts automatically on login.
 A ready-to-use plist is provided. Install it with:
 
 ```bash
-cp launchd/com.your-username.sync-gh-board.plist ~/Library/LaunchAgents/
+cp launchd/com.your-username.focal.plist ~/Library/LaunchAgents/
 # Edit the plist to set your username and script path, then:
-launchctl load ~/Library/LaunchAgents/com.your-username.sync-gh-board.plist
+launchctl load ~/Library/LaunchAgents/com.your-username.focal.plist
 ```
 
 Useful commands:
 
 ```bash
 # Check status (shows last exit code)
-launchctl list | grep sync-gh-board
+launchctl list | grep focal
 
 # Trigger a manual run immediately
-launchctl start com.your-username.sync-gh-board
+launchctl start com.your-username.focal
 
 # Disable
-launchctl unload ~/Library/LaunchAgents/com.your-username.sync-gh-board.plist
+launchctl unload ~/Library/LaunchAgents/com.your-username.focal.plist
 ```
 
 ### Linux / alternative — cron
 
 ```bash
-(crontab -l 2>/dev/null; echo "0 * * * * /path/to/sync-gh-board/sync.sh") | crontab -
+(crontab -l 2>/dev/null; echo "0 * * * * /path/to/focal/sync.sh") | crontab -
 ```
 
 ## File reference
@@ -148,21 +147,21 @@ launchctl unload ~/Library/LaunchAgents/com.your-username.sync-gh-board.plist
 | File | Purpose |
 |---|---|
 | `setup.sh` | Interactive setup wizard — run once |
-| `sync.sh` | Main sync script — run manually or via cron |
+| `sync.sh` | Main sync script — run manually or via scheduler |
 | `config.example.sh` | Template for `config.sh` |
 | `config.sh` | Your personal config — **gitignored, never commit** |
 | `status_map.json` | Auto-generated status name mappings — **gitignored** |
 
 ## State file
 
-Sync state is stored at `~/.sync-gh-board/state.json` (configurable
-in `config.sh`). It records the last-known status of each tracked issue so the
-sync can detect what changed between runs. Delete it to reset the baseline.
+Sync state is stored at `~/.focal/state.json` (configurable in `config.sh`).
+It records the last-known status of each tracked issue so Focal can detect what
+changed between runs. Delete it to reset the baseline.
 
 ## Limitations
 
 - GitHub does not emit webhooks for personal project board changes, so sync is
-  poll-based. Frequency is controlled by your cron interval.
+  poll-based. Frequency is controlled by your scheduler interval.
 - Status pushes to origin are best-effort: if an origin project doesn't have a
   matching status option and it can't be auto-fixed, that project is skipped
   with a warning in the log.
@@ -172,4 +171,4 @@ sync can detect what changed between runs. Delete it to reset the baseline.
 ## Using with Claude Code
 
 See [CLAUDE.md](CLAUDE.md) for instructions on using Claude Code to manage and
-extend this tool.
+extend Focal.

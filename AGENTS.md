@@ -239,6 +239,23 @@ launchctl load ~/Library/LaunchAgents/com.YOUR_USERNAME.focal.plist
 (crontab -l 2>/dev/null; echo "0 * * * * /path/to/focal/sync.sh") | crontab -
 ```
 
+### Step 6 — Schedule PM cache refresh (optional but recommended)
+
+If using the PM CLI, schedule a twice-daily cache refresh so `focal pm status`
+stays accurate as issues are closed on GitHub throughout the day.
+
+**macOS (launchd):**
+```bash
+cp launchd/com.your-username.focal-cache.plist ~/Library/LaunchAgents/com.YOUR_USERNAME.focal-cache.plist
+# Edit: replace YOUR_USERNAME, /path/to/focal, and owner/repo
+launchctl load ~/Library/LaunchAgents/com.YOUR_USERNAME.focal-cache.plist
+```
+
+**Linux (cron):**
+```bash
+(crontab -l 2>/dev/null; echo "0 8,14 * * * python3 /path/to/focal/focal.py cache refresh owner/repo --repo-root /path/to/your/repo >> ~/.focal/logs/cache-refresh.log 2>&1") | crontab -
+```
+
 ---
 
 ## Common tasks

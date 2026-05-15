@@ -172,6 +172,27 @@ launchctl unload ~/Library/LaunchAgents/...   # disable
 (crontab -l 2>/dev/null; echo "0 * * * * /path/to/focal/sync.sh") | crontab -
 ```
 
+### Schedule PM cache refresh
+
+The PM state cache (`docs/focal/.cache/focal-state.json`) drifts when issues are
+closed or updated on GitHub outside Focal. A twice-daily refresh keeps
+`focal pm status` accurate without manual runs.
+
+**macOS (launchd):**
+
+```bash
+cp launchd/com.your-username.focal-cache.plist ~/Library/LaunchAgents/com.YOUR_USERNAME.focal-cache.plist
+# Edit the plist: replace YOUR_USERNAME, /path/to/focal, and owner/repo
+launchctl load ~/Library/LaunchAgents/com.YOUR_USERNAME.focal-cache.plist
+```
+
+The template runs at **08:00 and 14:00** daily. Edit `StartCalendarInterval` to adjust.
+
+**Linux / alternative (cron):**
+```bash
+(crontab -l 2>/dev/null; echo "0 8,14 * * * python3 /path/to/focal/focal.py cache refresh owner/repo --repo-root /path/to/your/repo >> ~/.focal/logs/cache-refresh.log 2>&1") | crontab -
+```
+
 ---
 
 ## Logging
@@ -253,6 +274,8 @@ delivery cycle — see [`docs/pm-guide.md`](docs/pm-guide.md).
 | `templates/` | Markdown templates copied by `focal pm init` |
 | `docs/pm-guide.md` | Full PM workflow guide |
 | `sync.sh` / `setup.sh` | Thin shell wrappers (for launchd / cron) |
+| `launchd/com.your-username.focal.plist` | macOS scheduler template — board sync (hourly) |
+| `launchd/com.your-username.focal-cache.plist` | macOS scheduler template — PM cache refresh (twice daily) |
 | `config.json` | Your personal config — **gitignored, never commit** |
 | `config.example.json` | Template showing all config keys |
 | `status_map.json` | Auto-generated status name mappings — **gitignored** |

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  macOS launchd agent — focal PM cache refresh.
+
+  Runs `focal cache refresh` twice daily (08:00 and 14:00) to keep
+  docs/focal/.cache/focal-state.json in sync with GitHub without manual runs.
+
+  Setup:
+    1. Copy this file to ~/Library/LaunchAgents/
+    2. Replace YOUR_USERNAME with your macOS username (run: whoami)
+    3. Replace /path/to/focal with the absolute path to this repo
+    4. Replace owner/repo with the target repo (e.g. myorg/myrepo)
+    5. Load it:
+         launchctl load ~/Library/LaunchAgents/com.YOUR_USERNAME.focal-cache.plist
+
+  Useful commands:
+    launchctl list | grep focal-cache              # check status / last exit code
+    launchctl start com.YOUR_USERNAME.focal-cache  # run immediately
+    launchctl unload ~/Library/LaunchAgents/com.YOUR_USERNAME.focal-cache.plist
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.YOUR_USERNAME.focal-cache</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/path/to/focal/focal.py</string>
+        <string>cache</string>
+        <string>refresh</string>
+        <string>owner/repo</string>
+        <string>--repo-root</string>
+        <string>/path/to/your/repo</string>
+    </array>
+
+    <!-- Run at 08:00 and 14:00 every day -->
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Hour</key>
+            <integer>8</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+        <dict>
+            <key>Hour</key>
+            <integer>14</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+    </array>
+
+    <key>KeepAlive</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/YOUR_USERNAME/.focal/logs/cache-refresh.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/YOUR_USERNAME/.focal/logs/cache-refresh-error.log</string>
+
+    <!-- Ensure PATH includes Homebrew so gh CLI is found -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>/Users/YOUR_USERNAME</string>
+    </dict>
+</dict>
+</plist>

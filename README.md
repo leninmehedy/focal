@@ -94,14 +94,14 @@ Prefer to do it yourself? No problem.
 git clone https://github.com/leninmehedy/focal.git
 cd focal
 pip3 install -r requirements.txt
-python3 focal.py setup
+python3 focal.py board setup
 ```
 
 The setup wizard guides you through everything interactively and generates
 `config.json`. Then run a sync manually to verify:
 
 ```bash
-python3 focal.py sync
+python3 focal.py board sync
 ```
 
 ### Selecting repos
@@ -180,7 +180,7 @@ grep 'WARN' ~/.focal/logs/*.log                  # see all warnings
 
 | File | Purpose |
 |---|---|
-| `focal.py` | CLI entry point — `python3 focal.py sync` / `setup` |
+| `focal.py` | CLI entry point — `python3 focal.py board sync` / `setup` |
 | `focal/` | Python package — all sync and wizard logic |
 | `sync.sh` / `setup.sh` | Thin shell wrappers (for launchd / cron) |
 | `config.json` | Your personal config — **gitignored, never commit** |

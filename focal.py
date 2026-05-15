@@ -11,15 +11,22 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
-# Sub-app for project management commands
+# focal board — personal board sync commands
+board_app = typer.Typer(help="Personal board sync commands.")
+app.add_typer(board_app, name="board")
+
+# focal pm — project management commands
 pm_app = typer.Typer(help="Project management commands (epics, stories, planning).")
 app.add_typer(pm_app, name="pm")
 
 SCRIPT_DIR = Path(__file__).parent
 
 
-@app.command()
-def sync():
+# ── focal board ───────────────────────────────────────────────────────────────
+
+
+@board_app.command("sync")
+def board_sync():
     """Sync personal board with all tracked origin project boards."""
     from focal import log
     from focal.config import Config
@@ -28,7 +35,7 @@ def sync():
     config_path = SCRIPT_DIR / "config.json"
     if not config_path.exists():
         typer.echo(
-            "ERROR: config.json not found. Run: python3 focal.py setup", err=True
+            "ERROR: config.json not found. Run: python3 focal.py board setup", err=True
         )
         raise typer.Exit(1)
 
@@ -43,12 +50,70 @@ def sync():
         raise typer.Exit(1)
 
 
-@app.command()
-def setup():
+@board_app.command("setup")
+def board_setup():
     """Interactive wizard — configure Focal for the first time."""
     from focal.wizard import run
 
     run(SCRIPT_DIR)
+
+
+# ── focal reset ───────────────────────────────────────────────────────────────
+
+
+@app.command()
+def reset(
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt."),
+):
+    """Remove all Focal config, state, logs, and the launchd scheduler."""
+    import shutil
+    import subprocess
+
+    from rich.console import Console
+    from rich.prompt import Confirm
+
+    console = Console()
+    console.print("\n[bold red]  ⚠  Focal Reset[/bold red]\n")
+    console.print("This will remove:")
+    console.print(f"  • {SCRIPT_DIR / 'config.json'}")
+    console.print(f"  • {SCRIPT_DIR / 'status_map.json'}")
+    console.print("  • ~/.focal/state.json")
+    console.print("  • ~/.focal/logs/")
+    console.print("  • ~/Library/LaunchAgents/com.*.focal.plist  (if installed)\n")
+
+    if not yes and not Confirm.ask("Proceed?", default=False):
+        raise typer.Exit(0)
+
+    removed = []
+
+    for path in (SCRIPT_DIR / "config.json", SCRIPT_DIR / "status_map.json"):
+        if path.exists():
+            path.unlink()
+            removed.append(str(path))
+
+    focal_dir = Path.home() / ".focal"
+    if focal_dir.exists():
+        shutil.rmtree(focal_dir)
+        removed.append(str(focal_dir))
+
+    launch_agents = Path.home() / "Library" / "LaunchAgents"
+    for plist in launch_agents.glob("*.focal.plist"):
+        label = plist.stem
+        subprocess.run(["launchctl", "unload", str(plist)], capture_output=True)
+        plist.unlink()
+        removed.append(str(plist))
+        console.print(f"  [green]✔[/green] Unloaded launchd job: {label}")
+
+    if removed:
+        for r in removed:
+            console.print(f"  [green]✔[/green] Removed: {r}")
+        console.print("\n[bold green]Reset complete.[/bold green]")
+        console.print("Run [bold]python3 focal.py board setup[/bold] to start fresh.")
+    else:
+        console.print("[dim]Nothing to remove — Focal was not configured.[/dim]")
+
+
+# ── focal pm ──────────────────────────────────────────────────────────────────
 
 
 @pm_app.command("init")

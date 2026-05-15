@@ -37,7 +37,7 @@ _log() {
   local line="[$(date '+%Y-%m-%d %H:%M:%S')] [$level] $*"
   echo "$line" >> "$LOG_FILE"
   # Also print to stdout when running interactively (terminal attached)
-  [[ -t 1 ]] && echo "$line"
+  [[ -t 1 ]] && echo "$line" || true
 }
 log()   { _log "INFO " "$@"; }
 warn()  { _log "WARN " "$@"; }

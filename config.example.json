@@ -2,12 +2,23 @@
   "board_owner": "your-github-username",
   "board_number": 3,
   "assignee": "your-github-username",
-  "status_field_id": "",
+  "status_field_id": "PVTSSF_...",
   "done_status": "✅ Done",
   "repos": [
     "myorg/repo-one",
     "myorg/repo-two"
   ],
+
+  "pm_repos": [
+    {
+      "repo": "myorg/repo-one",
+      "repo_root": "/absolute/path/to/repo-one"
+    }
+  ],
+
+  "auto_cache_refresh": true,
+  "max_tracked_issues": 500,
+
   "state_file": "~/.focal/state.json",
   "log_dir": "~/.focal/logs"
 }

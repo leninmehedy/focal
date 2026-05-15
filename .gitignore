@@ -7,3 +7,4 @@ state/
 __pycache__/
 *.pyc
 .venv/
+.idea

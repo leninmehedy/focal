@@ -93,9 +93,9 @@ def run(repo: str, repo_root: Path) -> None:
     # ── Docs scaffold ─────────────────────────────────────────────────────────
     console.rule("[bold]Step 3: Docs scaffold[/bold]")
     for tmpl in ("epics.md", "iteration-planning.md", "retro-log.md"):
-        _copy_template(TEMPLATES_DIR / tmpl, repo_root / "docs" / tmpl, repo)
+        _copy_template(TEMPLATES_DIR / tmpl, repo_root / "docs" / "focal" / tmpl, repo)
 
-    design_dir = repo_root / "docs" / "design"
+    design_dir = repo_root / "docs" / "focal" / "design"
     design_dir.mkdir(parents=True, exist_ok=True)
     gitkeep = design_dir / ".gitkeep"
     if not gitkeep.exists():
@@ -108,7 +108,7 @@ def run(repo: str, repo_root: Path) -> None:
         f"  Create your first epic:  [bold]python3 focal.py pm epic create --repo {repo}[/bold]"
     )
     console.print(
-        "  Commit the scaffold:     [bold]git add docs/ .github/ISSUE_TEMPLATE/ && "
+        "  Commit the scaffold:     [bold]git add docs/focal/ .github/ISSUE_TEMPLATE/ && "
         "git commit -m 'chore: focal init'[/bold]"
     )
     console.print("\nCanonical Status columns for your GitHub Projects board:")

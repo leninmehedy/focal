@@ -54,10 +54,10 @@ python3 focal.py pm init <owner/repo> [--repo-root PATH]
 |------|---------|
 | `.github/ISSUE_TEMPLATE/epic.md` | GitHub issue template for epics |
 | `.github/ISSUE_TEMPLATE/story.md` | GitHub issue template for stories |
-| `docs/epics.md` | Epic/story tracker with SP rollups |
-| `docs/iteration-planning.md` | Capacity, schedule, and risk register |
-| `docs/retro-log.md` | Velocity history per iteration |
-| `docs/design/` | Directory for per-feature design records |
+| `docs/focal/epics.md` | Epic/story tracker with SP rollups |
+| `docs/focal/iteration-planning.md` | Capacity, schedule, and risk register |
+| `docs/focal/retro-log.md` | Velocity history per iteration |
+| `docs/focal/design/` | Directory for per-feature design records |
 
 **Labels created:** `epic` (purple) · `story` (blue)
 
@@ -72,17 +72,17 @@ $ python3 focal.py pm init leninmehedy/my-project
   ✔ Label 'story' ready
   ✔ .github/ISSUE_TEMPLATE/epic.md
   ✔ .github/ISSUE_TEMPLATE/story.md
-  ✔ docs/epics.md
-  ✔ docs/iteration-planning.md
-  ✔ docs/retro-log.md
-  ✔ docs/design/
+  ✔ docs/focal/epics.md
+  ✔ docs/focal/iteration-planning.md
+  ✔ docs/focal/retro-log.md
+  ✔ docs/focal/design/
 ```
 
 ---
 
 ### `focal pm epic create`
 
-Guided wizard to create a GitHub epic issue and record it in `docs/epics.md`.
+Guided wizard to create a GitHub epic issue and record it in `docs/focal/epics.md`.
 
 ```
 python3 focal.py pm epic create --repo <owner/repo> [--repo-root PATH]
@@ -93,10 +93,10 @@ python3 focal.py pm epic create --repo <owner/repo> [--repo-root PATH]
 1. Prompts for epic title, description, and SP estimate
 2. Creates a GitHub Issue with the `epic` label, assigned to you
 3. Adds the issue to your project board
-4. Appends a structured entry to `docs/epics.md` with an auto-incremented ID (E1, E2, …)
-5. Commits `docs/epics.md`
+4. Appends a structured entry to `docs/focal/epics.md` with an auto-incremented ID (E1, E2, …)
+5. Commits `docs/focal/epics.md`
 
-**Epic format in `docs/epics.md`:**
+**Epic format in `docs/focal/epics.md`:**
 
 ```markdown
 ## E3 — Add OAuth support · #42 · 21 SP
@@ -116,7 +116,7 @@ $ python3 focal.py pm epic create --repo leninmehedy/my-project
   Estimate (SP): 21
   ✔ Created issue #42 — Epic: Add OAuth support
   ✔ Added to project board
-  ✔ docs/epics.md updated (E3)
+  ✔ docs/focal/epics.md updated (E3)
   ✔ Committed
 ```
 
@@ -136,8 +136,8 @@ python3 focal.py pm story create --repo <owner/repo> [--repo-root PATH]
 2. Prompts for story title, description, and SP estimate
 3. Creates a GitHub Issue with the `story` label, linked as sub-issue to the epic
 4. Adds the issue to the project board with SP set
-5. Appends the story row to the epic's table in `docs/epics.md` (auto-numbered 1.1, 1.2, …)
-6. Commits `docs/epics.md`
+5. Appends the story row to the epic's table in `docs/focal/epics.md` (auto-numbered 1.1, 1.2, …)
+6. Commits `docs/focal/epics.md`
 
 **Example:**
 
@@ -152,11 +152,11 @@ $ python3 focal.py pm story create --repo leninmehedy/my-project
   ✔ Created issue #43 — Implement GitHub OAuth flow
   ✔ Linked as sub-issue to #42
   ✔ Story point set: 5 SP
-  ✔ docs/epics.md updated (3.1)
+  ✔ docs/focal/epics.md updated (3.1)
   ✔ Committed
 ```
 
-**Story row added to `docs/epics.md`:**
+**Story row added to `docs/focal/epics.md`:**
 
 ```markdown
 | **3.1** — Implement GitHub OAuth flow | [#43](https://github.com/.../issues/43) | 5 |
@@ -166,7 +166,7 @@ $ python3 focal.py pm story create --repo leninmehedy/my-project
 
 ### `focal pm plan`
 
-Generate or update `docs/iteration-planning.md` from current GitHub Issues state.
+Generate or update `docs/focal/iteration-planning.md` from current GitHub Issues state.
 
 ```
 python3 focal.py pm plan --repo <owner/repo> [--repo-root PATH] [--iteration N]
@@ -179,7 +179,7 @@ python3 focal.py pm plan --repo <owner/repo> [--repo-root PATH] [--iteration N]
 3. Prompts for PTO/travel dates (reduces capacity for affected iterations)
 4. Groups stories into iterations by SP capacity
 5. Identifies risks: stories with no estimate, unassigned epics, blocked items
-6. Writes structured markdown to `docs/iteration-planning.md`
+6. Writes structured markdown to `docs/focal/iteration-planning.md`
 
 **Use `--iteration N`** to plan a specific iteration without regenerating the full document.
 
@@ -196,14 +196,14 @@ $ python3 focal.py pm plan --repo leninmehedy/my-project
     @leninmehedy away Jun 27–Jul 4 (affects I4)
   ✔ 3 epics · 14 stories · 62 SP total scope
   ✔ Projected delivery: I6 (Aug 9, 2026)
-  ✔ docs/iteration-planning.md updated
+  ✔ docs/focal/iteration-planning.md updated
 ```
 
 ---
 
 ### `focal pm retro`
 
-Close out a completed iteration and update `docs/retro-log.md`.
+Close out a completed iteration and update `docs/focal/retro-log.md`.
 
 ```
 python3 focal.py pm retro --repo <owner/repo> [--repo-root PATH] [--iteration N]
@@ -211,13 +211,13 @@ python3 focal.py pm retro --repo <owner/repo> [--repo-root PATH] [--iteration N]
 
 **What it does:**
 
-1. Reads planned stories for the iteration from `docs/iteration-planning.md`
+1. Reads planned stories for the iteration from `docs/focal/iteration-planning.md`
 2. Checks GitHub Issues for which are closed (delivered) vs still open (carry-over)
 3. Prompts for a slip reason per carry-over story
 4. Calculates velocity: planned SP, delivered SP, carry-over SP
-5. Appends a structured iteration record to `docs/retro-log.md`
+5. Appends a structured iteration record to `docs/focal/retro-log.md`
 6. Updates the cumulative velocity table
-7. Commits `docs/retro-log.md`
+7. Commits `docs/focal/retro-log.md`
 
 **Slip reason codes:**
 
@@ -242,11 +242,11 @@ $ python3 focal.py pm retro --repo leninmehedy/my-project --iteration 1
     Notes: took longer than estimated due to session handling edge cases
 
   Planned: 22 SP · Delivered: 17 SP · Carry-over: 5 SP
-  ✔ docs/retro-log.md updated (I1)
+  ✔ docs/focal/retro-log.md updated (I1)
   ✔ Committed
 ```
 
-**Record appended to `docs/retro-log.md`:**
+**Record appended to `docs/focal/retro-log.md`:**
 
 ```markdown
 ## I1 - May 18 (May 18 – May 31)
@@ -303,10 +303,11 @@ your-repo/
       epic.md               ← GitHub template for epic issues
       story.md              ← GitHub template for story issues
   docs/
-    epics.md                ← epic/story tracker, updated by focal epic/story create
-    iteration-planning.md   ← capacity + schedule, updated by focal pm plan
-    retro-log.md            ← velocity history, updated by focal pm retro
-    design/                 ← per-feature design records (manual)
+    focal/
+        epics.md                ← epic/story tracker, updated by focal epic/story create
+      iteration-planning.md   ← capacity + schedule, updated by focal pm plan
+      retro-log.md            ← velocity history, updated by focal pm retro
+      design/                 ← per-feature design records (manual)
 ```
 
 ---

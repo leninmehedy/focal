@@ -1,3 +1,11 @@
+# 1.0.0 (2026-05-15)
+
+
+### Bug Fixes
+
+* add instructions on using coding agent to setup focal ([f9f98e6](https://github.com/leninmehedy/focal/commit/f9f98e68c774e04b82e3877514d6f7dc00e7b59e))
+* add the why ([85f548c](https://github.com/leninmehedy/focal/commit/85f548c476200e9c89febcb5835a330fbc70062a))
+
 # Changelog
 
 All notable changes to Focal are documented here.

@@ -1,0 +1,4 @@
+config.sh
+status_map.json
+state/
+*.log

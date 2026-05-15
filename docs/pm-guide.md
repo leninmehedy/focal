@@ -14,27 +14,140 @@ and markdown files in your repo. No Jira, no Linear, no external tools.
 
 ---
 
-## Quick-start workflow
+## Delivery workflow
+
+Focal separates **thinking** from **execution**. The thinking (design, planning) is done
+by you or your AI agent. The execution (creating GitHub issues, updating boards, logging
+velocity) is done by Focal. Neither step blocks the other — you can write design docs
+without Focal, and you can run Focal commands without design docs. But together they form
+a complete, traceable delivery system.
 
 ```
-# 1. Bootstrap a repo
+Step 1  focal pm init owner/repo
+        └─ scaffolds docs/focal/, labels, issue templates
+
+Step 2  Write design docs  →  docs/focal/design/D001-feature.md
+        └─ human or AI agent — problem, goals, impact, breakdown hint
+
+Step 3  Plan epics & stories
+        └─ human or AI agent reads design docs, decides structure + SP
+
+Step 4  focal pm epic-create owner/repo    # repeat per epic
+        focal pm story-create owner/repo   # repeat per story
+
+Step 5  focal pm plan owner/repo
+        └─ generates docs/focal/iteration-planning.md from GitHub state
+
+Step 6  focal board sync                   # runs hourly via scheduler
+        └─ keeps personal board in sync during delivery
+
+Step 7  focal pm retro owner/repo          # at end of each iteration
+        └─ logs velocity to docs/focal/retro-log.md
+
+Step 8  focal pm status owner/repo         # any time
+        └─ live terminal summary of current iteration
+```
+
+### Step 3 in detail — planning with an AI agent
+
+Steps 2 and 3 are where Focal's AI-native design pays off. After writing a design doc,
+you can hand it to your AI agent with a single prompt:
+
+> *"Read docs/focal/design/D001-my-feature.md and use the breakdown hint to create the
+> epics and stories with `focal pm epic-create` and `focal pm story-create`."*
+
+The agent reads the design doc — especially the **Breakdown hint** and **Impact**
+sections — and runs the Focal commands to create the backlog. Story point estimates,
+epic groupings, and impact-driven stories (e.g. a migration story for a Breaking impact)
+all flow from the design doc into GitHub without manual data entry.
+
+This is the intended happy path. Focal ships with [`AGENTS.md`](../AGENTS.md) so any
+capable AI agent already knows how to operate it before you say a word.
+
+---
+
+## Quick-start (commands only)
+
+```
 python3 focal.py pm init owner/repo
-
-# 2. Create an epic
-python3 focal.py pm epic create --repo owner/repo
-
-# 3. Add stories to the epic
-python3 focal.py pm story create --repo owner/repo
-
-# 4. Generate the iteration plan
-python3 focal.py pm plan --repo owner/repo
-
-# 5. Close out an iteration
-python3 focal.py pm retro --repo owner/repo
-
-# 6. Check progress any time
-python3 focal.py pm status --repo owner/repo
+python3 focal.py pm epic-create owner/repo
+python3 focal.py pm story-create owner/repo
+python3 focal.py pm plan owner/repo
+python3 focal.py pm retro owner/repo
+python3 focal.py pm status owner/repo
 ```
+
+---
+
+## Design docs
+
+Design docs live in `docs/focal/design/` and are the starting point for any non-trivial
+feature. They capture the problem, the approach, and crucially — the **Impact** and
+**Breakdown hint** sections that Focal and AI agents use to generate the backlog.
+
+### Creating a design doc
+
+Copy the template and fill it in:
+
+```bash
+cp templates/design/design-template.md docs/focal/design/D001-my-feature.md
+```
+
+File naming: `D{NNN}-short-kebab-title.md` — IDs are assigned sequentially per repo.
+
+### Template sections
+
+| Section | Purpose |
+|---------|---------|
+| **Abstract** | 2–4 sentence summary — what, why, what problem |
+| **Problem** | Specific failure mode or gap, with examples |
+| **Goals / Non-goals** | What is in scope and explicitly out of scope |
+| **User stories** | "As a [user], I want [action] so that [outcome]" |
+| **Design** | Technical approach — components, data flow, key decisions |
+| **Impact** | Blast radius table — API, schema, security, other components |
+| **Alternatives considered** | What was evaluated and rejected, and why |
+| **Open questions** | Unresolved issues with owner and due date |
+| **Breakdown hint** | Suggested epic/story structure for AI agents and planners |
+| **References** | URLs, related designs, prior art |
+
+### The Impact section
+
+Every design doc must have an Impact table. For each area, state the level and add notes
+if non-None:
+
+| Level | Meaning |
+|-------|---------|
+| **None** | No change to this area |
+| **Additive** | New behaviour, fully backwards-compatible |
+| **Breaking** | Existing callers or data must change — requires a migration story |
+| **Needs review** | Uncertain — flag for a specialist before implementation starts |
+
+An AI agent reading a design doc with `Breaking` impact will automatically add a
+migration or compatibility story when creating the backlog via `focal pm story-create`.
+
+### The Breakdown hint section
+
+The breakdown hint is plain-English guidance for turning the design into epics and
+stories. Write it as you would brief a colleague:
+
+```markdown
+## Breakdown hint
+
+Epic: Board sync engine (~23 SP)
+  - Story: Implement polling loop (5 SP)
+  - Story: Add state file persistence (3 SP)
+  - Story: Push status changes to origin projects (8 SP)
+  - Story: Handle stale/closed issues (5 SP)
+  - Story: Add structured logging (2 SP)
+
+Epic: Setup wizard (~13 SP)
+  - Story: Interactive board URL parser (3 SP)
+  - Story: Repo selection (interactive + full scan modes) (5 SP)
+  - Story: Status column inspection and status_map generation (5 SP)
+```
+
+An AI agent running `focal pm epic-create` and `focal pm story-create` uses this section
+as its primary input — it does not need to infer the structure from the rest of the doc.
 
 ---
 

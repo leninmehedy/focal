@@ -164,6 +164,39 @@ def pm_init(
     )
 
 
+@pm_app.command("remove-repo")
+def pm_remove_repo(
+    repo: str = typer.Argument(..., help="Repo to unregister, in owner/repo format"),
+):
+    """Remove a repo from the PM cache registry (~/.focal/config.json pm_repos)."""
+    from rich.console import Console
+
+    from focal.config import Config
+
+    _migrate_legacy_config()
+    console = Console()
+    config_path = FOCAL_HOME / "config.json"
+    if not config_path.exists():
+        typer.echo("ERROR: config.json not found. Run: focal board setup", err=True)
+        raise typer.Exit(1)
+
+    cfg = Config.load(config_path)
+    before = len(cfg.pm_repos)
+    cfg.pm_repos = [e for e in cfg.pm_repos if e.get("repo") != repo]
+
+    if len(cfg.pm_repos) == before:
+        console.print(
+            f"[yellow]{repo} is not in the PM registry — nothing to remove.[/yellow]"
+        )
+        raise typer.Exit(0)
+
+    cfg.save(config_path)
+    console.print(f"[green]✔[/green] Removed [bold]{repo}[/bold] from pm_repos.")
+    console.print(
+        "[dim]Local repo files are unchanged. Only the registry entry was removed.[/dim]"
+    )
+
+
 @pm_app.command("epic-create")
 def pm_epic_create(
     repo: str = typer.Argument(..., help="Target repo in owner/repo format"),

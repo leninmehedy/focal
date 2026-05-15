@@ -48,7 +48,9 @@ focal pm plan <owner/repo>           — generate iteration-planning.md
 focal pm retro <owner/repo>          — log completed iteration to retro-log.md
 focal pm status <owner/repo>         — live terminal summary of current iteration
 
-focal cache refresh <owner/repo>     — re-fetch all state from GitHub into local cache
+focal cache refresh <owner/repo>     — re-fetch state for one repo from GitHub
+focal cache refresh-all [--force]    — re-fetch all registered PM repos in one shot
+focal cache status                   — show last sync time, counts, and auto-refresh config
 
 focal reset [--yes]                  — remove all config, state, and scheduler
 ```
@@ -115,9 +117,12 @@ multiple times for multiple items.
 
 Already non-interactive (display only). Use `--refresh` to pull latest GitHub state first.
 
-### `focal cache refresh`
+### `focal cache refresh` / `refresh-all` / `status`
 
-Already non-interactive.
+All non-interactive. `refresh-all` and `status` take no arguments — they operate
+on all repos registered in `~/.focal/config.json` via `focal pm init`.
+
+`refresh-all` respects two config guards (see below). Pass `--force` to bypass both.
 
 ---
 
@@ -126,14 +131,15 @@ Already non-interactive.
 ### Standard delivery cycle
 
 ```
-1. focal pm init owner/repo              # one-time per repo
+1. focal pm init owner/repo              # one-time per repo (also registers it for refresh-all)
 2. Write docs/focal/design/D001-*.md     # you or the human writes the design
 3. focal pm epic-create  (per epic)      # read breakdown hint from design doc
 4. focal pm story-create (per story)
 5. focal pm plan                         # run once per release/quarter
 6. focal pm status                       # check any time during delivery
 7. focal pm retro                        # at the end of each iteration
-8. focal cache refresh                   # if issues were created outside Focal
+8. focal cache refresh-all               # scheduled twice daily; run manually if stale
+9. focal cache status                    # check sync age and issue counts across all repos
 ```
 
 ### Reading the design doc for backlog structure
@@ -155,12 +161,30 @@ cache is the source of truth for `plan`, `retro`, and `status`. GitHub is always
 authoritative — the cache is a read-through for speed.
 
 - `epic-create` and `story-create` write to the cache automatically
-- `focal cache refresh` re-fetches everything from GitHub
+- `focal cache refresh <repo>` re-fetches one repo from GitHub
+- `focal cache refresh-all` re-fetches all registered PM repos in one pass
 - `focal pm plan --refresh` and `focal pm retro --refresh` trigger a refresh
   before running
 
-Always run `focal cache refresh` if you suspect the cache is stale (e.g. issues
-were closed or created directly on GitHub).
+Always run `focal cache refresh <repo>` if you suspect the cache is stale (e.g.
+issues were closed or created directly on GitHub). Run `focal cache status` first
+to see how stale each repo's cache actually is before deciding whether to refresh.
+
+**Cache refresh scaling controls** (in `~/.focal/config.json`):
+
+| Key | Default | Effect |
+|---|---|---|
+| `auto_cache_refresh` | `true` | Set to `false` to disable the launchd/cron scheduler; run manually with `--force` |
+| `max_tracked_issues` | `500` | Repos with more tracked epics + stories than this are skipped by `refresh-all` |
+
+If a repo is skipped due to the limit, refresh it individually:
+```
+focal cache refresh owner/repo --repo-root /path/to/repo
+```
+Or bypass all guards:
+```
+focal cache refresh-all --force
+```
 
 ### Typical agent conversation patterns
 
@@ -238,6 +262,26 @@ launchctl load ~/Library/LaunchAgents/com.YOUR_USERNAME.focal.plist
 ```bash
 (crontab -l 2>/dev/null; echo "0 * * * * /path/to/focal/sync.sh") | crontab -
 ```
+
+### Step 6 — Schedule PM cache refresh (optional but recommended)
+
+If using the PM CLI, schedule a twice-daily cache refresh so `focal pm status`
+stays accurate as issues are closed on GitHub throughout the day.
+
+**macOS (launchd):**
+```bash
+cp launchd/com.your-username.focal-cache.plist ~/Library/LaunchAgents/com.YOUR_USERNAME.focal-cache.plist
+# Edit: replace YOUR_USERNAME, /path/to/focal, and owner/repo
+launchctl load ~/Library/LaunchAgents/com.YOUR_USERNAME.focal-cache.plist
+```
+
+**Linux (cron):**
+```bash
+(crontab -l 2>/dev/null; echo "0 8,14 * * * python3 /path/to/focal/focal.py cache refresh-all >> ~/.focal/logs/cache-refresh.log 2>&1") | crontab -
+```
+
+`refresh-all` reads all registered PM repos from `~/.focal/config.json` — no repo
+arguments needed. Repos are registered automatically when `focal pm init` is run.
 
 ---
 

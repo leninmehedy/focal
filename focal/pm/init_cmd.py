@@ -2,8 +2,12 @@
 
 import subprocess
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from rich.console import Console
+
+if TYPE_CHECKING:
+    from focal.config import Config
 
 console = Console()
 
@@ -76,7 +80,12 @@ def _copy_template(src: Path, dest: Path, repo: str) -> None:
     console.print(f"  [green]✔[/green] {dest}")
 
 
-def run(repo: str, repo_root: Path) -> None:
+def run(
+    repo: str,
+    repo_root: Path,
+    config: "Config | None" = None,
+    config_path: "Path | None" = None,
+) -> None:
     """Bootstrap repo with Focal project management structure."""
     console.print(f"\n[bold cyan]  ◎  Focal Init — {repo}[/bold cyan]\n")
 
@@ -103,6 +112,14 @@ def run(repo: str, repo_root: Path) -> None:
         repo,
     )
     console.print(f"  [green]✔[/green] {design_dir}/")
+
+    # Register in ~/.focal/config.json pm_repos so cache refresh-all can find this repo
+    if config is not None and config_path is not None:
+        if config.register_pm_repo(repo, repo_root):
+            config.save(config_path)
+            console.print(
+                "  [green]✔[/green] Registered in config (focal cache refresh-all will include this repo)"
+            )
 
     console.print("\n[bold green]Init complete![/bold green]\n")
     console.print("Next steps:")

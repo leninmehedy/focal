@@ -214,8 +214,103 @@ def _inspect_status_columns(
 # ── Main wizard ───────────────────────────────────────────────────────────────
 
 
-def run(script_dir: Path) -> None:
+def _manage_existing(focal_home: Path, config_path: Path) -> None:
+    """Handle re-runs when config.json already exists."""
+    cfg = Config.load(config_path)
+
+    console.print("\n[bold yellow]Focal is already configured.[/bold yellow]")
+    console.print(
+        f"  Board:  https://github.com/users/{cfg.board_owner}/projects/{cfg.board_number}"
+    )
+    console.print(f"  Repos:  {len(cfg.repos)} tracked\n")
+    for r in cfg.repos:
+        console.print(f"    • {r}")
+
+    console.print("\nWhat would you like to do?\n")
+    console.print("  [bold]1[/bold]  Add repos to the existing config")
+    console.print("  [bold]2[/bold]  Edit repo list (add or remove)")
+    console.print("  [bold]3[/bold]  Full reconfigure (replaces everything)")
+    console.print("  [bold]4[/bold]  Cancel\n")
+
+    choice = Prompt.ask("Choice", choices=["1", "2", "3", "4"], default="1")
+
+    if choice == "4":
+        console.print("[dim]Cancelled.[/dim]")
+        raise typer.Exit(0)
+
+    if choice == "3":
+        if not Confirm.ask(
+            "[bold red]This will overwrite your entire config. Proceed?[/bold red]",
+            default=False,
+        ):
+            raise typer.Exit(0)
+        return  # fall through to full setup
+
+    if choice == "1":
+        console.print(
+            "\n[bold]Add repos[/bold] — enter new repos to track (one per line, blank to finish):\n"
+        )
+        added = []
+        while True:
+            r = Prompt.ask("Repo (owner/repo)", default="").strip()
+            if not r:
+                break
+            if r in cfg.repos:
+                console.print(f"  [yellow]Already tracked:[/yellow] {r}")
+            else:
+                cfg.repos.append(r)
+                added.append(r)
+                console.print(f"  [green]✔[/green] Added: {r}")
+        if not added:
+            console.print("[dim]Nothing added.[/dim]")
+            raise typer.Exit(0)
+
+    elif choice == "2":
+        console.print("\n[bold]Edit repo list[/bold]\n")
+        repos = list(cfg.repos)
+        for i, r in enumerate(repos, 1):
+            console.print(f"  [bold]{i}[/bold]  {r}")
+        console.print(
+            "\nEnter numbers to [red]remove[/red] (comma-separated), or blank to skip:"
+        )
+        raw = Prompt.ask("Remove", default="").strip()
+        if raw:
+            to_remove = set()
+            for part in raw.split(","):
+                try:
+                    to_remove.add(int(part.strip()) - 1)
+                except ValueError:
+                    pass
+            cfg.repos = [r for i, r in enumerate(repos) if i not in to_remove]
+            removed = [repos[i] for i in to_remove if i < len(repos)]
+            for r in removed:
+                console.print(f"  [red]✖[/red] Removed: {r}")
+
+        console.print("\nEnter new repos to add (one per line, blank to finish):")
+        while True:
+            r = Prompt.ask("Repo (owner/repo)", default="").strip()
+            if not r:
+                break
+            if r in cfg.repos:
+                console.print(f"  [yellow]Already tracked:[/yellow] {r}")
+            else:
+                cfg.repos.append(r)
+                console.print(f"  [green]✔[/green] Added: {r}")
+
+    cfg.save(config_path)
+    console.print(f"\n[green]✔[/green] config.json updated ({len(cfg.repos)} repos)")
+    console.print("\nRun a sync to apply: [bold]python3 focal.py board sync[/bold]")
+    raise typer.Exit(0)
+
+
+def run(focal_home: Path) -> None:
     console.print("\n[bold cyan]  ◎  Focal Setup Wizard[/bold cyan]\n")
+
+    focal_home.mkdir(parents=True, exist_ok=True)
+    config_path = focal_home / "config.json"
+    if config_path.exists():
+        _manage_existing(focal_home, config_path)
+        # Only reaches here if choice == "3" (full reconfigure)
 
     if not _check_prerequisites():
         raise typer.Exit(1)
@@ -275,7 +370,7 @@ def run(script_dir: Path) -> None:
         if status_map:
             import json
 
-            sm_path = script_dir / "status_map.json"
+            sm_path = focal_home / "status_map.json"
             with open(sm_path, "w") as f:
                 json.dump(status_map, f, indent=2)
             console.print(f"[green]✔[/green] Written: {sm_path}")
@@ -290,7 +385,6 @@ def run(script_dir: Path) -> None:
         done_status=done_status,
         repos=repos,
     )
-    config_path = script_dir / "config.json"
     cfg.save(config_path)
     console.print(f"[green]✔[/green] Written: {config_path}")
 

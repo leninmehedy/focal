@@ -29,11 +29,10 @@
         <string>/usr/bin/python3</string>
         <string>/path/to/focal/focal.py</string>
         <string>cache</string>
-        <string>refresh</string>
-        <string>owner/repo</string>
-        <string>--repo-root</string>
-        <string>/path/to/your/repo</string>
+        <string>refresh-all</string>
     </array>
+    <!-- refresh-all reads pm_repos from ~/.focal/config.json automatically.
+         No repo arguments needed — run `focal pm init` for each repo to register it. -->
 
     <!-- Run at 08:00 and 14:00 every day -->
     <key>StartCalendarInterval</key>

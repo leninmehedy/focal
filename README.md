@@ -190,8 +190,11 @@ The template runs at **08:00 and 14:00** daily. Edit `StartCalendarInterval` to 
 
 **Linux / alternative (cron):**
 ```bash
-(crontab -l 2>/dev/null; echo "0 8,14 * * * python3 /path/to/focal/focal.py cache refresh owner/repo --repo-root /path/to/your/repo >> ~/.focal/logs/cache-refresh.log 2>&1") | crontab -
+(crontab -l 2>/dev/null; echo "0 8,14 * * * python3 /path/to/focal/focal.py cache refresh-all >> ~/.focal/logs/cache-refresh.log 2>&1") | crontab -
 ```
+
+`refresh-all` reads `pm_repos` from `~/.focal/config.json` — no repo arguments needed.
+Run `focal pm init owner/repo` for each repo to register it automatically.
 
 ---
 

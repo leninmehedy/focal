@@ -146,9 +146,22 @@ def pm_init(
     ),
 ):
     """Bootstrap a repo with Focal project management structure."""
+
+    from focal.config import Config
     from focal.pm.init_cmd import run
 
-    run(repo, repo_root.resolve())
+    _migrate_legacy_config()
+    config: Config | None = None
+    config_path = FOCAL_HOME / "config.json"
+    if config_path.exists():
+        config = Config.load(config_path)
+
+    run(
+        repo,
+        repo_root.resolve(),
+        config=config,
+        config_path=config_path if config else None,
+    )
 
 
 @pm_app.command("epic-create")
@@ -394,6 +407,49 @@ def cache_refresh(
             config = _json.load(f)
 
     run(repo, repo_root.resolve(), config)
+
+
+@cache_app.command("refresh-all")
+def cache_refresh_all():
+    """Re-fetch state for all PM-managed repos registered in ~/.focal/config.json."""
+    import json as _json
+
+    from rich.console import Console
+
+    from focal.config import Config
+    from focal.pm.sync_state_cmd import run
+
+    _migrate_legacy_config()
+    console = Console()
+    config_path = FOCAL_HOME / "config.json"
+    if not config_path.exists():
+        typer.echo("ERROR: config.json not found. Run: focal board setup", err=True)
+        raise typer.Exit(1)
+
+    cfg = Config.load(config_path)
+    if not cfg.pm_repos:
+        console.print(
+            "[yellow]No PM repos registered. Run [bold]focal pm init[/bold] for each repo first.[/yellow]"
+        )
+        raise typer.Exit(0)
+
+    config_dict: dict = {}
+    with open(config_path) as f:
+        config_dict = _json.load(f)
+
+    errors = 0
+    for entry in cfg.pm_repos:
+        repo = entry["repo"]
+        repo_root = entry["repo_root"]
+        console.print(f"\n[bold cyan]Refreshing {repo}[/bold cyan] ({repo_root})")
+        try:
+            run(repo, Path(repo_root), config_dict)
+        except Exception as e:
+            console.print(f"  [red]✖[/red] {e}")
+            errors += 1
+
+    if errors:
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":

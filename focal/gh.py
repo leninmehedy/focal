@@ -256,9 +256,17 @@ def link_sub_issue(repo: str, parent_number: int, child_id: int) -> None:
 def issue_state(repo: str, number: int) -> dict:
     """Return {state, assignee} for an issue."""
     out = _run(
-        "issue", "view", str(number), "--repo", repo,
-        "--json", "state,assignees",
+        "issue",
+        "view",
+        str(number),
+        "--repo",
+        repo,
+        "--json",
+        "state,assignees",
     )
     data = json.loads(out)
     assignees = [a["login"] for a in data.get("assignees", [])]
-    return {"state": data["state"].lower(), "assignee": assignees[0] if assignees else ""}
+    return {
+        "state": data["state"].lower(),
+        "assignee": assignees[0] if assignees else "",
+    }

@@ -105,7 +105,7 @@ def run(repo: str, repo_root: Path) -> None:
     console.print("\n[bold green]Init complete![/bold green]\n")
     console.print("Next steps:")
     console.print(
-        f"  Create your first epic:  [bold]python3 focal.py epic create --repo {repo}[/bold]"
+        f"  Create your first epic:  [bold]python3 focal.py pm epic create --repo {repo}[/bold]"
     )
     console.print(
         "  Commit the scaffold:     [bold]git add docs/ .github/ISSUE_TEMPLATE/ && "

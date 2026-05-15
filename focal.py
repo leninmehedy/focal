@@ -51,8 +51,8 @@ def setup():
     run(SCRIPT_DIR)
 
 
-@app.command()
-def init(
+@pm_app.command("init")
+def pm_init(
     repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
     repo_root: Path = typer.Option(
         Path("."),

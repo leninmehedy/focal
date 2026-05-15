@@ -18,34 +18,34 @@ and markdown files in your repo. No Jira, no Linear, no external tools.
 
 ```
 # 1. Bootstrap a repo
-python3 focal.py init owner/repo
+python3 focal.py pm init owner/repo
 
 # 2. Create an epic
-python3 focal.py epic create --repo owner/repo
+python3 focal.py pm epic create --repo owner/repo
 
 # 3. Add stories to the epic
-python3 focal.py story create --repo owner/repo
+python3 focal.py pm story create --repo owner/repo
 
 # 4. Generate the iteration plan
-python3 focal.py plan --repo owner/repo
+python3 focal.py pm plan --repo owner/repo
 
 # 5. Close out an iteration
-python3 focal.py retro --repo owner/repo
+python3 focal.py pm retro --repo owner/repo
 
 # 6. Check progress any time
-python3 focal.py status --repo owner/repo
+python3 focal.py pm status --repo owner/repo
 ```
 
 ---
 
 ## Commands
 
-### `focal init`
+### `focal pm init`
 
 Bootstrap a repo with the Focal project management structure. Safe to re-run — existing files are never overwritten.
 
 ```
-python3 focal.py init <owner/repo> [--repo-root PATH]
+python3 focal.py pm init <owner/repo> [--repo-root PATH]
 ```
 
 **What it creates:**
@@ -67,7 +67,7 @@ Your changes will be applied to every repo you initialise.
 **Example:**
 
 ```
-$ python3 focal.py init leninmehedy/my-project
+$ python3 focal.py pm init leninmehedy/my-project
   ✔ Label 'epic' ready
   ✔ Label 'story' ready
   ✔ .github/ISSUE_TEMPLATE/epic.md
@@ -80,12 +80,12 @@ $ python3 focal.py init leninmehedy/my-project
 
 ---
 
-### `focal epic create`
+### `focal pm epic create`
 
 Guided wizard to create a GitHub epic issue and record it in `docs/epics.md`.
 
 ```
-python3 focal.py epic create --repo <owner/repo> [--repo-root PATH]
+python3 focal.py pm epic create --repo <owner/repo> [--repo-root PATH]
 ```
 
 **What it does:**
@@ -110,7 +110,7 @@ Allow users to log in with GitHub and Google.
 **Example:**
 
 ```
-$ python3 focal.py epic create --repo leninmehedy/my-project
+$ python3 focal.py pm epic create --repo leninmehedy/my-project
   Title: Add OAuth support
   Description: Allow users to log in with GitHub and Google.
   Estimate (SP): 21
@@ -122,12 +122,12 @@ $ python3 focal.py epic create --repo leninmehedy/my-project
 
 ---
 
-### `focal story create`
+### `focal pm story create`
 
 Create a story issue attached to an existing epic.
 
 ```
-python3 focal.py story create --repo <owner/repo> [--repo-root PATH]
+python3 focal.py pm story create --repo <owner/repo> [--repo-root PATH]
 ```
 
 **What it does:**
@@ -142,7 +142,7 @@ python3 focal.py story create --repo <owner/repo> [--repo-root PATH]
 **Example:**
 
 ```
-$ python3 focal.py story create --repo leninmehedy/my-project
+$ python3 focal.py pm story create --repo leninmehedy/my-project
   Select epic:
     1. E3 — Add OAuth support (#42) · 21 SP
   Choice: 1
@@ -164,12 +164,12 @@ $ python3 focal.py story create --repo leninmehedy/my-project
 
 ---
 
-### `focal plan`
+### `focal pm plan`
 
 Generate or update `docs/iteration-planning.md` from current GitHub Issues state.
 
 ```
-python3 focal.py plan --repo <owner/repo> [--repo-root PATH] [--iteration N]
+python3 focal.py pm plan --repo <owner/repo> [--repo-root PATH] [--iteration N]
 ```
 
 **What it does:**
@@ -186,7 +186,7 @@ python3 focal.py plan --repo <owner/repo> [--repo-root PATH] [--iteration N]
 **Example:**
 
 ```
-$ python3 focal.py plan --repo leninmehedy/my-project
+$ python3 focal.py pm plan --repo leninmehedy/my-project
   Iteration length (weeks) [2]: 2
   Start date [2026-05-18]: 2026-05-18
   Team members (comma-separated GitHub handles): leninmehedy,collaborator
@@ -201,12 +201,12 @@ $ python3 focal.py plan --repo leninmehedy/my-project
 
 ---
 
-### `focal retro`
+### `focal pm retro`
 
 Close out a completed iteration and update `docs/retro-log.md`.
 
 ```
-python3 focal.py retro --repo <owner/repo> [--repo-root PATH] [--iteration N]
+python3 focal.py pm retro --repo <owner/repo> [--repo-root PATH] [--iteration N]
 ```
 
 **What it does:**
@@ -233,7 +233,7 @@ python3 focal.py retro --repo <owner/repo> [--repo-root PATH] [--iteration N]
 **Example:**
 
 ```
-$ python3 focal.py retro --repo leninmehedy/my-project --iteration 1
+$ python3 focal.py pm retro --repo leninmehedy/my-project --iteration 1
   Iteration I1 (May 18 – May 31) — planned 22 SP
 
   #43 Implement GitHub OAuth flow — CLOSED ✔
@@ -268,12 +268,12 @@ $ python3 focal.py retro --repo leninmehedy/my-project --iteration 1
 
 ---
 
-### `focal status`
+### `focal pm status`
 
 Print a live terminal summary of the current iteration without opening GitHub.
 
 ```
-python3 focal.py status --repo <owner/repo>
+python3 focal.py pm status --repo <owner/repo>
 ```
 
 **Example output:**
@@ -294,7 +294,7 @@ Reads live from GitHub Issues + Projects. No local state file required.
 
 ---
 
-## File structure after `focal init`
+## File structure after `focal pm init`
 
 ```
 your-repo/
@@ -304,8 +304,8 @@ your-repo/
       story.md              ← GitHub template for story issues
   docs/
     epics.md                ← epic/story tracker, updated by focal epic/story create
-    iteration-planning.md   ← capacity + schedule, updated by focal plan
-    retro-log.md            ← velocity history, updated by focal retro
+    iteration-planning.md   ← capacity + schedule, updated by focal pm plan
+    retro-log.md            ← velocity history, updated by focal pm retro
     design/                 ← per-feature design records (manual)
 ```
 
@@ -313,7 +313,7 @@ your-repo/
 
 ## Customising templates
 
-Templates live in `focal/templates/`. Edit them before running `focal init` to match
+Templates live in `focal/templates/`. Edit them before running `focal pm init` to match
 your team's conventions — column names, status codes, ceremony schedules, etc.
 
 ```
@@ -327,5 +327,5 @@ focal/
       story.md
 ```
 
-Changes to these files take effect the next time you run `focal init` on a new repo.
+Changes to these files take effect the next time you run `focal pm init` on a new repo.
 Existing repos are not affected (files are never overwritten).

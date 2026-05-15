@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 
 from rich.console import Console
-from rich.prompt import Prompt
+from rich.prompt import Confirm, Prompt
 
 from .. import gh
 from . import pm_state
@@ -92,6 +92,49 @@ def _prompt_slip_reasons(carry_over: list[dict]) -> list[dict]:
     return slips
 
 
+# ── Qualitative prompts ───────────────────────────────────────────────────────
+
+
+def _prompt_goal_met(goal: str) -> tuple[bool | None, str]:
+    """Ask whether the iteration goal was met. Returns (met, reason)."""
+    if not goal:
+        return None, ""
+    console.print(f"\n[bold]Iteration goal:[/bold] {goal}")
+    met = Confirm.ask("  Goal met?", default=True)
+    reason = ""
+    if not met:
+        reason = Prompt.ask("  Briefly, why not?", default="")
+    return met, reason.strip()
+
+
+def _prompt_bullets(prompt_label: str) -> list[str]:
+    """Prompt for a bulleted list, one item per line, blank to finish."""
+    console.print(f"\n[bold]{prompt_label}[/bold] (one per line, blank to finish)")
+    items = []
+    while True:
+        item = Prompt.ask("  •", default="")
+        if not item.strip():
+            break
+        items.append(item.strip())
+    return items
+
+
+def _prompt_action_items() -> list[dict]:
+    """Prompt for action items with owner and due date."""
+    console.print("\n[bold]Action items[/bold] (blank handle to finish)")
+    items = []
+    while True:
+        handle = Prompt.ask("  Owner handle (or blank to finish)", default="").lstrip(
+            "@"
+        )
+        if not handle:
+            break
+        action = Prompt.ask(f"  @{handle}: action")
+        due = Prompt.ask("  Due date (YYYY-MM-DD, blank to skip)", default="")
+        items.append({"handle": handle, "action": action.strip(), "due": due.strip()})
+    return items
+
+
 # ── Velocity calculation ──────────────────────────────────────────────────────
 
 
@@ -124,6 +167,12 @@ def _render_iteration_block(
     carry_over: list[dict],
     slips: list[dict],
     vel: dict,
+    goal: str,
+    goal_met: bool | None,
+    goal_reason: str,
+    went_well: list[str],
+    to_improve: list[str],
+    action_items: list[dict],
     notes: str,
 ) -> str:
     label = iteration["label"]
@@ -131,11 +180,20 @@ def _render_iteration_block(
         f"{_format_date(iteration['start'])} – {_format_date(iteration['end'])}"
     )
 
-    lines = [
-        f"## {label} — {date_range}",
-        "",
-        "### Planned",
-    ]
+    lines = [f"## {label} — {date_range}", ""]
+
+    # Goal
+    if goal:
+        met_marker = {True: "✅", False: "❌", None: ""}[goal_met]
+        lines += ["### Goal", "", f"> {goal}", ""]
+        if goal_met is not None:
+            met_text = (
+                "Yes" if goal_met else f"No — {goal_reason}" if goal_reason else "No"
+            )
+            lines.append(f"**Met:** {met_marker} {met_text}")
+            lines.append("")
+
+    lines.append("### Planned")
     for s in delivered + carry_over:
         lines.append(
             f"- @{s.get('assignee', '—')}: "
@@ -170,6 +228,22 @@ def _render_iteration_block(
                 f"- [#{s['issue_number']}](https://github.com/{repo}/issues/{s['issue_number']}) "
                 f"{s['title']} — **{slip['code']}**{note_part}"
             )
+
+    if went_well:
+        lines += ["", "### What went well", ""]
+        for item in went_well:
+            lines.append(f"- {item}")
+
+    if to_improve:
+        lines += ["", "### What to improve", ""]
+        for item in to_improve:
+            lines.append(f"- {item}")
+
+    if action_items:
+        lines += ["", "### Action items", ""]
+        for a in action_items:
+            due_part = f" (by {a['due']})" if a["due"] else ""
+            lines.append(f"- [ ] @{a['handle']}: {a['action']}{due_part}")
 
     if notes:
         lines += ["", "### Notes", "", notes]
@@ -279,7 +353,13 @@ def run(repo: str, repo_root: Path, config: dict, refresh: bool = False) -> None
     )
 
     slips = _prompt_slip_reasons(carry_over)
-    notes = Prompt.ask("\nIteration notes (optional, blank to skip)", default="")
+
+    goal = iteration.get("goal", "")
+    goal_met, goal_reason = _prompt_goal_met(goal)
+    went_well = _prompt_bullets("What went well?")
+    to_improve = _prompt_bullets("What to improve?")
+    action_items = _prompt_action_items()
+    notes = Prompt.ask("\nFree-form notes (optional, blank to skip)", default="")
 
     vel = _velocity(delivered, carry_over, iteration["capacity_sp"])
 
@@ -303,7 +383,19 @@ def run(repo: str, repo_root: Path, config: dict, refresh: bool = False) -> None
         cumulative = {"delivered": 0, "planned": 0}
 
     block = _render_iteration_block(
-        repo, iteration, delivered, carry_over, slips, vel, notes.strip()
+        repo,
+        iteration,
+        delivered,
+        carry_over,
+        slips,
+        vel,
+        goal=goal,
+        goal_met=goal_met,
+        goal_reason=goal_reason,
+        went_well=went_well,
+        to_improve=to_improve,
+        action_items=action_items,
+        notes=notes.strip(),
     )
     text = _insert_iteration_block(text, block)
     text, _, _ = _update_cumulative_table(text, iteration["label"], vel, cumulative)

@@ -399,6 +399,12 @@ def run(repo: str, repo_root: Path, config: dict, refresh: bool = False) -> None
     if not iters:
         iters = _build_iterations(start, weeks, 1, members)
 
+    # Prompt for an iteration goal for each planned iteration
+    console.print("\n[bold]Iteration goals[/bold] (used in retro — blank to skip)\n")
+    for it in iters:
+        goal = Prompt.ask(f"  {it['label']} goal", default="")
+        it["goal"] = goal.strip()
+
     risks = _identify_risks(open_stories)
 
     # Render and write

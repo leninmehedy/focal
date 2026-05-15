@@ -110,7 +110,11 @@ def all_stories(state: dict) -> list[dict]:
 
 
 def refresh_from_github(repo_root: Path, repo: str, config: dict) -> dict:
-    """Re-fetch all epic/story state from GitHub and overwrite local cache."""
+    """Re-fetch all epic/story state from GitHub and overwrite local cache.
+
+    Uses batched GraphQL (100 issues per round-trip) instead of one gh CLI
+    call per issue, reducing API calls from O(n) to O(n/100).
+    """
     from .. import gh
 
     state = load(repo_root)
@@ -120,7 +124,7 @@ def refresh_from_github(repo_root: Path, repo: str, config: dict) -> dict:
     board_owner = config.get("board_owner", "")
 
     # Fetch all project items once for status lookup
-    project_status_map: dict[str, str] = {}
+    project_status_map: dict[int, str] = {}
     if board_number and board_owner:
         try:
             items = gh.project_items(board_number, board_owner)
@@ -128,29 +132,35 @@ def refresh_from_github(repo_root: Path, repo: str, config: dict) -> dict:
                 num = (item.get("content") or {}).get("number")
                 status = (item.get("status") or {}).get("name", "")
                 if num:
-                    project_status_map[num] = status
+                    project_status_map[int(num)] = status
         except RuntimeError:
             pass
 
-    # Refresh each epic
+    # Collect all issue numbers for a single batch fetch
+    epic_numbers = [e["issue_number"] for e in state["epics"]]
+    story_numbers = [
+        s["issue_number"] for e in state["epics"] for s in e.get("stories", [])
+    ]
+    all_numbers = list(
+        dict.fromkeys(epic_numbers + story_numbers)
+    )  # dedupe, preserve order
+
+    issue_map = gh.issue_states_batch(repo, all_numbers)
+
+    # Apply fetched state back to epics and stories
     for epic in state["epics"]:
-        try:
-            issue = gh.issue_state(repo, epic["issue_number"])
-            epic["status"] = issue["state"]
-        except RuntimeError:
-            pass
+        fetched = issue_map.get(epic["issue_number"])
+        if fetched:
+            epic["status"] = fetched["state"]
 
-        # Refresh each story
         for story in epic.get("stories", []):
-            try:
-                issue = gh.issue_state(repo, story["issue_number"])
-                story["status"] = issue["state"]
-                story["assignee"] = issue.get("assignee", story.get("assignee", ""))
-                story["project_status"] = project_status_map.get(
-                    story["issue_number"], story.get("project_status", "")
-                )
-            except RuntimeError:
-                pass
+            fetched = issue_map.get(story["issue_number"])
+            if fetched:
+                story["status"] = fetched["state"]
+                story["assignee"] = fetched.get("assignee", story.get("assignee", ""))
+            story["project_status"] = project_status_map.get(
+                story["issue_number"], story.get("project_status", "")
+            )
 
     save(repo_root, state)
     return state

@@ -263,7 +263,7 @@ def link_sub_issue(repo: str, parent_number: int, child_id: int) -> None:
 
 
 def issue_state(repo: str, number: int) -> dict:
-    """Return {state, assignee} for an issue."""
+    """Return {state, assignee} for a single issue (one API call)."""
     out = _run(
         "issue",
         "view",
@@ -279,3 +279,55 @@ def issue_state(repo: str, number: int) -> dict:
         "state": data["state"].lower(),
         "assignee": assignees[0] if assignees else "",
     }
+
+
+def issue_states_batch(
+    repo: str, numbers: list[int], chunk_size: int = 100
+) -> dict[int, dict]:
+    """Return {number: {state, assignee}} for many issues using batched GraphQL.
+
+    Fetches up to chunk_size issues per round-trip instead of one call per issue.
+    Falls back to individual issue_state() calls if GraphQL fails.
+    """
+    if not numbers:
+        return {}
+
+    owner, name = repo.split("/", 1)
+    results: dict[int, dict] = {}
+
+    for i in range(0, len(numbers), chunk_size):
+        batch = numbers[i : i + chunk_size]
+        aliases = "\n".join(
+            f"i{n}: issue(number: {n}) {{ state assignees(first: 1) {{ nodes {{ login }} }} }}"
+            for n in batch
+        )
+        query = f"""
+          query {{
+            repository(owner: "{owner}", name: "{name}") {{
+              {aliases}
+            }}
+          }}
+        """
+        try:
+            data = _graphql(query)
+            repo_data = data.get("data", {}).get("repository", {})
+            for n in batch:
+                node = repo_data.get(f"i{n}")
+                if not node:
+                    continue
+                assignees = [
+                    a["login"] for a in node.get("assignees", {}).get("nodes", [])
+                ]
+                results[n] = {
+                    "state": node["state"].lower(),
+                    "assignee": assignees[0] if assignees else "",
+                }
+        except Exception:
+            # Fallback: fetch individually for this chunk
+            for n in batch:
+                try:
+                    results[n] = issue_state(repo, n)
+                except RuntimeError:
+                    pass
+
+    return results

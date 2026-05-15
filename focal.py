@@ -139,12 +139,15 @@ def pm_init(
 def pm_epic_create(
     repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
     repo_root: Path = typer.Option(
-        Path("."),
-        "--repo-root",
-        help="Local path to the repo root (default: current directory)",
+        Path("."), "--repo-root", help="Local path to the repo root"
     ),
+    title: str = typer.Option(None, "--title", help="Epic title (skips prompt)"),
+    description: str = typer.Option(
+        None, "--description", help="One-line description (skips prompt)"
+    ),
+    sp: int = typer.Option(None, "--sp", help="Story point estimate (skips prompt)"),
 ):
-    """Guided wizard to create a GitHub epic and update docs/epics.md."""
+    """Create a GitHub epic and update docs/focal/epics.md."""
     import json as _json
 
     from focal.pm.epic_cmd import run
@@ -155,19 +158,25 @@ def pm_epic_create(
         with open(config_path) as f:
             config = _json.load(f)
 
-    run(repo, repo_root.resolve(), config)
+    run(repo, repo_root.resolve(), config, title=title, description=description, sp=sp)
 
 
 @pm_app.command("story-create")
 def pm_story_create(
     repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
     repo_root: Path = typer.Option(
-        Path("."),
-        "--repo-root",
-        help="Local path to the repo root (default: current directory)",
+        Path("."), "--repo-root", help="Local path to the repo root"
     ),
+    epic_id: str = typer.Option(
+        None, "--epic", help="Epic ID to attach to, e.g. E1 (skips prompt)"
+    ),
+    title: str = typer.Option(None, "--title", help="Story title (skips prompt)"),
+    description: str = typer.Option(
+        None, "--description", help="One-line description (skips prompt)"
+    ),
+    sp: int = typer.Option(None, "--sp", help="Story point estimate (skips prompt)"),
 ):
-    """Guided wizard to create a story linked to an epic and update docs/focal/epics.md."""
+    """Create a story linked to an epic and update docs/focal/epics.md."""
     import json as _json
 
     from focal.pm.story_cmd import run
@@ -178,19 +187,46 @@ def pm_story_create(
         with open(config_path) as f:
             config = _json.load(f)
 
-    run(repo, repo_root.resolve(), config)
+    run(
+        repo,
+        repo_root.resolve(),
+        config,
+        epic_id=epic_id,
+        title=title,
+        description=description,
+        sp=sp,
+    )
 
 
 @pm_app.command("plan")
 def pm_plan(
     repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
     repo_root: Path = typer.Option(
-        Path("."),
-        "--repo-root",
-        help="Local path to the repo root (default: current directory)",
+        Path("."), "--repo-root", help="Local path to the repo root"
     ),
     refresh: bool = typer.Option(
-        False, "--refresh", help="Re-fetch state from GitHub before planning."
+        False, "--refresh", help="Re-fetch state from GitHub before planning"
+    ),
+    weeks: int = typer.Option(
+        None, "--weeks", help="Iteration length in weeks (skips prompt)"
+    ),
+    start_date: str = typer.Option(
+        None, "--start", help="Start date YYYY-MM-DD (skips prompt)"
+    ),
+    team: str = typer.Option(
+        None,
+        "--team",
+        help="Team capacity as 'handle:sp,handle:sp', e.g. 'alice:8,bob:6' (skips prompt)",
+    ),
+    pto: list[str] = typer.Option(
+        None,
+        "--pto",
+        help="PTO entry as 'handle:YYYY-MM-DD:YYYY-MM-DD' (repeatable, skips prompt)",
+    ),
+    goals: str = typer.Option(
+        None,
+        "--goals",
+        help="Iteration goals as 'I1:goal text,I2:goal text' (skips prompt)",
     ),
 ):
     """Generate or update docs/focal/iteration-planning.md."""
@@ -204,20 +240,57 @@ def pm_plan(
         with open(config_path) as f:
             config = _json.load(f)
 
-    run(repo, repo_root.resolve(), config, refresh=refresh)
+    # Parse goals string into dict
+    goals_dict: dict | None = None
+    if goals:
+        goals_dict = {}
+        for part in goals.split(","):
+            if ":" in part:
+                label, goal_text = part.split(":", 1)
+                goals_dict[label.strip()] = goal_text.strip()
+
+    run(
+        repo,
+        repo_root.resolve(),
+        config,
+        refresh=refresh,
+        weeks=weeks,
+        start_date=start_date,
+        team=team,
+        pto=pto or None,
+        goals=goals_dict,
+    )
 
 
 @pm_app.command("retro")
 def pm_retro(
     repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
     repo_root: Path = typer.Option(
-        Path("."),
-        "--repo-root",
-        help="Local path to the repo root (default: current directory)",
+        Path("."), "--repo-root", help="Local path to the repo root"
     ),
     refresh: bool = typer.Option(
-        False, "--refresh", help="Re-fetch state from GitHub before logging retro."
+        False, "--refresh", help="Re-fetch state from GitHub before logging retro"
     ),
+    iteration: str = typer.Option(
+        None, "--iteration", help="Iteration label, e.g. I1 (skips prompt)"
+    ),
+    goal_met: bool = typer.Option(
+        None,
+        "--goal-met/--no-goal-met",
+        help="Whether the iteration goal was met (skips prompt)",
+    ),
+    went_well: list[str] = typer.Option(
+        None, "--went-well", help="What went well (repeatable, skips prompt)"
+    ),
+    to_improve: list[str] = typer.Option(
+        None, "--to-improve", help="What to improve (repeatable, skips prompt)"
+    ),
+    action: list[str] = typer.Option(
+        None,
+        "--action",
+        help="Action item as 'handle:description:YYYY-MM-DD' (repeatable, skips prompt)",
+    ),
+    notes: str = typer.Option(None, "--notes", help="Free-form notes (skips prompt)"),
 ):
     """Log a completed iteration and update docs/focal/retro-log.md."""
     import json as _json
@@ -230,7 +303,29 @@ def pm_retro(
         with open(config_path) as f:
             config = _json.load(f)
 
-    run(repo, repo_root.resolve(), config, refresh=refresh)
+    # Parse action items
+    action_items: list[dict] | None = None
+    if action:
+        action_items = []
+        for a in action:
+            parts = a.split(":", 2)
+            handle = parts[0].lstrip("@") if len(parts) > 0 else ""
+            description = parts[1] if len(parts) > 1 else ""
+            due = parts[2] if len(parts) > 2 else ""
+            action_items.append({"handle": handle, "action": description, "due": due})
+
+    run(
+        repo,
+        repo_root.resolve(),
+        config,
+        refresh=refresh,
+        iteration_label=iteration,
+        goal_met=goal_met,
+        went_well=went_well or None,
+        to_improve=to_improve or None,
+        action_items=action_items,
+        notes=notes,
+    )
 
 
 @pm_app.command("status")

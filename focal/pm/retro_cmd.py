@@ -318,8 +318,28 @@ def _git_commit(repo_root: Path, message: str) -> None:
 # ── Main entry ────────────────────────────────────────────────────────────────
 
 
-def run(repo: str, repo_root: Path, config: dict, refresh: bool = False) -> None:
-    """Log a completed iteration and update docs/focal/retro-log.md."""
+def run(
+    repo: str,
+    repo_root: Path,
+    config: dict,
+    refresh: bool = False,
+    iteration_label: str | None = None,
+    goal_met: bool | None = None,
+    went_well: list[str] | None = None,
+    to_improve: list[str] | None = None,
+    action_items: list[dict] | None = None,
+    notes: str | None = None,
+) -> None:
+    """Log a completed iteration and update docs/focal/retro-log.md.
+
+    Non-interactive args:
+      iteration_label — e.g. "I1"
+      goal_met        — True/False (skips prompt; None = prompt)
+      went_well       — list of strings (skips prompt; None = prompt)
+      to_improve      — list of strings (skips prompt; None = prompt)
+      action_items    — list of {handle, action, due} dicts (skips prompt; None = prompt)
+      notes           — free-form string (skips prompt; None = prompt)
+    """
     console.print(f"\n[bold cyan]  ◎  Focal — retro ({repo})[/bold cyan]\n")
 
     state = pm_state.load(repo_root)
@@ -335,10 +355,29 @@ def run(repo: str, repo_root: Path, config: dict, refresh: bool = False) -> None
         state = pm_state.refresh_from_github(repo_root, repo, config)
         console.print("  [green]✔[/green] State refreshed")
 
-    iteration = _select_iteration(state)
-    if not iteration:
-        console.print("[red]Invalid selection.[/red]")
-        return
+    # Select iteration — by label flag or interactive
+    if iteration_label is not None:
+        iteration = next(
+            (
+                it
+                for it in state.get("iterations", [])
+                if it["label"] == iteration_label
+            ),
+            None,
+        )
+        if not iteration:
+            console.print(
+                f"[red]Iteration '{iteration_label}' not found in local state.[/red]"
+            )
+            return
+        console.print(
+            f"Iteration: [bold]{iteration['label']}[/bold] — {iteration['start']} → {iteration['end']}"
+        )
+    else:
+        iteration = _select_iteration(state)
+        if not iteration:
+            console.print("[red]Invalid selection.[/red]")
+            return
 
     all_stories = pm_state.all_stories(state)
     story_map = {s["id"]: s for s in all_stories}
@@ -355,11 +394,24 @@ def run(repo: str, repo_root: Path, config: dict, refresh: bool = False) -> None
     slips = _prompt_slip_reasons(carry_over)
 
     goal = iteration.get("goal", "")
-    goal_met, goal_reason = _prompt_goal_met(goal)
-    went_well = _prompt_bullets("What went well?")
-    to_improve = _prompt_bullets("What to improve?")
-    action_items = _prompt_action_items()
-    notes = Prompt.ask("\nFree-form notes (optional, blank to skip)", default="")
+    if goal_met is None:
+        goal_met, goal_reason = _prompt_goal_met(goal)
+    else:
+        goal_reason = ""
+        if goal:
+            met_word = "Yes" if goal_met else "No"
+            console.print(
+                f"\n[bold]Iteration goal:[/bold] {goal} → [bold]{met_word}[/bold]"
+            )
+
+    if went_well is None:
+        went_well = _prompt_bullets("What went well?")
+    if to_improve is None:
+        to_improve = _prompt_bullets("What to improve?")
+    if action_items is None:
+        action_items = _prompt_action_items()
+    if notes is None:
+        notes = Prompt.ask("\nFree-form notes (optional, blank to skip)", default="")
 
     vel = _velocity(delivered, carry_over, iteration["capacity_sp"])
 

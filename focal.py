@@ -177,5 +177,54 @@ def pm_story_create(
     run(repo, repo_root.resolve(), config)
 
 
+@pm_app.command("sync-state")
+def pm_sync_state(
+    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
+    repo_root: Path = typer.Option(
+        Path("."),
+        "--repo-root",
+        help="Local path to the repo root (default: current directory)",
+    ),
+):
+    """Refresh local state cache from GitHub (epics, stories, project status)."""
+    import json as _json
+
+    from focal.pm.sync_state_cmd import run
+
+    config: dict = {}
+    config_path = SCRIPT_DIR / "config.json"
+    if config_path.exists():
+        with open(config_path) as f:
+            config = _json.load(f)
+
+    run(repo, repo_root.resolve(), config)
+
+
+@pm_app.command("plan")
+def pm_plan(
+    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
+    repo_root: Path = typer.Option(
+        Path("."),
+        "--repo-root",
+        help="Local path to the repo root (default: current directory)",
+    ),
+    refresh: bool = typer.Option(
+        False, "--refresh", help="Re-fetch state from GitHub before planning."
+    ),
+):
+    """Generate or update docs/focal/iteration-planning.md."""
+    import json as _json
+
+    from focal.pm.plan_cmd import run
+
+    config: dict = {}
+    config_path = SCRIPT_DIR / "config.json"
+    if config_path.exists():
+        with open(config_path) as f:
+            config = _json.load(f)
+
+    run(repo, repo_root.resolve(), config, refresh=refresh)
+
+
 if __name__ == "__main__":
     app()

@@ -8,6 +8,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 
 from .. import gh
+from . import pm_state
 
 console = Console()
 
@@ -124,9 +125,27 @@ def run(repo: str, repo_root: Path, config: dict) -> None:
         except RuntimeError as e:
             console.print(f"  [yellow]⚠[/yellow]  Board update failed: {e}")
 
-    # Update docs/epics.md
+    # Update docs/focal/epics.md
     _append_epic(epics_path, epic_id, title, description, issue_number, repo, sp)
-    console.print(f"  [green]✔[/green] docs/epics.md updated ({epic_id})")
+    console.print(f"  [green]✔[/green] docs/focal/epics.md updated ({epic_id})")
+
+    # Update local state cache
+    state = pm_state.load(repo_root)
+    state["repo"] = repo
+    pm_state.upsert_epic(
+        state,
+        {
+            "id": epic_id,
+            "title": title,
+            "issue_number": issue_number,
+            "issue_url": issue_url,
+            "issue_db_id": issue["id"],
+            "sp": sp,
+            "status": "open",
+        },
+    )
+    pm_state.save(repo_root, state)
+    console.print("  [green]✔[/green] Local state updated")
 
     # Commit
     _git_commit(repo_root, f"chore: add {epic_id} — {title} to epics.md")
@@ -134,6 +153,4 @@ def run(repo: str, repo_root: Path, config: dict) -> None:
 
     console.print(f"\n[bold green]Epic {epic_id} created![/bold green]")
     console.print(f"  GitHub: {issue_url}")
-    console.print(
-        f"  Next:   [bold]python3 focal.py pm story create --repo {repo}[/bold]"
-    )
+    console.print(f"  Next:   [bold]python3 focal.py pm story-create {repo}[/bold]")

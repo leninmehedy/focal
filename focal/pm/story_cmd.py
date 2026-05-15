@@ -8,6 +8,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 
 from .. import gh
+from . import pm_state
 
 console = Console()
 
@@ -98,11 +99,13 @@ def run(repo: str, repo_root: Path, config: dict) -> None:
         )
         return
 
-    epics = _parse_epics(epics_path)
+    # Prefer state cache; fall back to parsing epics.md
+    state = pm_state.load(repo_root)
+    state["repo"] = repo
+    epics = state["epics"] if state["epics"] else _parse_epics(epics_path)
     if not epics:
         console.print(
-            "[red]No epics found in docs/focal/epics.md. "
-            "Run [bold]focal pm epic-create[/bold] first.[/red]"
+            "[red]No epics found. Run [bold]focal pm epic-create[/bold] first.[/red]"
         )
         return
 
@@ -184,6 +187,25 @@ def run(repo: str, repo_root: Path, config: dict) -> None:
     # Update docs/focal/epics.md
     _append_story_row(epics_path, epic["id"], story_id, title, issue_number, repo, sp)
     console.print(f"  [green]✔[/green] docs/focal/epics.md updated ({story_id})")
+
+    # Update local state cache
+    pm_state.upsert_story(
+        state,
+        epic["id"],
+        {
+            "id": story_id,
+            "title": title,
+            "issue_number": issue_number,
+            "issue_url": issue_url,
+            "issue_db_id": issue["id"],
+            "sp": sp,
+            "assignee": assignee,
+            "status": "open",
+            "project_status": "",
+        },
+    )
+    pm_state.save(repo_root, state)
+    console.print("  [green]✔[/green] Local state updated")
 
     # Commit
     _git_commit(repo_root, f"chore: add story {story_id} — {title} to epics.md")

@@ -131,5 +131,28 @@ def pm_init(
     run(repo, repo_root.resolve())
 
 
+@pm_app.command("epic-create")
+def pm_epic_create(
+    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
+    repo_root: Path = typer.Option(
+        Path("."),
+        "--repo-root",
+        help="Local path to the repo root (default: current directory)",
+    ),
+):
+    """Guided wizard to create a GitHub epic and update docs/epics.md."""
+    import json as _json
+
+    from focal.pm.epic_cmd import run
+
+    config: dict = {}
+    config_path = SCRIPT_DIR / "config.json"
+    if config_path.exists():
+        with open(config_path) as f:
+            config = _json.load(f)
+
+    run(repo, repo_root.resolve(), config)
+
+
 if __name__ == "__main__":
     app()

@@ -159,3 +159,72 @@ def origin_status_field(project_id: str) -> Optional[dict]:
         if node.get("name") == "Status":
             return node
     return None
+
+
+# ── Issue creation ────────────────────────────────────────────────────────────
+
+
+def create_issue(
+    repo: str, title: str, body: str, labels: list[str], assignee: str
+) -> dict:
+    """Create an issue and return {number, url, id}."""
+    import os
+    import tempfile
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+        f.write(body)
+        body_file = f.name
+    try:
+        url = _run(
+            "issue",
+            "create",
+            "--repo",
+            repo,
+            "--title",
+            title,
+            "--body-file",
+            body_file,
+            "--label",
+            ",".join(labels),
+            "--assignee",
+            assignee,
+        )
+    finally:
+        os.unlink(body_file)
+    # url looks like https://github.com/owner/repo/issues/123
+    number = int(url.rstrip("/").split("/")[-1])
+    return {"number": number, "url": url}
+
+
+def set_item_number_field(
+    project_id: str, item_id: str, field_id: str, value: int
+) -> None:
+    """Set a numeric field (e.g. story points) on a project item."""
+    _graphql(f"""
+      mutation {{
+        updateProjectV2ItemFieldValue(input: {{
+          projectId: "{project_id}"
+          itemId: "{item_id}"
+          fieldId: "{field_id}"
+          value: {{ number: {value} }}
+        }}) {{ projectV2Item {{ id }} }}
+      }}
+    """)
+
+
+def add_item_get_id(number: int, owner: str, url: str) -> str:
+    """Add an issue to a project and return the project item ID."""
+    out = _run(
+        "project",
+        "item-add",
+        str(number),
+        "--owner",
+        owner,
+        "--url",
+        url,
+        "--format",
+        "json",
+        "--jq",
+        ".id",
+    )
+    return out

@@ -48,7 +48,7 @@ Step 8  focal pm status owner/repo         # any time during an iteration
         └─ live terminal summary of current iteration
 ```
 
-**Tip:** run `focal cache refresh owner/repo` any time to pull in issues created or
+**Tip:** run `focal cache refresh-all` (or `focal cache refresh owner/repo`) any time to pull in issues created or
 updated directly on GitHub (outside Focal commands).
 
 ### Step 3 in detail — planning with an AI agent
@@ -496,24 +496,53 @@ Blocked stories are listed in detail below the summary if any are present.
 
 ---
 
-### `focal cache refresh`
+### `focal cache refresh` / `refresh-all` / `status`
 
-Re-fetch all epic, story, and project-board state from GitHub and update the local cache.
+The local cache at `docs/focal/.cache/focal-state.json` is the source of truth for
+`plan`, `retro`, and `status`. GitHub is always authoritative — the cache is a
+read-through for speed.
+
+#### `focal cache status`
+
+Check sync health across all registered PM repos before deciding whether to refresh:
+
+```bash
+python3 focal.py cache status
+```
+
+```
+Focal cache status  (auto-refresh: enabled  |  limit: 200 issues)
+
+ Repo                     Epics  Stories  Total  Last synced                    Status
+ hashgraph/solo-operator      3       18     21  2026-05-16 08:00 UTC (2h ago)  ✔ ok
+ automa-saga/automa           5       34     39  2026-05-14 14:00 UTC (2d ago)  ⚠ over limit (201)
+```
+
+#### `focal cache refresh-all`
+
+Re-fetch all registered PM repos in one pass. Registered automatically when you run
+`focal pm init`:
+
+```bash
+python3 focal.py cache refresh-all           # respects scaling guards (see below)
+python3 focal.py cache refresh-all --force   # bypass all guards
+```
+
+#### `focal cache refresh` (single repo)
+
+Re-fetch one specific repo — useful when `refresh-all` skips it due to size, or you
+want to refresh one repo immediately without waiting for the scheduler:
 
 ```bash
 python3 focal.py cache refresh <owner/repo> [--repo-root PATH]
 ```
 
-**When to run:**
+**When to run any of the above:**
 
 - Issues were created or updated directly on GitHub (outside Focal commands)
 - Project board statuses were changed manually
 - Before `focal pm plan` or `focal pm retro` when you want guaranteed fresh data
   (or use the `--refresh` flag on those commands directly)
-
-The local cache at `docs/focal/.cache/focal-state.json` is the source of truth for
-`plan`, `retro`, and `status`. GitHub is always the authority — the cache is just a
-read-through for speed.
 
 **Example:**
 
@@ -521,6 +550,23 @@ read-through for speed.
 $ python3 focal.py cache refresh leninmehedy/my-project
   ✔ Synced 3 epics, 14 stories
   ✔ Last synced: 2026-05-18T09:42:11+00:00
+```
+
+#### Scaling controls
+
+For repos with many tracked issues or when you want full manual control, add these
+keys to `~/.focal/config.json`:
+
+| Key | Default | Effect |
+|---|---|---|
+| `auto_cache_refresh` | `true` | Set to `false` to disable the launchd/cron scheduler entirely |
+| `max_tracked_issues` | `200` | `refresh-all` skips repos exceeding this tracked issue count |
+
+When `auto_cache_refresh` is false, the scheduler job exits immediately. Refresh
+manually on your own schedule:
+
+```bash
+python3 focal.py cache refresh-all --force   # refreshes all repos regardless of limits
 ```
 
 ---

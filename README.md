@@ -175,14 +175,14 @@ launchctl unload ~/Library/LaunchAgents/...   # disable
 ### Schedule PM cache refresh
 
 The PM state cache (`docs/focal/.cache/focal-state.json`) drifts when issues are
-closed or updated on GitHub outside Focal. A twice-daily refresh keeps
+closed or updated on GitHub outside Focal. A twice-daily `refresh-all` keeps
 `focal pm status` accurate without manual runs.
 
 **macOS (launchd):**
 
 ```bash
 cp launchd/com.your-username.focal-cache.plist ~/Library/LaunchAgents/com.YOUR_USERNAME.focal-cache.plist
-# Edit the plist: replace YOUR_USERNAME, /path/to/focal, and owner/repo
+# Edit the plist: replace YOUR_USERNAME and /path/to/focal
 launchctl load ~/Library/LaunchAgents/com.YOUR_USERNAME.focal-cache.plist
 ```
 
@@ -195,6 +195,18 @@ The template runs at **08:00 and 14:00** daily. Edit `StartCalendarInterval` to 
 
 `refresh-all` reads `pm_repos` from `~/.focal/config.json` — no repo arguments needed.
 Run `focal pm init owner/repo` for each repo to register it automatically.
+
+**Scaling controls** — add these keys to `~/.focal/config.json` as needed:
+
+```json
+"auto_cache_refresh": false,   // disable the scheduler; refresh manually with --force
+"max_tracked_issues": 200      // skip repos with more tracked epics+stories than this
+```
+
+Check cache health across all repos at any time:
+```bash
+python3 focal.py cache status
+```
 
 ---
 
@@ -243,7 +255,11 @@ python3 focal.py pm status owner/repo
 # End of iteration
 python3 focal.py pm retro owner/repo --iteration I1 --goal-met
 
-# Sync cache if issues were created outside Focal
+# Check cache health across all registered repos
+python3 focal.py cache status
+
+# Refresh all registered repos (or one specific repo)
+python3 focal.py cache refresh-all
 python3 focal.py cache refresh owner/repo
 ```
 

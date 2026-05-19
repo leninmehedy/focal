@@ -80,6 +80,35 @@ def _copy_template(src: Path, dest: Path, repo: str) -> None:
     console.print(f"  [green]✔[/green] {dest}")
 
 
+def _validate_repo_root(repo: str, repo_root: Path) -> None:
+    """Exit with a clear message if repo_root is not a usable local repo directory."""
+    import os
+
+    import typer
+
+    if not repo_root.exists() or not repo_root.is_dir():
+        console.print(
+            f"\n[red]Error:[/red] {repo_root} is not a directory.\n\n"
+            f"Run this command from inside your local clone of [bold]{repo}[/bold], "
+            "or pass [bold]--repo-root /path/to/clone[/bold]."
+        )
+        raise typer.Exit(1)
+
+    if not os.access(repo_root, os.W_OK):
+        console.print(
+            f"\n[red]Error:[/red] No write permission to {repo_root}.\n\n"
+            f"Run this command from inside your local clone of [bold]{repo}[/bold], "
+            "or pass [bold]--repo-root /path/to/clone[/bold]."
+        )
+        raise typer.Exit(1)
+
+    if not (repo_root / ".git").exists():
+        console.print(
+            f"[yellow]Warning:[/yellow] {repo_root} does not appear to be a git repository. "
+            "Continuing — commit the scaffold manually when done.\n"
+        )
+
+
 def run(
     repo: str,
     repo_root: Path,
@@ -88,6 +117,8 @@ def run(
 ) -> None:
     """Bootstrap repo with Focal project management structure."""
     console.print(f"\n[bold cyan]  ◎  Focal Init — {repo}[/bold cyan]\n")
+
+    _validate_repo_root(repo, repo_root)
 
     # ── Labels ────────────────────────────────────────────────────────────────
     console.rule("[bold]Step 1: GitHub labels[/bold]")

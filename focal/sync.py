@@ -94,13 +94,25 @@ class Syncer:
         cfg = self.cfg
         added = pushed = stale = inherited = 0
 
+        # Load state and extract last_synced
+        state = state_mod.load(cfg.state_file)
+        last_synced: Optional[str] = state.get("last_synced")
+        issues = state["issues"]
+        is_incremental = last_synced is not None
+
         # Step 1: Add open assigned issues to personal board
         self.log.info("=== Step 1: Adding open assigned issues ===")
         open_urls: set[str] = set()
         for repo in cfg.repos:
             self.log.info(f"Checking {repo} ...")
+            if is_incremental:
+                self.log.info(f"  Incremental sync since {last_synced}")
+            else:
+                self.log.info("  Full sync (first run)")
             try:
-                urls = gh.open_assigned_issues(repo, cfg.assignee)
+                urls = gh.open_assigned_issues(
+                    repo, cfg.assignee, since=last_synced if is_incremental else None
+                )
             except RuntimeError as e:
                 self.log.warning(f"  Could not list issues: {e}")
                 continue
@@ -122,8 +134,7 @@ class Syncer:
 
         # Step 2: Detect changes, act
         self.log.info("=== Step 2: Detecting status changes ===")
-        state = state_mod.load(cfg.state_file)
-        new_state = dict(state)
+        new_issues = dict(issues)
 
         for item in board_items:
             if item.get("content", {}).get("type") != "Issue":
@@ -134,9 +145,9 @@ class Syncer:
 
             item_id = item["id"]
             cur = item.get("status") or ""
-            prev = state.get(url, {})
+            prev = issues.get(url, {})
             prev_personal = prev.get("personal_status", "")
-            is_new = url not in state
+            is_new = url not in issues
 
             if url not in open_urls:
                 # Closed or unassigned — move to Done
@@ -144,7 +155,7 @@ class Syncer:
                     self.log.info(f"Stale (closed/unassigned): {url}")
                     self._set_personal_status(item_id, cfg.done_status)
                     stale += 1
-                new_state[url] = {**prev, "personal_status": cfg.done_status}
+                new_issues[url] = {**prev, "personal_status": cfg.done_status}
 
             elif is_new:
                 # New item — inherit status from origin
@@ -166,14 +177,14 @@ class Syncer:
                         f"  Inherited '{personal}' (origin: '{origin_status}')"
                     )
                     self._set_personal_status(item_id, personal)
-                    new_state[url] = {
+                    new_issues[url] = {
                         "personal_status": personal,
                         "origin_status": personal,
                     }
                 else:
                     self.log.info("  No origin project status — setting 🆕 New")
                     self._set_personal_status(item_id, "🆕 New")
-                    new_state[url] = {"personal_status": "🆕 New", "origin_status": ""}
+                    new_issues[url] = {"personal_status": "🆕 New", "origin_status": ""}
                 inherited += 1
 
             elif prev_personal and cur != prev_personal:
@@ -181,16 +192,18 @@ class Syncer:
                 self.log.info(f"Pushing '{cur}' to origin: {url}")
                 for oi in gh.issue_project_items(url):
                     self._push_to_origin(oi, cur)
-                new_state[url] = {**prev, "personal_status": cur, "origin_status": cur}
+                new_issues[url] = {**prev, "personal_status": cur, "origin_status": cur}
                 pushed += 1
 
             else:
-                new_state[url] = {**prev, "personal_status": cur}
+                new_issues[url] = {**prev, "personal_status": cur}
 
-        state_mod.save(new_state, cfg.state_file)
+        state["issues"] = new_issues
+        state_mod.save(state, cfg.state_file)
+        sync_mode = "incremental" if is_incremental else "full"
         self.log.info(
             f"Sync complete — added: {added}  inherited: {inherited}  "
-            f"pushed: {pushed}  stale: {stale}  log: {cfg.log_dir}"
+            f"pushed: {pushed}  stale: {stale}  ({sync_mode})  log: {cfg.log_dir}"
         )
         if cfg.notifications:
             notify.notify(

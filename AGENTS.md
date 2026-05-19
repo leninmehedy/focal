@@ -38,8 +38,9 @@ Focal is two tools in one:
 ## Full command surface
 
 ```
+focal --version                      — print version
 focal board sync                     — sync personal board with all origin boards
-focal board setup                    — interactive wizard, generates config.json
+focal board setup                    — interactive wizard, writes ~/.focal/config.json
 
 focal pm init <owner/repo>           — bootstrap repo with Focal PM structure
 focal pm epic-create <owner/repo>    — create a GitHub epic issue
@@ -47,6 +48,7 @@ focal pm story-create <owner/repo>   — create a story linked to an epic
 focal pm plan <owner/repo>           — generate iteration-planning.md
 focal pm retro <owner/repo>          — log completed iteration to retro-log.md
 focal pm status <owner/repo>         — live terminal summary of current iteration
+focal pm remove-repo <owner/repo>    — unregister a repo from PM tracking
 
 focal cache refresh <owner/repo>     — re-fetch state for one repo from GitHub
 focal cache refresh-all [--force]    — re-fetch all registered PM repos in one shot
@@ -289,10 +291,20 @@ arguments needed. Repos are registered automatically when `focal pm init` is run
 
 ### Add or remove repos from board sync
 
-Edit `config.json`:
+Edit `~/.focal/config.json`:
 ```json
 "repos": ["owner/repo-one", "owner/repo-two"]
 ```
+
+Or re-run `focal board setup` — it detects the existing config and offers **Add repos**, **Edit repo list**, or **Full reconfigure**.
+
+### Remove a PM-tracked repo
+
+```bash
+focal pm remove-repo owner/repo
+```
+
+This removes the entry from `pm_repos` in `~/.focal/config.json` so `refresh-all` no longer processes it. It does not delete any local files.
 
 ### Reset sync state
 
@@ -323,21 +335,25 @@ grep 'WARN' ~/.focal/logs/*.log
 - **Status matching** is emoji-normalized: `🏗 In progress` and `In progress` match.
 - Python 3.10+ required (`list[str]`, `dict[str, str]` type hints without `typing`).
 
-## Key config fields (`config.json`)
+## Key config fields (`~/.focal/config.json`)
 
-| Field | Description |
-|---|---|
-| `board_owner` | GitHub username who owns the personal board |
-| `board_number` | Project number from the board URL |
-| `assignee` | GitHub username to filter assigned issues |
-| `estimate_field_id` | Node ID of the SP/Estimate field on the project board |
-| `done_status` | Exact name of the Done option (e.g. `✅ Done`) |
-| `repos` | Array of `owner/repo` strings to sync |
-| `log_dir` | Directory for daily log files (default: `~/.focal/logs`) |
+| Field | Default | Description |
+|---|---|---|
+| `board_owner` | — | GitHub username who owns the personal board |
+| `board_number` | — | Project number from the board URL |
+| `assignee` | — | GitHub username to filter assigned issues |
+| `status_field_id` | — | Node ID of the Status single-select field on the personal board |
+| `done_status` | `✅ Done` | Exact name of the Done option |
+| `repos` | `[]` | Array of `owner/repo` strings to sync |
+| `pm_repos` | `[]` | Array of `{repo, repo_root}` objects registered by `focal pm init` |
+| `auto_cache_refresh` | `true` | Set to `false` to disable launchd/cron scheduler |
+| `max_tracked_issues` | `500` | Skip repos with more tracked epics + stories than this in `refresh-all` |
+| `state_file` | `~/.focal/state.json` | Board sync state |
+| `log_dir` | `~/.focal/logs` | Directory for daily log files |
 
 ## Things to be careful about
 
-- `config.json` and `status_map.json` are gitignored — never commit them.
+- `~/.focal/config.json` and `~/.focal/status_map.json` are gitignored — never commit them.
 - `gh` token needs `project` scope. Without it, project queries silently return empty.
 - `gh project item-add` is idempotent — safe to call multiple times for the same URL.
 - The local state cache (`docs/focal/.cache/focal-state.json`) is safe to commit —

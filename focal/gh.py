@@ -54,13 +54,24 @@ def project_items(number: int, owner: str, limit: int = 500) -> list[dict]:
         "--format",
         "json",
     )
-    return json.loads(out).get("items", [])
+    items = json.loads(out).get("items", [])
+    if len(items) >= limit:
+        import warnings
+
+        warnings.warn(
+            f"project_items: fetched {len(items)} items (hit the {limit}-item cap). "
+            "Some board statuses may be missing — board sync may be incomplete.",
+            stacklevel=2,
+        )
+    return items
 
 
 # ── Issue listing ─────────────────────────────────────────────────────────────
 
 
-def open_assigned_issues(repo: str, assignee: str, limit: int = 500) -> list[str]:
+def open_assigned_issues(
+    repo: str, assignee: str, limit: int = 500, since: str | None = None
+) -> list[str]:
     out = _run(
         "issue",
         "list",
@@ -73,11 +84,12 @@ def open_assigned_issues(repo: str, assignee: str, limit: int = 500) -> list[str
         "--limit",
         str(limit),
         "--json",
-        "url",
-        "--jq",
-        ".[].url",
+        "url,updatedAt",
     )
-    return [line.strip() for line in out.splitlines() if line.strip()]
+    items: list[dict] = json.loads(out) if out else []
+    if since:
+        items = [i for i in items if i.get("updatedAt", "") >= since]
+    return [i["url"] for i in items if i.get("url")]
 
 
 # ── Project item mutations ────────────────────────────────────────────────────
@@ -254,7 +266,7 @@ def link_sub_issue(repo: str, parent_number: int, child_id: int) -> None:
 
 
 def issue_state(repo: str, number: int) -> dict:
-    """Return {state, assignee} for an issue."""
+    """Return {state, assignee} for a single issue (one API call)."""
     out = _run(
         "issue",
         "view",
@@ -270,3 +282,55 @@ def issue_state(repo: str, number: int) -> dict:
         "state": data["state"].lower(),
         "assignee": assignees[0] if assignees else "",
     }
+
+
+def issue_states_batch(
+    repo: str, numbers: list[int], chunk_size: int = 100
+) -> dict[int, dict]:
+    """Return {number: {state, assignee}} for many issues using batched GraphQL.
+
+    Fetches up to chunk_size issues per round-trip instead of one call per issue.
+    Falls back to individual issue_state() calls if GraphQL fails.
+    """
+    if not numbers:
+        return {}
+
+    owner, name = repo.split("/", 1)
+    results: dict[int, dict] = {}
+
+    for i in range(0, len(numbers), chunk_size):
+        batch = numbers[i : i + chunk_size]
+        aliases = "\n".join(
+            f"i{n}: issue(number: {n}) {{ state assignees(first: 1) {{ nodes {{ login }} }} }}"
+            for n in batch
+        )
+        query = f"""
+          query {{
+            repository(owner: "{owner}", name: "{name}") {{
+              {aliases}
+            }}
+          }}
+        """
+        try:
+            data = _graphql(query)
+            repo_data = data.get("data", {}).get("repository", {})
+            for n in batch:
+                node = repo_data.get(f"i{n}")
+                if not node:
+                    continue
+                assignees = [
+                    a["login"] for a in node.get("assignees", {}).get("nodes", [])
+                ]
+                results[n] = {
+                    "state": node["state"].lower(),
+                    "assignee": assignees[0] if assignees else "",
+                }
+        except Exception:
+            # Fallback: fetch individually for this chunk
+            for n in batch:
+                try:
+                    results[n] = issue_state(repo, n)
+                except RuntimeError:
+                    pass
+
+    return results

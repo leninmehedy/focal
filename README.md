@@ -33,12 +33,13 @@ external tools, no context switching.
 - **Conflict resolution** — Your personal board wins. If both sides change between syncs, your board's status is pushed to origin.
 
 ### PM CLI
-- **`focal pm init`** — bootstrap any repo with epics tracker, iteration planning doc, retro log, and design doc templates
+- **`focal pm init`** — bootstrap any repo with epics tracker, iteration planning doc, retro log, and design doc templates; auto-registers the repo for cache refresh
 - **`focal pm epic-create`** / **`story-create`** — create GitHub issues, link sub-issues, set SP on the board — all in one command
 - **`focal pm plan`** — build an iteration schedule from your backlog: team capacity, PTO reduction, greedy SP assignment, risk identification
 - **`focal pm retro`** — close out an iteration: delivered vs carry-over, slip reason codes, goal met?, what went well, action items
 - **`focal pm status`** — live terminal dashboard: progress bar, blocked stories, projected delivery
-- **`focal cache refresh`** — pull latest GitHub state into the local cache anytime
+- **`focal pm remove-repo`** — unregister a repo from PM tracking (removes it from `refresh-all`)
+- **`focal cache refresh`** / **`refresh-all`** — pull latest GitHub state into the local cache; `refresh-all` hits every registered repo in one pass
 
 ---
 
@@ -114,8 +115,8 @@ pip3 install -r requirements.txt
 python3 focal.py board setup
 ```
 
-The setup wizard guides you through everything interactively and generates
-`config.json`. Then run a sync manually to verify:
+The setup wizard guides you through everything interactively and writes
+`~/.focal/config.json`. Then run a sync manually to verify:
 
 ```bash
 python3 focal.py board sync
@@ -131,7 +132,9 @@ During setup you can choose one of three modes:
 | **Interactive select** | Browse and pick from your accessible repos |
 | **Full scan** | Scans ALL repos you have access to (slow — may take minutes) |
 
-You can edit the `repos` array in `config.json` at any time to add or remove repos.
+You can edit the `repos` array in `~/.focal/config.json` at any time to add or remove repos.
+
+To re-run the wizard (e.g. to add repos or fully reconfigure), run `python3 focal.py board setup` again — it will detect your existing config and offer three choices: **Add repos**, **Edit repo list**, or **Full reconfigure**.
 
 ### Status column alignment
 
@@ -295,9 +298,9 @@ delivery cycle — see [`docs/pm-guide.md`](docs/pm-guide.md).
 | `sync.sh` / `setup.sh` | Thin shell wrappers (for launchd / cron) |
 | `launchd/com.your-username.focal.plist` | macOS scheduler template — board sync (hourly) |
 | `launchd/com.your-username.focal-cache.plist` | macOS scheduler template — PM cache refresh (twice daily) |
-| `config.json` | Your personal config — **gitignored, never commit** |
+| `~/.focal/config.json` | Your personal config — **gitignored, never commit** |
 | `config.example.json` | Template showing all config keys |
-| `status_map.json` | Auto-generated status name mappings — **gitignored** |
+| `~/.focal/status_map.json` | Auto-generated status name mappings — **gitignored** |
 | `AGENTS.md` | AI agent guide — read automatically by Claude Code, Codex, etc. |
 
 ## State file

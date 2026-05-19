@@ -2,7 +2,7 @@
   "board_owner": "your-github-username",
   "board_number": 3,
   "assignee": "your-github-username",
-  "status_field_id": "",
+  "status_field_id": "PVTSSF_...",
   "done_status": "✅ Done",
   "repos": [
     "myorg/repo-one",

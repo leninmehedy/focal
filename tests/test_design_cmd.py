@@ -2,12 +2,12 @@
 
 from pathlib import Path
 
-import pytest
-
 from focal.pm.design_cmd import _parse_frontmatter, load_designs, summary_lines
 
 
-def _write_doc(tmp_path: Path, filename: str, frontmatter: dict, body: str = "") -> Path:
+def _write_doc(
+    tmp_path: Path, filename: str, frontmatter: dict, body: str = ""
+) -> Path:
     lines = ["---"]
     for k, v in frontmatter.items():
         lines.append(f"{k}: {v}")
@@ -52,8 +52,30 @@ class TestParseFrontmatter:
 
 class TestLoadDesigns:
     def test_loads_docs_sorted_by_status_then_id(self, tmp_path):
-        _write_doc(tmp_path, "D002.md", {"id": "D002", "title": "B", "status": "Active", "epic": "10", "created": "2026-01-01", "updated": "2026-01-01"})
-        _write_doc(tmp_path, "D001.md", {"id": "D001", "title": "A", "status": "Planned", "epic": "5", "created": "2026-01-01", "updated": "2026-01-01"})
+        _write_doc(
+            tmp_path,
+            "D002.md",
+            {
+                "id": "D002",
+                "title": "B",
+                "status": "Active",
+                "epic": "10",
+                "created": "2026-01-01",
+                "updated": "2026-01-01",
+            },
+        )
+        _write_doc(
+            tmp_path,
+            "D001.md",
+            {
+                "id": "D001",
+                "title": "A",
+                "status": "Planned",
+                "epic": "5",
+                "created": "2026-01-01",
+                "updated": "2026-01-01",
+            },
+        )
         docs = load_designs(tmp_path)
         # Planned (index 1) comes before Active (index 2) in STATUS_ORDER
         assert docs[0]["id"] == "D001"
@@ -72,8 +94,30 @@ class TestLoadDesigns:
         assert load_designs(tmp_path) == []
 
     def test_unknown_status_sorted_last(self, tmp_path):
-        _write_doc(tmp_path, "D002.md", {"id": "D002", "title": "Known", "status": "Draft", "epic": "", "created": "2026-01-01", "updated": "2026-01-01"})
-        _write_doc(tmp_path, "D001.md", {"id": "D001", "title": "Unknown", "status": "Weird", "epic": "", "created": "2026-01-01", "updated": "2026-01-01"})
+        _write_doc(
+            tmp_path,
+            "D002.md",
+            {
+                "id": "D002",
+                "title": "Known",
+                "status": "Draft",
+                "epic": "",
+                "created": "2026-01-01",
+                "updated": "2026-01-01",
+            },
+        )
+        _write_doc(
+            tmp_path,
+            "D001.md",
+            {
+                "id": "D001",
+                "title": "Unknown",
+                "status": "Weird",
+                "epic": "",
+                "created": "2026-01-01",
+                "updated": "2026-01-01",
+            },
+        )
         docs = load_designs(tmp_path)
         assert docs[0]["id"] == "D002"  # Draft (known) first
         assert docs[1]["id"] == "D001"  # Unknown status last
@@ -83,9 +127,42 @@ class TestSummaryLines:
     def test_returns_active_statuses_only(self, tmp_path):
         design_dir = tmp_path / "docs" / "focal" / "design"
         design_dir.mkdir(parents=True)
-        _write_doc(design_dir, "D001.md", {"id": "D001", "title": "Active one", "status": "Active", "epic": "1", "created": "2026-01-01", "updated": "2026-01-01"})
-        _write_doc(design_dir, "D002.md", {"id": "D002", "title": "Done one", "status": "Done", "epic": "2", "created": "2026-01-01", "updated": "2026-01-01"})
-        _write_doc(design_dir, "D003.md", {"id": "D003", "title": "Planned one", "status": "Planned", "epic": "3", "created": "2026-01-01", "updated": "2026-01-01"})
+        _write_doc(
+            design_dir,
+            "D001.md",
+            {
+                "id": "D001",
+                "title": "Active one",
+                "status": "Active",
+                "epic": "1",
+                "created": "2026-01-01",
+                "updated": "2026-01-01",
+            },
+        )
+        _write_doc(
+            design_dir,
+            "D002.md",
+            {
+                "id": "D002",
+                "title": "Done one",
+                "status": "Done",
+                "epic": "2",
+                "created": "2026-01-01",
+                "updated": "2026-01-01",
+            },
+        )
+        _write_doc(
+            design_dir,
+            "D003.md",
+            {
+                "id": "D003",
+                "title": "Planned one",
+                "status": "Planned",
+                "epic": "3",
+                "created": "2026-01-01",
+                "updated": "2026-01-01",
+            },
+        )
 
         lines = summary_lines(tmp_path)
         ids = [ln.split()[0] for ln in lines]

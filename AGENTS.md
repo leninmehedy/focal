@@ -212,7 +212,7 @@ focal cache refresh-all --force
 gh auth status        # must show "Logged in" with repo + project scopes
 gh --version          # 2.x or later
 python3 --version     # 3.10 or later
-pip3 install -r requirements.txt
+pipx --version        # or: pip3 install pipx
 ```
 
 If the `project` scope is missing:
@@ -231,19 +231,26 @@ If the user doesn't have one:
    ```
 4. Note the project number from the URL (e.g. `projects/3`)
 
-### Step 3 — Run setup wizard
+### Step 3 — Install Focal and run setup wizard
 
 ```bash
-python3 focal.py board setup
+pipx install focal-cli   # installs the `focal` command globally
+focal board setup
+```
+
+If working from a local clone instead:
+```bash
+pip3 install -e .
+focal board setup
 ```
 
 Prompts for: board URL, GitHub username, Done column name, repos to sync.
-Writes `config.json` (gitignored).
+Writes `~/.focal/config.json`.
 
 ### Step 4 — Verify sync
 
 ```bash
-python3 focal.py board sync
+focal board sync
 ```
 
 Final line should be:

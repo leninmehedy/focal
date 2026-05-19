@@ -127,7 +127,7 @@ The setup wizard guides you through everything interactively and writes
 `~/.focal/config.json`. Then run a sync manually to verify:
 
 ```bash
-python3 focal.py board sync
+focal board sync
 ```
 
 ### Selecting repos
@@ -142,7 +142,7 @@ During setup you can choose one of three modes:
 
 You can edit the `repos` array in `~/.focal/config.json` at any time to add or remove repos.
 
-To re-run the wizard (e.g. to add repos or fully reconfigure), run `python3 focal.py board setup` again — it will detect your existing config and offer three choices: **Add repos**, **Edit repo list**, or **Full reconfigure**.
+To re-run the wizard (e.g. to add repos or fully reconfigure), run `focal board setup` again — it will detect your existing config and offer three choices: **Add repos**, **Edit repo list**, or **Full reconfigure**.
 
 ### Status column alignment
 
@@ -216,7 +216,7 @@ Run `focal pm init owner/repo` for each repo to register it automatically.
 
 Check cache health across all repos at any time:
 ```bash
-python3 focal.py cache status
+focal cache status
 ```
 
 ---
@@ -251,27 +251,27 @@ whatever repo you're managing.
 
 ```bash
 # Bootstrap a repo
-python3 focal.py pm init owner/repo --repo-root /path/to/repo
+focal pm init owner/repo --repo-root /path/to/repo
 
 # Create backlog
-python3 focal.py pm epic-create owner/repo --title "OAuth support" --sp 21
-python3 focal.py pm story-create owner/repo --epic E1 --title "GitHub OAuth flow" --sp 5
+focal pm epic-create owner/repo --title "OAuth support" --sp 21
+focal pm story-create owner/repo --epic E1 --title "GitHub OAuth flow" --sp 5
 
 # Plan iterations
-python3 focal.py pm plan owner/repo --weeks 2 --team "alice:8,bob:6"
+focal pm plan owner/repo --weeks 2 --team "alice:8,bob:6"
 
 # During delivery
-python3 focal.py pm status owner/repo
+focal pm status owner/repo
 
 # End of iteration
-python3 focal.py pm retro owner/repo --iteration I1 --goal-met
+focal pm retro owner/repo --iteration I1 --goal-met
 
 # Check cache health across all registered repos
-python3 focal.py cache status
+focal cache status
 
 # Refresh all registered repos (or one specific repo)
-python3 focal.py cache refresh-all
-python3 focal.py cache refresh owner/repo
+focal cache refresh-all
+focal cache refresh owner/repo
 ```
 
 All commands work interactively (prompts) if you omit the flags, or fully
@@ -289,6 +289,8 @@ focal commands:
 Claude reads [`AGENTS.md`](AGENTS.md) automatically, so it already knows the
 full command surface and non-interactive flags before you ask.
 
+For a step-by-step walkthrough — from first install to running delivery end-to-end — see [`docs/user-guide.md`](docs/user-guide.md).
+
 For the full PM workflow — design docs, breakdown hints, Impact tables, and the
 delivery cycle — see [`docs/pm-guide.md`](docs/pm-guide.md).
 
@@ -303,6 +305,7 @@ delivery cycle — see [`docs/pm-guide.md`](docs/pm-guide.md).
 | `focal/` | Python package — sync, wizard, PM modules |
 | `focal/pm/` | PM command modules (epic, story, plan, retro, status) |
 | `templates/` | Markdown templates copied by `focal pm init` |
+| `docs/user-guide.md` | Step-by-step user guide — board sync, PM CLI, day-to-day reference |
 | `docs/pm-guide.md` | Full PM workflow guide |
 | `sync.sh` / `setup.sh` | Thin shell wrappers (for launchd / cron) |
 | `launchd/com.your-username.focal.plist` | macOS scheduler template — board sync (hourly) |

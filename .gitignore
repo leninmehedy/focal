@@ -8,3 +8,8 @@ __pycache__/
 *.pyc
 .venv/
 .idea
+
+# Python packaging
+*.egg-info/
+dist/
+build/

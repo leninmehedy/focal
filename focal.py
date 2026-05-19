@@ -155,33 +155,32 @@ def reset(
     if not yes and not Confirm.ask("Proceed?", default=False):
         raise typer.Exit(0)
 
-    removed = []
+    import platform
 
-    for path in (FOCAL_HOME / "config.json", FOCAL_HOME / "status_map.json"):
+    # Delete individual state files
+    for path in (
+        FOCAL_HOME / "config.json",
+        FOCAL_HOME / "status_map.json",
+        FOCAL_HOME / "state.json",
+    ):
         if path.exists():
             path.unlink()
-            removed.append(str(path))
 
-    focal_dir = Path.home() / ".focal"
-    if focal_dir.exists():
-        shutil.rmtree(focal_dir)
-        removed.append(str(focal_dir))
+    # Delete logs directory
+    logs_dir = FOCAL_HOME / "logs"
+    if logs_dir.exists():
+        shutil.rmtree(logs_dir)
 
-    launch_agents = Path.home() / "Library" / "LaunchAgents"
-    for plist in launch_agents.glob("*.focal.plist"):
-        label = plist.stem
-        subprocess.run(["launchctl", "unload", str(plist)], capture_output=True)
-        plist.unlink()
-        removed.append(str(plist))
-        console.print(f"  [green]✔[/green] Unloaded launchd job: {label}")
+    # Delete launchd plists on macOS
+    if platform.system() == "Darwin":
+        launch_agents = Path.home() / "Library" / "LaunchAgents"
+        for plist in launch_agents.glob("com.*.focal*.plist"):
+            subprocess.run(["launchctl", "unload", str(plist)], capture_output=True)
+            plist.unlink()
 
-    if removed:
-        for r in removed:
-            console.print(f"  [green]✔[/green] Removed: {r}")
-        console.print("\n[bold green]Reset complete.[/bold green]")
-        console.print("Run [bold]python3 focal.py board setup[/bold] to start fresh.")
-    else:
-        console.print("[dim]Nothing to remove — Focal was not configured.[/dim]")
+    console.print(
+        "\n[bold green]✔ Reset complete. Run 'focal board setup' to reconfigure.[/bold green]"
+    )
 
 
 # ── focal pm ──────────────────────────────────────────────────────────────────

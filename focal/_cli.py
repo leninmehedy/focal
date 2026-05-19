@@ -159,8 +159,10 @@ def board_status():
         return "", f"#{parts[-1]}" if parts else "#?"
 
     def _status_name(item: dict) -> str:
-        s = item.get("status") or {}
-        return (s.get("name") if s else None) or "(no status)"
+        s = item.get("status")
+        if isinstance(s, dict):
+            return s.get("name") or "(no status)"
+        return str(s) if s else "(no status)"
 
     # ── Status counts table ───────────────────────────────────────────────────
     status_counts: dict[str, int] = {}

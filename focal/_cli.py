@@ -125,7 +125,7 @@ def board_sync():
 
 @board_app.command("status")
 def board_status():
-    """Show a live summary of the personal board — counts per column, blocked and recent items."""
+    """Show a live summary of the personal board — counts per column, by repo, blocked and recent items."""
     from datetime import datetime, timedelta, timezone
 
     from rich.console import Console
@@ -144,51 +144,72 @@ def board_status():
 
     items = gh.project_items(board_number, owner)
 
-    # Count by status
+    def _parse_url(url: str) -> tuple[str, str]:
+        """Return (repo, ref) from a GitHub issue URL."""
+        parts = url.rstrip("/").split("/") if url else []
+        if len(parts) >= 7:
+            repo = f"{parts[3]}/{parts[4]}"
+            ref = f"{repo}#{parts[6]}"
+            return repo, ref
+        return "", f"#{parts[-1]}" if parts else "#?"
+
+    def _status_name(item: dict) -> str:
+        s = item.get("status") or {}
+        return (s.get("name") if s else None) or "(no status)"
+
+    # ── Status counts table ───────────────────────────────────────────────────
     status_counts: dict[str, int] = {}
     for item in items:
-        s = item.get("status") or {}
-        name = (s.get("name") if s else None) or "(no status)"
+        name = _status_name(item)
         status_counts[name] = status_counts.get(name, 0) + 1
 
     table = Table(show_header=True, header_style="bold", box=None, padding=(0, 1))
-    table.add_column("Status", style="")
+    table.add_column("Status")
     table.add_column("Count", justify="right")
-    for status_name, count in status_counts.items():
-        table.add_row(status_name, str(count))
+    for name, count in status_counts.items():
+        table.add_row(name, str(count))
     table.add_section()
     table.add_row("[bold]Total[/bold]", f"[bold]{len(items)}[/bold]")
     console.print(table)
 
-    # Parse URL helper
-    def _ref(url: str, number: int) -> str:
-        """Convert https://github.com/owner/repo/issues/42 → owner/repo#42"""
-        if not url:
-            return f"#{number}"
-        parts = url.rstrip("/").split("/")
-        # parts: ['https:', '', 'github.com', 'owner', 'repo', 'issues', '42']
-        if len(parts) >= 5:
-            return f"{parts[3]}/{parts[4]}#{number}"
-        return f"#{number}"
+    # ── By-repo breakdown ─────────────────────────────────────────────────────
+    # repo → {status_name: count}
+    repo_breakdown: dict[str, dict[str, int]] = {}
+    for item in items:
+        content = item.get("content") or {}
+        repo, _ = _parse_url(content.get("url", ""))
+        if not repo:
+            repo = "(unknown)"
+        sname = _status_name(item)
+        repo_breakdown.setdefault(repo, {})
+        repo_breakdown[repo][sname] = repo_breakdown[repo].get(sname, 0) + 1
 
-    # Blocked items
-    blocked = [
-        item
-        for item in items
-        if "blocked" in ((item.get("status") or {}).get("name") or "").lower()
-    ]
+    if repo_breakdown:
+        console.print("\n[bold]By repo[/bold]")
+        repo_table = Table(show_header=False, box=None, padding=(0, 1))
+        repo_table.add_column("Repo", style="cyan")
+        repo_table.add_column("Total", justify="right")
+        repo_table.add_column("Breakdown", style="dim")
+        for repo, counts in sorted(repo_breakdown.items()):
+            total = sum(counts.values())
+            breakdown = "  ".join(f"{s}: {n}" for s, n in sorted(counts.items()))
+            repo_table.add_row(repo, str(total), breakdown)
+        console.print(repo_table)
+
+    # ── Blocked items ─────────────────────────────────────────────────────────
+    blocked = [item for item in items if "blocked" in _status_name(item).lower()]
     if blocked:
-        console.print(f"\n[bold]Blocked ({len(blocked)})[/bold]")
+        console.print(f"\n[bold red]Blocked ({len(blocked)})[/bold red]")
         for item in blocked:
             content = item.get("content") or {}
-            ref = _ref(content.get("url", ""), content.get("number", 0))
+            _, ref = _parse_url(content.get("url", ""))
             title = content.get("title", "(no title)")
             url = content.get("url", "")
-            console.print(f"  • {ref} — {title}")
+            console.print(f"  • [red]{ref}[/red] — {title}")
             if url:
-                console.print(f"    {url}")
+                console.print(f"    [dim]{url}[/dim]")
 
-    # Recently added (last 7 days)
+    # ── Recently added (last 7 days) ──────────────────────────────────────────
     cutoff = datetime.now(timezone.utc) - timedelta(days=7)
     recent = []
     for item in items:
@@ -197,20 +218,19 @@ def board_status():
             try:
                 dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
                 if dt >= cutoff:
-                    recent.append(item)
+                    recent.append((dt, item))
             except ValueError:
                 pass
-    recent.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+    recent.sort(key=lambda x: x[0], reverse=True)
 
     if recent:
         console.print(f"\n[bold]Recently added (last 7 days, {len(recent)})[/bold]")
-        for item in recent:
+        for _, item in recent:
             content = item.get("content") or {}
-            ref = _ref(content.get("url", ""), content.get("number", 0))
+            _, ref = _parse_url(content.get("url", ""))
             title = content.get("title", "(no title)")
-            s = item.get("status") or {}
-            status_name = (s.get("name") if s else None) or "no status"
-            console.print(f"  • {ref} — {title} ({status_name})")
+            sname = _status_name(item)
+            console.print(f"  • {ref} — {title} [dim]({sname})[/dim]")
 
     console.print()
 

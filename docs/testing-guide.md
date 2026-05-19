@@ -2,14 +2,56 @@
 
 This guide covers every command in Focal. For each command there is a list of test cases — what to run, what to look for, and what constitutes a pass or fail.
 
-**Prerequisites before starting:**
-- `gh` CLI authenticated: `gh auth status` shows `Logged in` with `repo` and `project` scopes
-- Python 3.10+: `python3 --version`
-- `pipx`: `pipx --version` (install with `pip3 install pipx` if missing)
-- At least one GitHub repo with open issues assigned to you
-- Note: a GitHub Projects v2 board is **no longer required before setup** — the wizard can create one for you automatically
+---
 
-**Notation:**
+## Before you start
+
+### Prerequisites
+
+- **macOS or Linux** (Windows not yet tested)
+- **Python 3.10+** — `python3 --version`
+- **GitHub CLI (`gh`)** — authenticated with `repo` and `project` scopes:
+  ```bash
+  brew install gh        # macOS; or see https://cli.github.com for Linux
+  gh auth login
+  gh auth refresh -s project
+  gh auth status         # should show: Logged in + repo, project scopes
+  ```
+- **At least one GitHub repo** with open issues assigned to you
+- A **GitHub Projects v2 board is not required** — the setup wizard can create one automatically
+
+### How to install
+
+**Option A — pipx (recommended for beta testers)**
+
+This is the intended end-user experience. `pipx` installs `focal` into an isolated
+environment so it doesn't conflict with anything else.
+
+```bash
+# Install pipx if you don't have it
+pip3 install pipx
+pipx ensurepath
+# Restart your terminal, then:
+
+pipx install focal-cli
+focal --version        # should print the installed version
+```
+
+**Option B — git clone + editable install (recommended for contributors / debugging)**
+
+Use this if you want to poke at the source, reproduce a bug, or test unreleased changes.
+
+```bash
+git clone https://github.com/leninmehedy/focal.git
+cd focal
+pip3 install -e .      # adds 'focal' to your PATH via the current checkout
+focal --version
+```
+
+> On macOS you may need `pip3 install -e . --break-system-packages` if Python was
+> installed via Homebrew without a virtual environment.
+
+**Notation used in this guide:**
 - ✅ Expected pass — the test should succeed with this output
 - ❌ Expected failure — the command should fail gracefully with a clear error, not a traceback
 
@@ -19,12 +61,13 @@ This guide covers every command in Focal. For each command there is a list of te
 
 | # | Test | How to run | Expected result |
 |---|------|-----------|-----------------|
-| I1 | pipx install | `pipx install focal-cli` | Installs cleanly. `focal --version` prints the version ✅ |
+| I1 | pipx install | `pipx install focal-cli` | Installs cleanly, no errors ✅ |
 | I2 | focal command available | `which focal` after I1 | Path returned (e.g. `~/.local/bin/focal`) — not "not found" ✅ |
-| I3 | focal --help | `focal --help` | Usage text with all command groups (board, pm, cache, reset) shown ✅ |
-| I4 | Editable install (clone) | `git clone ... && cd focal && pip3 install -e . && focal --version` | Same result as I1 ✅ |
-| I5 | Upgrade | `pipx upgrade focal-cli` | Upgrades to latest version, `focal --version` shows new version ✅ |
-| I6 | Uninstall | `pipx uninstall focal-cli` | `focal` command no longer found ✅ |
+| I3 | focal --version | `focal --version` | Prints the installed version (e.g. `1.10.2`) ✅ |
+| I4 | focal --help | `focal --help` | Usage text with all command groups: `board`, `pm`, `cache`, `reset` ✅ |
+| I5 | Editable install | `git clone https://github.com/leninmehedy/focal.git && cd focal && pip3 install -e . && focal --version` | Same version output as I3 ✅ |
+| I6 | Upgrade | `pipx upgrade focal-cli` | Upgrades to latest version; `focal --version` shows new version ✅ |
+| I7 | Uninstall | `pipx uninstall focal-cli` | `focal` command no longer found ✅ |
 
 ---
 

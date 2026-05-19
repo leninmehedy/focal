@@ -5,7 +5,12 @@ from typing import Optional
 
 import typer
 
-VERSION = "1.3.0"
+try:
+    from importlib.metadata import version as _pkg_version
+
+    VERSION = _pkg_version("focal-cli")
+except Exception:
+    VERSION = "dev"
 
 app = typer.Typer(
     name="focal",

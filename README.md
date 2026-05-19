@@ -52,31 +52,38 @@ already knows how to install, configure, and operate Focal before you say a word
 **Supported agents:** Claude Code, OpenAI Codex, Cursor, or any agent that
 reads `AGENTS.md` from the project root and can run shell commands.
 
-### Option 1 — Let your agent do everything
+### Option 1 — Clone the repo, then let your agent set it up
 
-Open your AI agent and paste a single prompt:
-
+```bash
+git clone https://github.com/leninmehedy/focal.git
+cd focal
+claude   # Claude Code CLI — or open in VS Code / Cursor with the AI extension active
 ```
-Set up Focal from https://github.com/leninmehedy/focal
-```
 
-The agent will:
-1. Install Focal (`pipx install focal-cli`)
-2. Check prerequisites (`gh` CLI, Python 3)
-3. Run the interactive setup wizard (asking you only for your board URL and repos)
+Then say:
+> *"Set up Focal for me"*
+
+The agent reads `AGENTS.md` automatically and will:
+1. Check prerequisites (`gh` CLI, Python 3, pipx)
+2. Install Focal from the local clone (`pip install -e .`)
+3. Run the interactive setup wizard — creates your GitHub Projects board automatically, then asks which repos to watch
 4. Verify the first sync works
-5. Install the hourly scheduler (launchd on macOS, cron on Linux)
+5. Set up the hourly scheduler (launchd on macOS, cron on Linux)
 
 ### Option 2 — Install first, then hand off to your agent
+
+If you prefer to install the published package rather than running from source:
 
 ```bash
 pipx install focal-cli   # installs the `focal` command globally
 claude                   # Claude Code CLI
-# or: open in VS Code / Cursor with the AI extension active
 ```
 
-Then just say:
+Then say:
 > *"Set up Focal for me"*
+
+The agent will find `AGENTS.md` via the Focal PyPI package and guide you through
+the same wizard.
 
 ### Ongoing use — things you can ask your agent
 

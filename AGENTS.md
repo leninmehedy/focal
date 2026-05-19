@@ -220,32 +220,23 @@ If the `project` scope is missing:
 gh auth refresh -s project
 ```
 
-### Step 2 — Create a personal GitHub Projects v2 board
+### Step 2 — Install Focal and run setup wizard
 
-If the user doesn't have one:
-1. Go to `https://github.com/users/YOUR_USERNAME/projects`
-2. Click **New project** → **Board** layout
-3. Add a **Status** single-select field with these options (recommended):
-   ```
-   🆕 New · 📋 Backlog · 🔖 Ready · 🏗 In progress · ✋ Blocked · 👀 In review · ✅ Done
-   ```
-4. Note the project number from the URL (e.g. `projects/3`)
-
-### Step 3 — Install Focal and run setup wizard
-
-```bash
-pipx install focal-cli   # installs the `focal` command globally
-focal board setup
-```
-
-If working from a local clone instead:
+If working from a local clone (typical when an agent cloned the repo to read this file):
 ```bash
 pip3 install -e .
 focal board setup
 ```
 
-Prompts for: board URL, GitHub username, Done column name, repos to sync.
-Writes `~/.focal/config.json`.
+If installing the published package instead:
+```bash
+pipx install focal-cli
+focal board setup
+```
+
+The wizard offers to **create a GitHub Projects v2 board automatically** — choose that
+option unless the user already has a board they want to use. It pre-populates the
+recommended Status columns and writes `~/.focal/config.json`.
 
 ### Step 4 — Verify sync
 

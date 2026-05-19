@@ -540,6 +540,21 @@ def pm_status(
     run(repo, repo_root.resolve(), config, refresh=refresh)
 
 
+@pm_app.command("velocity")
+def pm_velocity(
+    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
+    repo_root: Path = typer.Option(
+        Path("."),
+        "--repo-root",
+        help="Local path to the repo root (default: current directory)",
+    ),
+):
+    """Show historical velocity from retro-log.md."""
+    from focal.pm import velocity_cmd
+
+    velocity_cmd.run(repo, repo_root.resolve())
+
+
 # ── focal cache ───────────────────────────────────────────────────────────────
 
 

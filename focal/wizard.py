@@ -299,7 +299,7 @@ def _manage_existing(focal_home: Path, config_path: Path) -> None:
 
     cfg.save(config_path)
     console.print(f"\n[green]✔[/green] config.json updated ({len(cfg.repos)} repos)")
-    console.print("\nRun a sync to apply: [bold]python3 focal.py board sync[/bold]")
+    console.print("\nRun a sync to apply: [bold]focal board sync[/bold]")
     raise typer.Exit(0)
 
 
@@ -436,7 +436,7 @@ def run(focal_home: Path) -> None:
 
     console.print("\n[bold green]Setup complete![/bold green]\n")
     console.print("Next steps:")
-    console.print("  Run a one-off sync:  [bold]python3 focal.py sync[/bold]")
+    console.print("  Run a one-off sync:  [bold]focal board sync[/bold]")
     console.print(
         "  Follow logs:         [bold]tail -f ~/.focal/logs/$(date '+%Y-%m-%d').log[/bold]"
     )

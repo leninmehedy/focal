@@ -128,7 +128,7 @@ def run(
         "docs/focal/design/D001-my-feature.md[/bold]"
     )
     console.print(
-        f"  2. Create your first epic:  [bold]python3 focal.py pm epic-create {repo}[/bold]"
+        f"  2. Create your first epic:  [bold]focal pm epic-create {repo}[/bold]"
     )
     console.print(
         "  3. Commit the scaffold:  [bold]git add docs/focal/ .github/ISSUE_TEMPLATE/ && "

@@ -2,14 +2,38 @@
 """Focal CLI — bidirectional GitHub Projects sync + project management."""
 
 from pathlib import Path
+from typing import Optional
 
 import typer
+
+VERSION = "1.3.0"
 
 app = typer.Typer(
     name="focal",
     help="Focal — sync your personal GitHub Projects board and manage project delivery.",
     no_args_is_help=True,
 )
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"focal {VERSION}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: Optional[bool] = typer.Option(
+        None,
+        "--version",
+        "-V",
+        callback=_version_callback,
+        is_eager=True,
+        help="Show version and exit.",
+    ),
+) -> None:
+    pass
+
 
 # focal board — personal board sync commands
 board_app = typer.Typer(help="Personal board sync commands.")
@@ -40,6 +64,33 @@ def _migrate_legacy_config() -> None:
             _typer.echo(f"Migrated {name} → {new}")
 
 
+def _load_config(require: bool = True) -> "tuple[dict, Path]":
+    """Load ~/.focal/config.json and return (config_dict, config_path).
+
+    If require=True and the file is missing, print a clear actionable error and exit.
+    If require=False and the file is missing, return ({}, path) so callers can warn
+    and proceed with degraded functionality (no board integration).
+    """
+    import json as _json
+
+    _migrate_legacy_config()
+    config_path = FOCAL_HOME / "config.json"
+    if not config_path.exists():
+        if require:
+            from rich.console import Console
+
+            Console().print(
+                "\n[bold red]Focal is not configured.[/bold red]\n\n"
+                "Run [bold]focal board setup[/bold] to set up your personal board and config.\n"
+                "This is required before using PM commands so Focal knows which board\n"
+                "to add epics and stories to, and which GitHub account to use.\n"
+            )
+            raise typer.Exit(1)
+        return {}, config_path
+    with open(config_path) as f:
+        return _json.load(f), config_path
+
+
 # ── focal board ───────────────────────────────────────────────────────────────
 
 
@@ -67,6 +118,98 @@ def board_sync():
     except Exception as e:
         logger.error(str(e))
         raise typer.Exit(1)
+
+
+@board_app.command("status")
+def board_status():
+    """Show a live summary of the personal board — counts per column, blocked and recent items."""
+    from datetime import datetime, timedelta, timezone
+
+    from rich.console import Console
+    from rich.table import Table
+
+    from focal import gh
+
+    config, _ = _load_config(require=True)
+    board_number = int(config["board_number"])
+    owner = config["board_owner"]
+
+    console = Console()
+    console.print(
+        f"\nPersonal board — [bold]{owner}[/bold] (project #{board_number})\n"
+    )
+
+    items = gh.project_items(board_number, owner)
+
+    # Count by status
+    status_counts: dict[str, int] = {}
+    for item in items:
+        s = item.get("status") or {}
+        name = (s.get("name") if s else None) or "(no status)"
+        status_counts[name] = status_counts.get(name, 0) + 1
+
+    table = Table(show_header=True, header_style="bold", box=None, padding=(0, 1))
+    table.add_column("Status", style="")
+    table.add_column("Count", justify="right")
+    for status_name, count in status_counts.items():
+        table.add_row(status_name, str(count))
+    table.add_section()
+    table.add_row("[bold]Total[/bold]", f"[bold]{len(items)}[/bold]")
+    console.print(table)
+
+    # Parse URL helper
+    def _ref(url: str, number: int) -> str:
+        """Convert https://github.com/owner/repo/issues/42 → owner/repo#42"""
+        if not url:
+            return f"#{number}"
+        parts = url.rstrip("/").split("/")
+        # parts: ['https:', '', 'github.com', 'owner', 'repo', 'issues', '42']
+        if len(parts) >= 5:
+            return f"{parts[3]}/{parts[4]}#{number}"
+        return f"#{number}"
+
+    # Blocked items
+    blocked = [
+        item
+        for item in items
+        if "blocked" in ((item.get("status") or {}).get("name") or "").lower()
+    ]
+    if blocked:
+        console.print(f"\n[bold]Blocked ({len(blocked)})[/bold]")
+        for item in blocked:
+            content = item.get("content") or {}
+            ref = _ref(content.get("url", ""), content.get("number", 0))
+            title = content.get("title", "(no title)")
+            url = content.get("url", "")
+            console.print(f"  • {ref} — {title}")
+            if url:
+                console.print(f"    {url}")
+
+    # Recently added (last 7 days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+    recent = []
+    for item in items:
+        created_at = item.get("createdAt", "")
+        if created_at:
+            try:
+                dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                if dt >= cutoff:
+                    recent.append(item)
+            except ValueError:
+                pass
+    recent.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+
+    if recent:
+        console.print(f"\n[bold]Recently added (last 7 days, {len(recent)})[/bold]")
+        for item in recent:
+            content = item.get("content") or {}
+            ref = _ref(content.get("url", ""), content.get("number", 0))
+            title = content.get("title", "(no title)")
+            s = item.get("status") or {}
+            status_name = (s.get("name") if s else None) or "no status"
+            console.print(f"  • {ref} — {title} ({status_name})")
+
+    console.print()
 
 
 @board_app.command("setup")
@@ -164,6 +307,39 @@ def pm_init(
     )
 
 
+@pm_app.command("remove-repo")
+def pm_remove_repo(
+    repo: str = typer.Argument(..., help="Repo to unregister, in owner/repo format"),
+):
+    """Remove a repo from the PM cache registry (~/.focal/config.json pm_repos)."""
+    from rich.console import Console
+
+    from focal.config import Config
+
+    _migrate_legacy_config()
+    console = Console()
+    config_path = FOCAL_HOME / "config.json"
+    if not config_path.exists():
+        typer.echo("ERROR: config.json not found. Run: focal board setup", err=True)
+        raise typer.Exit(1)
+
+    cfg = Config.load(config_path)
+    before = len(cfg.pm_repos)
+    cfg.pm_repos = [e for e in cfg.pm_repos if e.get("repo") != repo]
+
+    if len(cfg.pm_repos) == before:
+        console.print(
+            f"[yellow]{repo} is not in the PM registry — nothing to remove.[/yellow]"
+        )
+        raise typer.Exit(0)
+
+    cfg.save(config_path)
+    console.print(f"[green]✔[/green] Removed [bold]{repo}[/bold] from pm_repos.")
+    console.print(
+        "[dim]Local repo files are unchanged. Only the registry entry was removed.[/dim]"
+    )
+
+
 @pm_app.command("epic-create")
 def pm_epic_create(
     repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
@@ -177,16 +353,9 @@ def pm_epic_create(
     sp: int = typer.Option(None, "--sp", help="Story point estimate (skips prompt)"),
 ):
     """Create a GitHub epic and update docs/focal/epics.md."""
-    import json as _json
-
     from focal.pm.epic_cmd import run
 
-    config: dict = {}
-    config_path = FOCAL_HOME / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
-
+    config, _ = _load_config(require=True)
     run(repo, repo_root.resolve(), config, title=title, description=description, sp=sp)
 
 
@@ -206,16 +375,9 @@ def pm_story_create(
     sp: int = typer.Option(None, "--sp", help="Story point estimate (skips prompt)"),
 ):
     """Create a story linked to an epic and update docs/focal/epics.md."""
-    import json as _json
-
     from focal.pm.story_cmd import run
 
-    config: dict = {}
-    config_path = FOCAL_HOME / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
-
+    config, _ = _load_config(require=True)
     run(
         repo,
         repo_root.resolve(),
@@ -259,15 +421,14 @@ def pm_plan(
     ),
 ):
     """Generate or update docs/focal/iteration-planning.md."""
-    import json as _json
-
     from focal.pm.plan_cmd import run
 
-    config: dict = {}
-    config_path = FOCAL_HOME / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
+    config, _ = _load_config(require=False)
+    if not config:
+        typer.echo(
+            "Note: no board config found — board integration will be skipped. Run: focal board setup",
+            err=True,
+        )
 
     # Parse goals string into dict
     goals_dict: dict | None = None
@@ -322,15 +483,14 @@ def pm_retro(
     notes: str = typer.Option(None, "--notes", help="Free-form notes (skips prompt)"),
 ):
     """Log a completed iteration and update docs/focal/retro-log.md."""
-    import json as _json
-
     from focal.pm.retro_cmd import run
 
-    config: dict = {}
-    config_path = FOCAL_HOME / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
+    config, _ = _load_config(require=False)
+    if not config:
+        typer.echo(
+            "Note: no board config found — board integration will be skipped. Run: focal board setup",
+            err=True,
+        )
 
     # Parse action items
     action_items: list[dict] | None = None
@@ -370,16 +530,14 @@ def pm_status(
     ),
 ):
     """Print a live terminal summary of the current iteration progress."""
-    import json as _json
-
     from focal.pm.status_cmd import run
 
-    config: dict = {}
-    config_path = FOCAL_HOME / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
-
+    config, _ = _load_config(require=False)
+    if not config:
+        typer.echo(
+            "Note: no board config found — board integration will be skipped. Run: focal board setup",
+            err=True,
+        )
     run(repo, repo_root.resolve(), config, refresh=refresh)
 
 
@@ -396,16 +554,9 @@ def cache_refresh(
     ),
 ):
     """Re-fetch all epic/story state from GitHub and update docs/focal/.cache/."""
-    import json as _json
-
     from focal.pm.sync_state_cmd import run
 
-    config: dict = {}
-    config_path = FOCAL_HOME / "config.json"
-    if config_path.exists():
-        with open(config_path) as f:
-            config = _json.load(f)
-
+    config, _ = _load_config(require=True)
     run(repo, repo_root.resolve(), config)
 
 
@@ -416,7 +567,6 @@ def cache_refresh_all(
     ),
 ):
     """Re-fetch state for all PM-managed repos registered in ~/.focal/config.json."""
-    import json as _json
 
     from rich.console import Console
 
@@ -424,13 +574,8 @@ def cache_refresh_all(
     from focal.pm import pm_state
     from focal.pm.sync_state_cmd import run
 
-    _migrate_legacy_config()
     console = Console()
-    config_path = FOCAL_HOME / "config.json"
-    if not config_path.exists():
-        typer.echo("ERROR: config.json not found. Run: focal board setup", err=True)
-        raise typer.Exit(1)
-
+    config_dict, config_path = _load_config(require=True)
     cfg = Config.load(config_path)
 
     if not force and not cfg.auto_cache_refresh:
@@ -446,10 +591,6 @@ def cache_refresh_all(
             "[yellow]No PM repos registered. Run [bold]focal pm init[/bold] for each repo first.[/yellow]"
         )
         raise typer.Exit(0)
-
-    config_dict: dict = {}
-    with open(config_path) as f:
-        config_dict = _json.load(f)
 
     errors = 0
     skipped = 0
@@ -500,13 +641,8 @@ def cache_status():
     from focal.config import Config
     from focal.pm import pm_state
 
-    _migrate_legacy_config()
     console = Console()
-    config_path = FOCAL_HOME / "config.json"
-    if not config_path.exists():
-        typer.echo("ERROR: config.json not found. Run: focal board setup", err=True)
-        raise typer.Exit(1)
-
+    _, config_path = _load_config(require=True)
     cfg = Config.load(config_path)
 
     auto = (

@@ -334,3 +334,89 @@ def issue_states_batch(
                     pass
 
     return results
+
+
+# ── Board creation ────────────────────────────────────────────────────────────
+
+RECOMMENDED_STATUS_OPTIONS = [
+    "🆕 New",
+    "📋 Backlog",
+    "🔖 Ready",
+    "🏗 In progress",
+    "✋ Blocked",
+    "👀 In review",
+    "✅ Done",
+]
+
+
+def owner_id(login: str) -> str:
+    """Return the node ID for a user or org login."""
+    data = _graphql(f'query {{ user(login: "{login}") {{ id }} }}')
+    user = data.get("data", {}).get("user")
+    if user:
+        return user["id"]
+    # Try org
+    data = _graphql(f'query {{ organization(login: "{login}") {{ id }} }}')
+    return data["data"]["organization"]["id"]
+
+
+def create_project(login: str, title: str) -> dict:
+    """Create a GitHub Projects v2 board. Returns {id, number, url}."""
+    oid = owner_id(login)
+    data = _graphql(f"""
+      mutation {{
+        createProjectV2(input: {{
+          ownerId: "{oid}"
+          title: "{title}"
+        }}) {{
+          projectV2 {{
+            id
+            number
+            url
+          }}
+        }}
+      }}
+    """)
+    proj = data["data"]["createProjectV2"]["projectV2"]
+    return {"id": proj["id"], "number": proj["number"], "url": proj["url"]}
+
+
+def get_status_field(project_id: str) -> Optional[dict]:
+    """Return the Status single-select field {id, options} for a project."""
+    data = _graphql(f"""
+      query {{
+        node(id: "{project_id}") {{
+          ... on ProjectV2 {{
+            fields(first: 20) {{
+              nodes {{
+                ... on ProjectV2SingleSelectField {{
+                  id name options {{ id name }}
+                }}
+              }}
+            }}
+          }}
+        }}
+      }}
+    """)
+    for node in data["data"]["node"]["fields"]["nodes"]:
+        if node.get("name") == "Status":
+            return node
+    return None
+
+
+def set_status_options(project_id: str, field_id: str, options: list[str]) -> None:
+    """Replace the options on a Status single-select field."""
+    opts_gql = " ".join(f'{{name: "{o}"}}' for o in options)
+    _graphql(f"""
+      mutation {{
+        updateProjectV2Field(input: {{
+          projectId: "{project_id}"
+          fieldId: "{field_id}"
+          singleSelectOptions: [{opts_gql}]
+        }}) {{
+          projectV2Field {{
+            ... on ProjectV2SingleSelectField {{ id name }}
+          }}
+        }}
+      }}
+    """)

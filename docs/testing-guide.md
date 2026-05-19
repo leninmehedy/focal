@@ -6,8 +6,8 @@ This guide covers every command in Focal. For each command there is a list of te
 - `gh` CLI authenticated: `gh auth status` shows `Logged in` with `repo` and `project` scopes
 - Python 3.10+: `python3 --version`
 - `pipx`: `pipx --version` (install with `pip3 install pipx` if missing)
-- A personal [GitHub Projects v2](https://docs.github.com/en/issues/planning-and-tracking-with-projects) board with a **Status** single-select field
 - At least one GitHub repo with open issues assigned to you
+- Note: a GitHub Projects v2 board is **no longer required before setup** — the wizard can create one for you automatically
 
 **Notation:**
 - ✅ Expected pass — the test should succeed with this output
@@ -36,12 +36,14 @@ The interactive wizard that creates `~/.focal/config.json`.
 
 | # | Test | How to run | Expected result |
 |---|------|-----------|-----------------|
-| S1 | Fresh setup | `python3 focal.py board setup` with no existing config | Wizard prompts for board URL, GitHub username, Done column name, repos to sync. Creates `~/.focal/config.json` ✅ |
-| S2 | Config file location | After S1, `cat ~/.focal/config.json` | File exists at `~/.focal/config.json` (not in the focal repo directory) ✅ |
-| S3 | Re-run wizard — add repos | Re-run `python3 focal.py board setup` when config already exists | Offers 3 choices: **Add repos**, **Edit repo list**, **Full reconfigure**. Choosing "Add repos" appends to the `repos` array without touching other settings ✅ |
-| S4 | Re-run wizard — full reconfigure | Choose "Full reconfigure" in S3 | Overwrites config from scratch ✅ |
-| S5 | Cancel re-run | Choose "Cancel" when offered options | Exits cleanly with no changes ✅ |
-| S6 | Status map created | After setup with mismatched status columns | `~/.focal/status_map.json` is created with translation mappings ✅ |
+| S1 | Fresh setup — auto-create board | `focal board setup` with no existing config, choose **1** (Create a new board) | Prompts for GitHub username and board title. Creates a Projects v2 board, adds recommended Status columns, then continues to repo selection. Creates `~/.focal/config.json` ✅ |
+| S2 | Fresh setup — use existing board | `focal board setup` with no existing config, choose **2** (I already have a board) | Prompts for board URL, GitHub username, Done column name, repos. Creates `~/.focal/config.json` ✅ |
+| S3 | Config file location | After S1 or S2, `cat ~/.focal/config.json` | File exists at `~/.focal/config.json` (not in the focal repo directory) ✅ |
+| S4 | Board created on GitHub | After S1 | New board visible at `https://github.com/users/YOUR_USERNAME/projects` with Status field containing 7 recommended options ✅ |
+| S5 | Re-run wizard — add repos | Re-run `focal board setup` when config already exists | Offers 4 choices: **Add repos**, **Edit repo list**, **Full reconfigure**, **Cancel**. Choosing "Add repos" appends to the `repos` array without touching other settings ✅ |
+| S6 | Re-run wizard — full reconfigure | Choose "Full reconfigure" in S5 | Overwrites config from scratch ✅ |
+| S7 | Cancel re-run | Choose "Cancel" when offered options | Exits cleanly with no changes ✅ |
+| S8 | Status map created | After setup with mismatched status columns | `~/.focal/status_map.json` is created with translation mappings ✅ |
 
 ---
 

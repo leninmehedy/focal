@@ -41,20 +41,13 @@ You can use board sync without ever touching the PM CLI, and vice versa.
    gh auth refresh -s project   # add project scope if missing
    ```
 
-2. **A personal GitHub Projects v2 board** at
-   `https://github.com/users/YOUR_USERNAME/projects`:
-   - Click **New project → Board** layout
-   - Add a **Status** single-select field with these recommended options:
-     ```
-     🆕 New  ·  📋 Backlog  ·  🔖 Ready  ·  🏗 In progress  ·  ✋ Blocked  ·  👀 In review  ·  ✅ Done
-     ```
-   - Note the project number from the URL (e.g. `projects/3`)
-
-3. **Focal installed:**
+2. **Focal installed:**
    ```bash
    pipx install focal-cli
    ```
    If you don't have pipx: `pip3 install pipx && pipx ensurepath`, then restart your terminal.
+
+That's it — you do **not** need to create a GitHub Projects board manually. The setup wizard can create and configure one for you automatically.
 
 ### First-time setup
 
@@ -62,14 +55,19 @@ You can use board sync without ever touching the PM CLI, and vice versa.
 focal board setup
 ```
 
-The wizard asks for:
-- Your personal board URL (e.g. `https://github.com/users/you/projects/3`)
-- Your GitHub username
-- Which column is your Done column
-- Which repos to watch
+The wizard gives you two options for the board:
 
-You can add as many repos as you like. Focal will watch all of them and pull
-issues assigned to you onto your personal board.
+**Option 1 — Create a new board automatically (recommended for new users)**
+Enter your GitHub username and a board title. Focal calls the GitHub API to create a Projects v2 board and pre-populates it with the recommended Status columns:
+```
+🆕 New  ·  📋 Backlog  ·  🔖 Ready  ·  🏗 In progress  ·  ✋ Blocked  ·  👀 In review  ·  ✅ Done
+```
+No browser visit needed.
+
+**Option 2 — Use an existing board**
+Paste your board URL (e.g. `https://github.com/users/you/projects/3`) and confirm your username and Done column name.
+
+After the board step, the wizard asks which repos to watch. You can add as many as you like — Focal will watch all of them and pull issues assigned to you onto your personal board.
 
 Config is saved to `~/.focal/config.json`. It never touches any of your repos.
 

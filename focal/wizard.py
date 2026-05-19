@@ -315,21 +315,67 @@ def run(focal_home: Path) -> None:
     if not _check_prerequisites():
         raise typer.Exit(1)
 
-    # Board URL
+    # Board — create or use existing
     console.rule("[bold]Step 2: Personal board[/bold]")
-    while True:
-        url = Prompt.ask(
-            "Personal board URL",
-            default="https://github.com/users/YOUR_USERNAME/projects/NUMBER",
-        )
-        try:
-            board_owner, board_number = _parse_board_url(url)
-            break
-        except ValueError as e:
-            console.print(f"[red]{e}[/red]")
+    console.print("Do you have an existing GitHub Projects v2 board?\n")
+    console.print("  [bold]1[/bold]  Create a new board for me automatically")
+    console.print("  [bold]2[/bold]  I already have a board — enter URL\n")
+    board_choice = Prompt.ask("Choice", choices=["1", "2"], default="1")
 
-    assignee = Prompt.ask("Your GitHub username (assignee filter)", default=board_owner)
-    done_status = Prompt.ask("Exact name of your Done status column", default="✅ Done")
+    if board_choice == "1":
+        assignee = Prompt.ask("Your GitHub username")
+        board_title = Prompt.ask("Board title", default="My Board")
+        console.print(f"\n[cyan]Creating project '{board_title}'...[/cyan]")
+        try:
+            proj = gh.create_project(assignee, board_title)
+        except RuntimeError as e:
+            console.print(f"[red]Could not create project: {e}[/red]")
+            raise typer.Exit(1)
+        board_owner = assignee
+        board_number = proj["number"]
+        project_id = proj["id"]
+        console.print(f"[green]✔[/green] Created: {proj['url']}")
+
+        # Populate Status options
+        console.print("[cyan]Adding recommended Status columns...[/cyan]")
+        try:
+            status_field = gh.get_status_field(project_id)
+            if status_field:
+                gh.set_status_options(
+                    project_id,
+                    status_field["id"],
+                    gh.RECOMMENDED_STATUS_OPTIONS,
+                )
+                console.print(
+                    "[green]✔[/green] Status columns: "
+                    + "  ·  ".join(gh.RECOMMENDED_STATUS_OPTIONS)
+                )
+            else:
+                console.print(
+                    "[yellow]⚠[/yellow]  No Status field found — add one manually on the board"
+                )
+        except RuntimeError as e:
+            console.print(f"[yellow]⚠[/yellow]  Could not set Status columns: {e}")
+
+        done_status = "✅ Done"
+
+    else:
+        while True:
+            url = Prompt.ask(
+                "Personal board URL",
+                default="https://github.com/users/YOUR_USERNAME/projects/NUMBER",
+            )
+            try:
+                board_owner, board_number = _parse_board_url(url)
+                break
+            except ValueError as e:
+                console.print(f"[red]{e}[/red]")
+        assignee = Prompt.ask(
+            "Your GitHub username (assignee filter)", default=board_owner
+        )
+        done_status = Prompt.ask(
+            "Exact name of your Done status column", default="✅ Done"
+        )
 
     # Fetch Status field from personal board
     console.print(f"\nFetching Status field from board #{board_number}...")
@@ -342,8 +388,8 @@ def run(focal_home: Path) -> None:
     status_field = next((f for f in fields if f.get("name") == "Status"), None)
     if not status_field:
         console.print(
-            "[red]No 'Status' single-select field found on your board.[/red]\n"
-            "Add one at: https://github.com/users/{board_owner}/projects/{board_number}"
+            f"[red]No 'Status' single-select field found on your board.[/red]\n"
+            f"Add one at: https://github.com/users/{board_owner}/projects/{board_number}"
         )
         raise typer.Exit(1)
 

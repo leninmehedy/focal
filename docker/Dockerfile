@@ -13,16 +13,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get purge -y gpg \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pipx and focal-cli from PyPI
-RUN pip install --no-cache-dir pipx \
-    && pipx install focal-cli \
-    && pipx ensurepath
-
 # Non-root user
 RUN useradd --create-home --shell /bin/bash focal
 USER focal
 ENV HOME=/home/focal
 ENV PATH="/home/focal/.local/bin:$PATH"
+
+# Install pipx and focal-cli from PyPI as the focal user
+RUN pip install --no-cache-dir --user pipx \
+    && pipx install focal-cli
 
 # GH_TOKEN must be provided at runtime: docker run -e GH_TOKEN=ghp_xxx ...
 ENTRYPOINT ["focal"]

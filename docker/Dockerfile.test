@@ -13,21 +13,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get purge -y gpg \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pipx and focal-cli from TestPyPI
-# FOCAL_VERSION pins the exact version to test (e.g. 1.12.0)
-ARG FOCAL_VERSION
-RUN pip install --no-cache-dir pipx \
-    && pipx install \
-        --index-url https://test.pypi.org/simple/ \
-        --pip-args="--extra-index-url https://pypi.org/simple/" \
-        "focal-cli${FOCAL_VERSION:+==$FOCAL_VERSION}" \
-    && pipx ensurepath
-
 # Non-root user
 RUN useradd --create-home --shell /bin/bash focal
 USER focal
 ENV HOME=/home/focal
 ENV PATH="/home/focal/.local/bin:$PATH"
+
+# Install pipx and focal-cli from TestPyPI as the focal user
+# FOCAL_VERSION pins the exact version to test (e.g. 1.13.0)
+ARG FOCAL_VERSION
+RUN pip install --no-cache-dir --user pipx \
+    && pipx install \
+        --index-url https://test.pypi.org/simple/ \
+        --pip-args="--extra-index-url https://pypi.org/simple/" \
+        "focal-cli${FOCAL_VERSION:+==$FOCAL_VERSION}"
 
 # GH_TOKEN must be provided at runtime: docker run -e GH_TOKEN=ghp_xxx ...
 ENTRYPOINT ["focal"]

@@ -541,17 +541,24 @@ def pm_retro(
 
 @pm_app.command("status")
 def pm_status(
-    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
+    repo: Optional[str] = typer.Argument(
+        None,
+        help="Target repo (owner/repo). Omit to show status for all registered PM repos.",
+    ),
     repo_root: Path = typer.Option(
         Path("."),
         "--repo-root",
-        help="Local path to the repo root (default: current directory)",
+        help="Local path to the repo root (default: current directory). Ignored when showing all repos.",
     ),
     refresh: bool = typer.Option(
         False, "--refresh", help="Re-fetch state from GitHub before displaying status."
     ),
 ):
-    """Print a live terminal summary of the current iteration progress."""
+    """Print a live terminal summary of the current iteration.
+
+    With no arguments: shows status for every repo registered via 'focal pm init',
+    auto-detecting the current iteration for each.
+    """
     from focal.pm.status_cmd import run
 
     config, _ = _load_config(require=False)
@@ -560,7 +567,31 @@ def pm_status(
             "Note: no board config found — board integration will be skipped. Run: focal board setup",
             err=True,
         )
-    run(repo, repo_root.resolve(), config, refresh=refresh)
+
+    if repo:
+        run(repo, repo_root.resolve(), config, refresh=refresh)
+        return
+
+    # No repo specified — show all registered PM repos
+    pm_repos = config.get("pm_repos", [])
+    if not pm_repos:
+        from rich.console import Console
+
+        Console().print(
+            "[yellow]No PM repos registered.[/yellow] "
+            "Run [bold]focal pm init owner/repo[/bold] to register a repo."
+        )
+        raise typer.Exit(0)
+
+    for entry in pm_repos:
+        r = entry.get("repo", "") if isinstance(entry, dict) else str(entry)
+        rr = Path(entry.get("repo_root", ".")) if isinstance(entry, dict) else Path(".")
+        if not rr.exists():
+            from rich.console import Console
+
+            Console().print(f"[dim]Skipping {r} — repo_root not found: {rr}[/dim]")
+            continue
+        run(r, rr.resolve(), config, refresh=refresh)
 
 
 @pm_app.command("velocity")

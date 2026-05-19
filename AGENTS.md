@@ -359,3 +359,56 @@ grep 'WARN' ~/.focal/logs/*.log
 - The local state cache (`docs/focal/.cache/focal-state.json`) is safe to commit —
   it contains no secrets, only metadata mirroring GitHub.
 - Never edit `.focal-state.json` manually — use `focal cache refresh` to update it.
+
+---
+
+## Contributing — rules for agents and human contributors
+
+### Every PR must update `docs/testing-guide.md`
+
+`docs/testing-guide.md` is the beta tester test plan. It must stay in sync with the code:
+
+- **New command** → add a new section with a numbered test table (match the existing format)
+- **Changed behavior or flags** → update the affected test rows
+- **Removed command** → remove its section
+
+Include the `testing-guide.md` change in the **same PR** as the feature or fix — never in a separate PR.
+
+### Commit message format
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) — they drive semantic-release versioning:
+
+| Prefix | Bump | Use for |
+|---|---|---|
+| `feat:` | minor | New commands, new flags, new behavior |
+| `fix:` | patch | Bug fixes, error message improvements |
+| `docs:` | none | README, AGENTS.md, pm-guide, testing-guide |
+| `chore:` | none | CI, deps, tooling, merge conflict resolution |
+| `perf:` | patch | Performance improvements |
+| `refactor:` | patch | Internal restructuring, no behavior change |
+
+### Before committing
+
+Always run ruff on files you touched:
+
+```bash
+pip3 install ruff -q
+ruff check --fix <files>
+ruff format <files>
+```
+
+CI enforces both — a ruff failure will block the PR.
+
+### Branch and PR rules
+
+- Branch from `main`: `git checkout -b feat/my-feature`
+- PR target is always `main` — direct push to `main` is blocked by branch protection
+- Keep PRs focused: one feature or fix per PR
+- PR title should match the commit prefix: `feat: ...`, `fix: ...`, etc.
+
+### What not to do
+
+- Do not add comments that describe *what* code does — well-named identifiers do that
+- Do not add error handling for scenarios that cannot happen
+- Do not create new files when editing an existing one is sufficient
+- Do not add backwards-compatibility shims for code that has no external callers

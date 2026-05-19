@@ -214,11 +214,13 @@ Live terminal dashboard of the current iteration.
 
 | # | Test | How to run | Expected result |
 |---|------|-----------|-----------------|
-| PS1 | Basic status | `python3 focal.py pm status owner/repo` | Shows progress bar, SP delivered vs planned, list of stories with assignee and status ✅ |
-| PS2 | With refresh | `python3 focal.py pm status owner/repo --refresh` | Fetches latest GitHub state before displaying ✅ |
-| PS3 | Blocked stories | Have a story in "Blocked" status | Blocked stories highlighted separately ✅ |
-| PS4 | No iterations planned | Run before `focal pm plan` | Friendly message: no active iteration found ✅ |
-| PS5 | Stale cache warning | Cache last synced > 24h ago (check `last_synced` in state file) | Warning shown that cache may be stale ✅ |
+| PS1 | Single repo | `focal pm status owner/repo` | Shows progress bar, SP delivered vs planned, story list with assignee and status ✅ |
+| PS2 | All repos (no arg) | `focal pm status` with multiple repos registered via `focal pm init` | Prints status panel for each registered PM repo sequentially, auto-detecting current iteration for each ✅ |
+| PS3 | No PM repos registered | `focal pm status` with no `pm_repos` in config | Friendly message: "No PM repos registered. Run focal pm init ..." ✅ |
+| PS4 | Missing repo_root | Registered repo whose local path no longer exists | Skips that repo with a dim "Skipping … repo_root not found" message, continues to next ✅ |
+| PS5 | With refresh | `focal pm status owner/repo --refresh` | Fetches latest GitHub state before displaying ✅ |
+| PS6 | Blocked stories | Have a story in "Blocked" status | Blocked stories highlighted separately ✅ |
+| PS7 | No iterations planned | Run before `focal pm plan` | Friendly message: no active iteration found ✅ |
 
 ### `focal pm velocity`
 

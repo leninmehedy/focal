@@ -21,26 +21,48 @@ re-labels and re-formats issues to match Focal conventions.
 
 ## Problem
 
-`focal pm init` only works on a clean repo. Any project that already has
-epics, stories, or backlog items in GitHub Issues cannot benefit from
-Focal's PM commands without manual work:
+Focal's value proposition is a **single, standardised view** across every
+project an engineer contributes to. That only works if every project speaks
+the same format: `epic`/`story` labels, SP in a body table, sub-issue links
+for hierarchy. In practice, projects accumulate years of organic issue
+structure before Focal arrives:
 
-- Existing issues use different labels (`feature`, `task`, `enhancement`,
-  `bug`) or no labels at all
-- SP estimates live in different places: issue titles (`[13]`), body
-  tables, project custom fields, or are missing entirely  
-- Parent/child relationships may exist as GitHub sub-issues, be implied
-  by title prefixes (`[Epic] …`), or be completely absent
+- Different label conventions per repo: `feature`, `task`, `enhancement`,
+  `bug`, or no labels at all
+- SP estimates scattered across titles (`[13]`), prose sentences
+  (`Estimated: 5 SP.`), project custom fields, or missing entirely
+- Parent/child relationships implied by title prefixes (`[Epic] …`),
+  body prose, or completely absent — no machine-readable link
 - The local `focal-state.json` cache doesn't exist, so `focal pm status`
   immediately errors: *"No iterations in local state"*
+
+This inconsistency is exactly the problem Focal exists to solve — but
+without an adoption path, teams working on existing repos are locked out.
+`focal pm init` only works on a clean repo; it cannot bootstrap from
+existing state.
 
 The result: teams that want to migrate to Focal have to manually relabel
 every issue, re-enter SP estimates, and reconstruct the hierarchy from
 scratch — a multi-hour task that usually doesn't happen.
 
-A concrete example: `leninmehedy/focal` itself has epics (#69) and stories
-(#70–#78) but is not managed by Focal because the state cache has never
-been bootstrapped for this repo.
+A concrete example: `leninmehedy/focal` itself has epics (#69, #82) and
+stories but is not managed by Focal because the state cache has never been
+bootstrapped for this repo.
+
+## Focal issue format standard
+
+Before adoption can normalise issues, there must be a clear target format.
+Focal's canonical format for GitHub issues:
+
+| Field | Epic | Story |
+|-------|------|-------|
+| Label | `epic` | `story` |
+| Title | Plain description — no SP, no prefix | Plain description — no SP, no prefix |
+| Body | Summary + stories checklist | `Part of #<epic_number>`<br>`\| SP \| N \|`<br>`\|---\|---\|` |
+| Sub-issues | Stories linked via sub-issues API | — |
+
+SP **never** belongs in the title. It lives in the body table so it can be
+updated without polluting git history via title changes.
 
 ## Goals
 
@@ -55,8 +77,9 @@ been bootstrapped for this repo.
 - ✅ Produce a clear adoption report: what was found, what was mapped,
   what couldn't be resolved (missing SP, orphaned stories)
 - ✅ Dry-run by default — no GitHub writes, no file writes
-- ✅ `--normalise` flag: re-label issues to `epic`/`story`, add missing
-  SP to issue body, create sub-issue links — all opt-in and reversible
+- ✅ `--normalise` flag: re-label issues to `epic`/`story`, move SP from
+  title to body table, add missing SP, create sub-issue links — all
+  opt-in and reversible
 - ✅ Safe to re-run: adopting a repo that's already partially managed
   merges discovered state with existing cache rather than overwriting
 
@@ -270,7 +293,8 @@ links can be deleted via the API).
 
 ## Breakdown hint
 
-Epic: Adopt existing project into Focal PM management (`focal pm adopt`) (~31 SP)
+Epic: Adopt existing project into Focal PM management (`focal pm adopt`) (~34 SP)
+  - Story: Document Focal issue format standard — label, title, body table, sub-issue rules (2 SP)
   - Story: Extend gh.py — issues_by_label(), issue_sub_issues(), project_field_value() (3 SP)
   - Story: Implement sp_extractor.py — extract SP from title, body table, project field (5 SP)
   - Story: Implement hierarchy_resolver.py — sub-issues API, body mentions, title prefix inference (5 SP)
@@ -278,7 +302,7 @@ Epic: Adopt existing project into Focal PM management (`focal pm adopt`) (~31 SP
   - Story: Implement adoption report renderer — Rich terminal output with warnings (3 SP)
   - Story: Wire up focal pm adopt CLI command with label mapping flags (3 SP)
   - Story: Implement --apply flag — write state cache + create docs/focal/ structure if missing (3 SP)
-  - Story: Implement --normalise flag — re-label issues, add SP to body, create sub-issue links (5 SP)
+  - Story: Implement --normalise flag — re-label issues, move SP from title to body, create sub-issue links (5 SP)
 
 ## References
 

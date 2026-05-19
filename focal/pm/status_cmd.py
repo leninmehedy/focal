@@ -158,3 +158,13 @@ def run(repo: str, repo_root: Path, config: dict, refresh: bool = False) -> None
                 f"(@{s.get('assignee', '—')}) · {s.get('sp', '?')} SP"
             )
         console.print()
+
+    # ── Active design docs ────────────────────────────────────────────────────
+    from . import design_cmd
+
+    active_designs = design_cmd.summary_lines(repo_root)
+    if active_designs:
+        console.print("[bold]Design docs[/bold]")
+        for line in active_designs:
+            console.print(f"  [dim]{line}[/dim]")
+        console.print()

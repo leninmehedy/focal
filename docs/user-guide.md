@@ -379,3 +379,29 @@ afterwards to reconfigure from scratch.
 | Issues not appearing after sync | Check `~/.focal/logs/` for warnings |
 | Cache feels stale | Run `focal cache refresh myorg/my-project` |
 | Want a clean slate | Run `focal reset` then `focal board setup` |
+
+---
+
+## File reference
+
+| File | Purpose |
+|---|---|
+| `install.sh` | One-command installer — checks prereqs, installs pipx and focal-cli |
+| `pyproject.toml` | Package metadata and `focal` CLI entry point |
+| `focal/` | Python package — sync, wizard, PM modules |
+| `focal/pm/` | PM command modules (epic, story, plan, retro, status) |
+| `templates/` | Markdown templates copied by `focal pm init` |
+| `launchd/com.your-username.focal.plist` | macOS scheduler template — board sync (hourly) |
+| `launchd/com.your-username.focal-cache.plist` | macOS scheduler template — PM cache refresh (twice daily) |
+| `~/.focal/config.json` | Your personal config — **never commit** |
+| `~/.focal/state.json` | Board sync state — delete to force a full re-sync |
+| `~/.focal/status_map.json` | Auto-generated status name translations |
+| `~/.focal/logs/YYYY-MM-DD.log` | Daily sync logs |
+| `config.example.json` | Template showing all config keys |
+| `AGENTS.md` | Full command reference for AI agents |
+
+## Limitations
+
+- **Poll-based sync** — GitHub doesn't emit webhooks for personal project board moves, so Focal polls on a schedule. Frequency is controlled by your scheduler interval.
+- **Best-effort status push** — if an origin project doesn't have a matching status option, that project is skipped with a warning in the log.
+- **`project` scope required** — the `gh` token must have `project` scope for both your personal board and any origin org projects you want to write to.

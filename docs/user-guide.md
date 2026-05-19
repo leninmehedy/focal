@@ -11,8 +11,8 @@ it as a reference.
 **Prerequisites:** Python 3.10+, [`gh` CLI](https://cli.github.com) authenticated with `repo` and `project` scopes.
 
 ```bash
-# 1. Install
-pipx install focal-cli        # no pipx? run: pip3 install pipx && pipx ensurepath
+# 1. Install (handles pipx automatically)
+bash <(curl -fsSL https://raw.githubusercontent.com/leninmehedy/focal/main/install.sh)
 
 # 2. Configure (wizard creates your GitHub Projects board automatically)
 focal board setup

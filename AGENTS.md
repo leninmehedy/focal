@@ -222,14 +222,17 @@ gh auth refresh -s project
 
 ### Step 2 — Install Focal and run setup wizard
 
+Use the installer script (handles pipx, Python check, and focal-cli in one step):
 ```bash
-pipx install focal-cli
+bash <(curl -fsSL https://raw.githubusercontent.com/leninmehedy/focal/main/install.sh)
+```
+
+Then run the wizard:
+```bash
 focal board setup
 ```
 
-If pipx is not available: `pip3 install pipx && pipx ensurepath`, then restart the shell.
-
-If working from a local clone of the repo instead of the published package:
+If working from a local clone of the repo instead:
 ```bash
 pip3 install -e .
 focal board setup

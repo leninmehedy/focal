@@ -43,7 +43,26 @@ external tools, no context switching.
 
 ---
 
-## Set up with an AI agent (recommended)
+## Install
+
+**One command** — checks prerequisites, installs pipx if needed, installs `focal`:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/leninmehedy/focal/main/install.sh)
+```
+
+Then run the setup wizard:
+
+```bash
+focal board setup
+```
+
+The wizard creates your GitHub Projects board automatically and asks which repos to watch.
+Full details in the **[User Guide](docs/user-guide.md)**.
+
+---
+
+## Set up with an AI agent
 
 Focal ships with [`AGENTS.md`](AGENTS.md) — a full setup and operations guide that
 AI coding agents can fetch directly from GitHub. Open your agent and paste one prompt:
@@ -53,17 +72,13 @@ Set up Focal from https://raw.githubusercontent.com/leninmehedy/focal/main/AGENT
 ```
 
 The agent fetches `AGENTS.md`, then without any further input from you it will:
-1. Check prerequisites (`gh` CLI, Python 3, pipx)
-2. Install Focal (`pipx install focal-cli`)
-3. Run the setup wizard — creates your GitHub Projects board automatically, then asks which repos to watch
-4. Verify the first sync works
-5. Set up the hourly scheduler (launchd on macOS, cron on Linux)
+1. Run `install.sh` to install Focal
+2. Run the setup wizard — creates your GitHub Projects board automatically, then asks which repos to watch
+3. Verify the first sync works
+4. Set up the hourly scheduler (launchd on macOS, cron on Linux)
 
 **Supported agents:** Claude Code, OpenAI Codex, Cursor, or any agent that can fetch
 a URL and run shell commands.
-
-Once installed, see the **[User Guide](docs/user-guide.md)** for day-to-day usage,
-PM CLI commands, and troubleshooting.
 
 ### Ongoing use — things you can ask your agent
 
@@ -82,26 +97,30 @@ Once set up, your agent can manage both board sync and PM workflows in plain lan
 
 ---
 
-## Manual setup
-
-Prefer to do it yourself? No problem.
+## Manual install
 
 ### Prerequisites
 
 - [GitHub CLI (`gh`)](https://cli.github.com) — authenticated with `repo` and `project` scopes
 - Python 3.10+
-- A personal [GitHub Projects v2](https://docs.github.com/en/issues/planning-and-tracking-with-projects) board with a **Status** single-select field
 
 ### Install and configure
 
-**Recommended — install via pipx (no repo clone needed):**
+**One-liner (recommended):**
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/leninmehedy/focal/main/install.sh)
+focal board setup
+```
+
+**Or install via pipx directly:**
 
 ```bash
 pipx install focal-cli
 focal board setup
 ```
 
-**Alternative — clone and install in editable mode:**
+**Or clone and install in editable mode (contributors):**
 
 ```bash
 git clone https://github.com/leninmehedy/focal.git

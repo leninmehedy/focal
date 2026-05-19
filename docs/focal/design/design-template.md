@@ -2,7 +2,7 @@
 id: D000          # Auto-assigned: D001, D002, … in sequence
 title: <Feature Title>
 author: @handle
-status: Draft     # Draft | Ready | Accepted
+status: Draft     # Draft | Planned | Active | Done | Archived
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 relates-to:       # optional: D-IDs or GitHub issue numbers this design connects to

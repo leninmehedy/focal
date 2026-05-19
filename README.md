@@ -9,6 +9,21 @@ running delivery end-to-end without leaving the terminal.
 > Cursor, Codex) can set it up, run PM commands, and manage your backlog on your
 > behalf — no manual steps required.
 
+## The problem
+
+If you contribute to many GitHub repositories, each with its own project board,
+planning your day means opening every repo board one by one. By the time you've
+done the rounds, you've lost 20 minutes and still don't have a single prioritized
+view of your work.
+
+And when it comes to planning a release — creating epics, estimating stories,
+building an iteration schedule, logging retros — you're either doing it in Jira
+(context switch) or in your head (no record).
+
+**Focal solves both.** One personal Kanban board that syncs everywhere, plus a
+PM CLI that manages your entire delivery lifecycle in GitHub and markdown — no
+external tools, no context switching.
+
 ## What it does
 
 **Board sync** — open issues assigned to you flow automatically onto one personal

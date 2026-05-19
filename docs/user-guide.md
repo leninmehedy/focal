@@ -6,6 +6,30 @@ it as a reference.
 
 ---
 
+## Quick install
+
+**Prerequisites:** Python 3.10+, [`gh` CLI](https://cli.github.com) authenticated with `repo` and `project` scopes.
+
+```bash
+# 1. Install (handles pipx automatically)
+bash <(curl -fsSL https://raw.githubusercontent.com/leninmehedy/focal/main/install.sh)
+
+# 2. Configure (wizard creates your GitHub Projects board automatically)
+focal board setup
+
+# 3. Sync
+focal board sync
+```
+
+That's the entire setup. The wizard handles board creation — you don't need to visit github.com/projects manually.
+
+**Want an AI agent to do all of this for you?** Open Claude Code (or any capable agent) and say:
+```
+Set up Focal from https://raw.githubusercontent.com/leninmehedy/focal/main/AGENTS.md
+```
+
+---
+
 ## How Focal works — the mental model
 
 Focal is two independent tools that share a config:
@@ -41,20 +65,13 @@ You can use board sync without ever touching the PM CLI, and vice versa.
    gh auth refresh -s project   # add project scope if missing
    ```
 
-2. **A personal GitHub Projects v2 board** at
-   `https://github.com/users/YOUR_USERNAME/projects`:
-   - Click **New project → Board** layout
-   - Add a **Status** single-select field with these recommended options:
-     ```
-     🆕 New  ·  📋 Backlog  ·  🔖 Ready  ·  🏗 In progress  ·  ✋ Blocked  ·  👀 In review  ·  ✅ Done
-     ```
-   - Note the project number from the URL (e.g. `projects/3`)
-
-3. **Focal installed:**
+2. **Focal installed:**
    ```bash
    pipx install focal-cli
    ```
    If you don't have pipx: `pip3 install pipx && pipx ensurepath`, then restart your terminal.
+
+That's it — you do **not** need to create a GitHub Projects board manually. The setup wizard can create and configure one for you automatically.
 
 ### First-time setup
 
@@ -62,14 +79,19 @@ You can use board sync without ever touching the PM CLI, and vice versa.
 focal board setup
 ```
 
-The wizard asks for:
-- Your personal board URL (e.g. `https://github.com/users/you/projects/3`)
-- Your GitHub username
-- Which column is your Done column
-- Which repos to watch
+The wizard gives you two options for the board:
 
-You can add as many repos as you like. Focal will watch all of them and pull
-issues assigned to you onto your personal board.
+**Option 1 — Create a new board automatically (recommended for new users)**
+Enter your GitHub username and a board title. Focal calls the GitHub API to create a Projects v2 board and pre-populates it with the recommended Status columns:
+```
+🆕 New  ·  📋 Backlog  ·  🔖 Ready  ·  🏗 In progress  ·  ✋ Blocked  ·  👀 In review  ·  ✅ Done
+```
+No browser visit needed.
+
+**Option 2 — Use an existing board**
+Paste your board URL (e.g. `https://github.com/users/you/projects/3`) and confirm your username and Done column name.
+
+After the board step, the wizard asks which repos to watch. You can add as many as you like — Focal will watch all of them and pull issues assigned to you onto your personal board.
 
 Config is saved to `~/.focal/config.json`. It never touches any of your repos.
 
@@ -357,3 +379,29 @@ afterwards to reconfigure from scratch.
 | Issues not appearing after sync | Check `~/.focal/logs/` for warnings |
 | Cache feels stale | Run `focal cache refresh myorg/my-project` |
 | Want a clean slate | Run `focal reset` then `focal board setup` |
+
+---
+
+## File reference
+
+| File | Purpose |
+|---|---|
+| `install.sh` | One-command installer — checks prereqs, installs pipx and focal-cli |
+| `pyproject.toml` | Package metadata and `focal` CLI entry point |
+| `focal/` | Python package — sync, wizard, PM modules |
+| `focal/pm/` | PM command modules (epic, story, plan, retro, status) |
+| `templates/` | Markdown templates copied by `focal pm init` |
+| `launchd/com.your-username.focal.plist` | macOS scheduler template — board sync (hourly) |
+| `launchd/com.your-username.focal-cache.plist` | macOS scheduler template — PM cache refresh (twice daily) |
+| `~/.focal/config.json` | Your personal config — **never commit** |
+| `~/.focal/state.json` | Board sync state — delete to force a full re-sync |
+| `~/.focal/status_map.json` | Auto-generated status name translations |
+| `~/.focal/logs/YYYY-MM-DD.log` | Daily sync logs |
+| `config.example.json` | Template showing all config keys |
+| `AGENTS.md` | Full command reference for AI agents |
+
+## Limitations
+
+- **Poll-based sync** — GitHub doesn't emit webhooks for personal project board moves, so Focal polls on a schedule. Frequency is controlled by your scheduler interval.
+- **Best-effort status push** — if an origin project doesn't have a matching status option, that project is skipped with a warning in the log.
+- **`project` scope required** — the `gh` token must have `project` scope for both your personal board and any origin org projects you want to write to.

@@ -18,6 +18,7 @@
 
   "auto_cache_refresh": true,
   "max_tracked_issues": 500,
+  "notifications": true,
 
   "state_file": "~/.focal/state.json",
   "log_dir": "~/.focal/logs"

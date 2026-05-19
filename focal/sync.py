@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import Optional
 
-from . import gh, log
+from . import gh, log, notify
 from . import state as state_mod
 from .config import Config
 
@@ -205,3 +205,8 @@ class Syncer:
             f"Sync complete — added: {added}  inherited: {inherited}  "
             f"pushed: {pushed}  stale: {stale}  ({sync_mode})  log: {cfg.log_dir}"
         )
+        if cfg.notifications:
+            notify.notify(
+                "Focal sync complete",
+                f"added: {added}  inherited: {inherited}  pushed: {pushed}  stale: {stale}",
+            )

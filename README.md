@@ -83,7 +83,7 @@ Then just say:
 Once set up, your agent can manage both board sync and PM workflows in plain language:
 
 **Board sync**
-- *"Add hashgraph/solo-operator to my sync"*
+- *"Add leninmehedy/focal to my sync"*
 - *"Why is issue #42 still showing as New?"*
 - *"Show me warnings from the last sync"*
 

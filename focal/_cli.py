@@ -110,9 +110,7 @@ def board_sync():
     _migrate_legacy_config()
     config_path = FOCAL_HOME / "config.json"
     if not config_path.exists():
-        typer.echo(
-            "ERROR: config.json not found. Run: python3 focal.py board setup", err=True
-        )
+        typer.echo("ERROR: config.json not found. Run: focal board setup", err=True)
         raise typer.Exit(1)
 
     cfg = Config.load(config_path)

@@ -163,4 +163,4 @@ def run(
 
     console.print(f"\n[bold green]Epic {epic_id} created![/bold green]")
     console.print(f"  GitHub: {issue_url}")
-    console.print(f"  Next:   [bold]python3 focal.py pm story-create {repo}[/bold]")
+    console.print(f"  Next:   [bold]focal pm story-create {repo}[/bold]")

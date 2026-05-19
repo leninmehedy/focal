@@ -1,8 +1,12 @@
 name: Release
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (analyse commits, print next version, no tag or release created)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -34,4 +38,4 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: npx semantic-release
+        run: npx semantic-release ${{ inputs.dry_run && '--dry-run' || '' }}

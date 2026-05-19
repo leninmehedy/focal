@@ -41,13 +41,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install package
+        run: pip install -e ".[dev]" 2>/dev/null || pip install -e .
 
       - name: Verify imports
         run: python3 -c "from focal.config import Config; from focal.sync import Syncer; from focal import gh, log, state; print('OK')"
+
+      - name: Verify focal CLI entry point
+        run: focal --version
+
+  package-build:
+    name: Build package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        run: pip install build
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: Check dist contents
+        run: ls -lh dist/

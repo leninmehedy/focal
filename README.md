@@ -61,18 +61,17 @@ Set up Focal from https://github.com/leninmehedy/focal
 ```
 
 The agent will:
-1. Clone the repo
+1. Install Focal (`pipx install focal-cli`)
 2. Check prerequisites (`gh` CLI, Python 3)
 3. Run the interactive setup wizard (asking you only for your board URL and repos)
 4. Verify the first sync works
 5. Install the hourly scheduler (launchd on macOS, cron on Linux)
 
-### Option 2 — Clone first, then hand off to your agent
+### Option 2 — Install first, then hand off to your agent
 
 ```bash
-git clone https://github.com/leninmehedy/focal.git
-cd focal
-claude        # Claude Code CLI
+pipx install focal-cli   # installs the `focal` command globally
+claude                   # Claude Code CLI
 # or: open in VS Code / Cursor with the AI extension active
 ```
 
@@ -108,11 +107,20 @@ Prefer to do it yourself? No problem.
 
 ### Install and configure
 
+**Recommended — install via pipx (no repo clone needed):**
+
+```bash
+pipx install focal-cli
+focal board setup
+```
+
+**Alternative — clone and install in editable mode:**
+
 ```bash
 git clone https://github.com/leninmehedy/focal.git
 cd focal
-pip3 install -r requirements.txt
-python3 focal.py board setup
+pip3 install -e .
+focal board setup
 ```
 
 The setup wizard guides you through everything interactively and writes
@@ -290,6 +298,7 @@ delivery cycle — see [`docs/pm-guide.md`](docs/pm-guide.md).
 
 | File | Purpose |
 |---|---|
+| `pyproject.toml` | Package metadata and `focal` CLI entry point |
 | `focal.py` | CLI entry point — all commands |
 | `focal/` | Python package — sync, wizard, PM modules |
 | `focal/pm/` | PM command modules (epic, story, plan, retro, status) |

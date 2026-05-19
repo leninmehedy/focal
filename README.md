@@ -45,45 +45,25 @@ external tools, no context switching.
 
 ## Set up with an AI agent (recommended)
 
-Focal is AI-native. It ships with [`AGENTS.md`](AGENTS.md) — a detailed guide
-that AI coding agents read automatically on startup. This means your agent
-already knows how to install, configure, and operate Focal before you say a word.
+Focal ships with [`AGENTS.md`](AGENTS.md) — a full setup and operations guide that
+AI coding agents can fetch directly from GitHub. Open your agent and paste one prompt:
 
-**Supported agents:** Claude Code, OpenAI Codex, Cursor, or any agent that
-reads `AGENTS.md` from the project root and can run shell commands.
-
-### Option 1 — Clone the repo, then let your agent set it up
-
-```bash
-git clone https://github.com/leninmehedy/focal.git
-cd focal
-claude   # Claude Code CLI — or open in VS Code / Cursor with the AI extension active
+```
+Set up Focal from https://raw.githubusercontent.com/leninmehedy/focal/main/AGENTS.md
 ```
 
-Then say:
-> *"Set up Focal for me"*
-
-The agent reads `AGENTS.md` automatically and will:
+The agent fetches `AGENTS.md`, then without any further input from you it will:
 1. Check prerequisites (`gh` CLI, Python 3, pipx)
-2. Install Focal from the local clone (`pip install -e .`)
-3. Run the interactive setup wizard — creates your GitHub Projects board automatically, then asks which repos to watch
+2. Install Focal (`pipx install focal-cli`)
+3. Run the setup wizard — creates your GitHub Projects board automatically, then asks which repos to watch
 4. Verify the first sync works
 5. Set up the hourly scheduler (launchd on macOS, cron on Linux)
 
-### Option 2 — Install first, then hand off to your agent
+**Supported agents:** Claude Code, OpenAI Codex, Cursor, or any agent that can fetch
+a URL and run shell commands.
 
-If you prefer to install the published package rather than running from source:
-
-```bash
-pipx install focal-cli   # installs the `focal` command globally
-claude                   # Claude Code CLI
-```
-
-Then say:
-> *"Set up Focal for me"*
-
-The agent will find `AGENTS.md` via the Focal PyPI package and guide you through
-the same wizard.
+Once installed, see the **[User Guide](docs/user-guide.md)** for day-to-day usage,
+PM CLI commands, and troubleshooting.
 
 ### Ongoing use — things you can ask your agent
 

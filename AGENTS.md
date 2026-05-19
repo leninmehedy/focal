@@ -222,15 +222,16 @@ gh auth refresh -s project
 
 ### Step 2 — Install Focal and run setup wizard
 
-If working from a local clone (typical when an agent cloned the repo to read this file):
 ```bash
-pip3 install -e .
+pipx install focal-cli
 focal board setup
 ```
 
-If installing the published package instead:
+If pipx is not available: `pip3 install pipx && pipx ensurepath`, then restart the shell.
+
+If working from a local clone of the repo instead of the published package:
 ```bash
-pipx install focal-cli
+pip3 install -e .
 focal board setup
 ```
 

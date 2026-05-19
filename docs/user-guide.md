@@ -6,6 +6,30 @@ it as a reference.
 
 ---
 
+## Quick install
+
+**Prerequisites:** Python 3.10+, [`gh` CLI](https://cli.github.com) authenticated with `repo` and `project` scopes.
+
+```bash
+# 1. Install
+pipx install focal-cli        # no pipx? run: pip3 install pipx && pipx ensurepath
+
+# 2. Configure (wizard creates your GitHub Projects board automatically)
+focal board setup
+
+# 3. Sync
+focal board sync
+```
+
+That's the entire setup. The wizard handles board creation — you don't need to visit github.com/projects manually.
+
+**Want an AI agent to do all of this for you?** Open Claude Code (or any capable agent) and say:
+```
+Set up Focal from https://raw.githubusercontent.com/leninmehedy/focal/main/AGENTS.md
+```
+
+---
+
 ## How Focal works — the mental model
 
 Focal is two independent tools that share a config:

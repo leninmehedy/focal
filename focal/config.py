@@ -15,6 +15,8 @@ class Config:
     pm_repos: list[dict] = field(default_factory=list)
     # Set to false to disable launchd/cron auto-refresh; run manually instead.
     auto_cache_refresh: bool = True
+    # Set to false to disable desktop notifications after board sync.
+    notifications: bool = True
     # Skip auto-refresh for a repo if its tracked issue count exceeds this limit.
     max_tracked_issues: int = 500
     state_file: Path = field(
@@ -35,6 +37,7 @@ class Config:
             repos=d["repos"],
             pm_repos=d.get("pm_repos", []),
             auto_cache_refresh=d.get("auto_cache_refresh", True),
+            notifications=d.get("notifications", True),
             max_tracked_issues=d.get("max_tracked_issues", 500),
             state_file=Path(d.get("state_file", "~/.focal/state.json")).expanduser(),
             log_dir=Path(d.get("log_dir", "~/.focal/logs")).expanduser(),

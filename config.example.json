@@ -8,6 +8,18 @@
     "myorg/repo-one",
     "myorg/repo-two"
   ],
+
+  "pm_repos": [
+    {
+      "repo": "myorg/repo-one",
+      "repo_root": "/absolute/path/to/repo-one"
+    }
+  ],
+
+  "auto_cache_refresh": true,
+  "max_tracked_issues": 500,
+  "notifications": true,
+
   "state_file": "~/.focal/state.json",
   "log_dir": "~/.focal/logs"
 }

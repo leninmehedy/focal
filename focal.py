@@ -46,7 +46,7 @@ def _migrate_legacy_config() -> None:
 @board_app.command("sync")
 def board_sync():
     """Sync personal board with all tracked origin project boards."""
-    from focal import log
+    from focal import log, notify
     from focal.config import Config
     from focal.sync import Syncer, load_status_map
 
@@ -66,6 +66,8 @@ def board_sync():
         Syncer(cfg, status_map).run()
     except Exception as e:
         logger.error(str(e))
+        if cfg.notifications:
+            notify.notify("Focal sync failed", str(e))
         raise typer.Exit(1)
 
 

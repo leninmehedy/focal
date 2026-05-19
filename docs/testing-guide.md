@@ -115,11 +115,13 @@ Live board summary — no sync, just reads current state.
 
 | # | Test | How to run | Expected result |
 |---|------|-----------|-----------------|
-| ST1 | Basic status | `python3 focal.py board status` | Rich table with one row per Status column showing issue counts. Total row at bottom ✅ |
-| ST2 | Blocked items shown | Have at least one issue in a "Blocked" status column | "Blocked (N)" section appears below the table with issue refs and URLs ✅ |
-| ST3 | Recently added shown | Have issues added to board in last 7 days | "Recently added" section shows those issues with status label ✅ |
-| ST4 | No config | Delete `~/.focal/config.json`, then run | Clear error: `Focal is not configured.` — no traceback ❌ |
-| ST5 | Empty board | Run on a newly created board with no items | Table shows all columns with 0 counts, no blocked/recent sections ✅ |
+| ST1 | Basic status | `focal board status` | Status count table (one row per column + Total), "By repo" breakdown, blocked/recent sections if applicable ✅ |
+| ST2 | By-repo breakdown | After sync with issues from multiple repos | "By repo" section lists each `owner/repo` with total count and per-status breakdown on the same line ✅ |
+| ST3 | Blocked items shown | Have at least one issue in a "Blocked" status column | Blocked section appears with `owner/repo#N — title` and the issue URL on the next line ✅ |
+| ST4 | Recently added shown | Have issues added to board in last 7 days | "Recently added" section shows `owner/repo#N — title (status)` ✅ |
+| ST5 | No config | Delete `~/.focal/config.json`, then run | Clear error: `Focal is not configured.` — no traceback ❌ |
+| ST6 | Empty board | Run on a newly created board with no items | Status table shows Total: 0, no By-repo/blocked/recent sections ✅ |
+| ST7 | Ref format | Check any issue line in the output | Issues shown as `owner/repo#N` not bare `#N` ✅ |
 
 ---
 

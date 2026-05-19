@@ -120,6 +120,98 @@ def board_sync():
         raise typer.Exit(1)
 
 
+@board_app.command("status")
+def board_status():
+    """Show a live summary of the personal board — counts per column, blocked and recent items."""
+    from datetime import datetime, timedelta, timezone
+
+    from rich.console import Console
+    from rich.table import Table
+
+    from focal import gh
+
+    config, _ = _load_config(require=True)
+    board_number = int(config["board_number"])
+    owner = config["board_owner"]
+
+    console = Console()
+    console.print(
+        f"\nPersonal board — [bold]{owner}[/bold] (project #{board_number})\n"
+    )
+
+    items = gh.project_items(board_number, owner)
+
+    # Count by status
+    status_counts: dict[str, int] = {}
+    for item in items:
+        s = item.get("status") or {}
+        name = (s.get("name") if s else None) or "(no status)"
+        status_counts[name] = status_counts.get(name, 0) + 1
+
+    table = Table(show_header=True, header_style="bold", box=None, padding=(0, 1))
+    table.add_column("Status", style="")
+    table.add_column("Count", justify="right")
+    for status_name, count in status_counts.items():
+        table.add_row(status_name, str(count))
+    table.add_section()
+    table.add_row("[bold]Total[/bold]", f"[bold]{len(items)}[/bold]")
+    console.print(table)
+
+    # Parse URL helper
+    def _ref(url: str, number: int) -> str:
+        """Convert https://github.com/owner/repo/issues/42 → owner/repo#42"""
+        if not url:
+            return f"#{number}"
+        parts = url.rstrip("/").split("/")
+        # parts: ['https:', '', 'github.com', 'owner', 'repo', 'issues', '42']
+        if len(parts) >= 5:
+            return f"{parts[3]}/{parts[4]}#{number}"
+        return f"#{number}"
+
+    # Blocked items
+    blocked = [
+        item
+        for item in items
+        if "blocked" in ((item.get("status") or {}).get("name") or "").lower()
+    ]
+    if blocked:
+        console.print(f"\n[bold]Blocked ({len(blocked)})[/bold]")
+        for item in blocked:
+            content = item.get("content") or {}
+            ref = _ref(content.get("url", ""), content.get("number", 0))
+            title = content.get("title", "(no title)")
+            url = content.get("url", "")
+            console.print(f"  • {ref} — {title}")
+            if url:
+                console.print(f"    {url}")
+
+    # Recently added (last 7 days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=7)
+    recent = []
+    for item in items:
+        created_at = item.get("createdAt", "")
+        if created_at:
+            try:
+                dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+                if dt >= cutoff:
+                    recent.append(item)
+            except ValueError:
+                pass
+    recent.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+
+    if recent:
+        console.print(f"\n[bold]Recently added (last 7 days, {len(recent)})[/bold]")
+        for item in recent:
+            content = item.get("content") or {}
+            ref = _ref(content.get("url", ""), content.get("number", 0))
+            title = content.get("title", "(no title)")
+            s = item.get("status") or {}
+            status_name = (s.get("name") if s else None) or "no status"
+            console.print(f"  • {ref} — {title} ({status_name})")
+
+    console.print()
+
+
 @board_app.command("setup")
 def board_setup():
     """Interactive wizard — configure Focal for the first time."""

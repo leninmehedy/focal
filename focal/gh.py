@@ -69,7 +69,9 @@ def project_items(number: int, owner: str, limit: int = 500) -> list[dict]:
 # ── Issue listing ─────────────────────────────────────────────────────────────
 
 
-def open_assigned_issues(repo: str, assignee: str, limit: int = 500) -> list[str]:
+def open_assigned_issues(
+    repo: str, assignee: str, limit: int = 500, since: str | None = None
+) -> list[str]:
     out = _run(
         "issue",
         "list",
@@ -82,11 +84,12 @@ def open_assigned_issues(repo: str, assignee: str, limit: int = 500) -> list[str
         "--limit",
         str(limit),
         "--json",
-        "url",
-        "--jq",
-        ".[].url",
+        "url,updatedAt",
     )
-    return [line.strip() for line in out.splitlines() if line.strip()]
+    items: list[dict] = json.loads(out) if out else []
+    if since:
+        items = [i for i in items if i.get("updatedAt", "") >= since]
+    return [i["url"] for i in items if i.get("url")]
 
 
 # ── Project item mutations ────────────────────────────────────────────────────

@@ -2,7 +2,7 @@
 id: D002
 title: Adopt an existing project into Focal PM management
 author: @leninmehedy
-status: Planned
+status: Done
 epic: 82
 created: 2026-05-19
 updated: 2026-05-19

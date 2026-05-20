@@ -2,7 +2,7 @@
 id: D001
 title: What-if impact assessment for iteration planning
 author: @leninmehedy
-status: Active
+status: Done
 epic: 69
 created: 2026-05-19
 updated: 2026-05-20

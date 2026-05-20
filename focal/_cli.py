@@ -693,6 +693,71 @@ def _write_design_index(repo_root: Path) -> None:
     con.print(f"[green]Updated[/green] {index_path.relative_to(repo_root)}")
 
 
+@pm_app.command("adopt")
+def pm_adopt(
+    repo: str = typer.Argument(
+        ..., help="Target repo in owner/repo format (e.g. leninmehedy/focal)."
+    ),
+    repo_root: Path = typer.Option(
+        Path("."),
+        "--repo-root",
+        help="Local path to the repo root. Required with --apply.",
+    ),
+    epic_label: str = typer.Option(
+        "epic",
+        "--epic-label",
+        help="Comma-separated label(s) that identify epics (e.g. 'epic,feature').",
+    ),
+    story_label: str = typer.Option(
+        "story",
+        "--story-label",
+        help="Comma-separated label(s) that identify stories (e.g. 'story,task').",
+    ),
+    sp_field: str = typer.Option(
+        "Story Points",
+        "--sp-field",
+        help="GitHub Projects custom field name for SP.",
+    ),
+    default_sp: Optional[int] = typer.Option(
+        None,
+        "--default-sp",
+        help="Fallback SP for issues with no estimate.",
+    ),
+    apply: bool = typer.Option(
+        False,
+        "--apply",
+        help="Write focal-state.json. Without this flag, runs as a dry-run.",
+    ),
+    normalise: bool = typer.Option(
+        False,
+        "--normalise",
+        help="Re-label issues, move SP from title to body, create sub-issue links. Requires --apply.",
+    ),
+):
+    """Scan an existing repo's issues and bootstrap Focal PM state.
+
+    Dry-run by default — prints a discovery report without writing anything.
+    Pass --apply to write focal-state.json so focal pm status/plan work immediately.
+    Pass --apply --normalise to also re-format issues to Focal conventions.
+    """
+    if normalise and not apply:
+        typer.echo("Error: --normalise requires --apply.", err=True)
+        raise typer.Exit(1)
+
+    from focal.pm import adopt_cmd
+
+    adopt_cmd.run(
+        repo=repo,
+        repo_root=repo_root.resolve(),
+        epic_labels=[lb.strip() for lb in epic_label.split(",")],
+        story_labels=[lb.strip() for lb in story_label.split(",")],
+        sp_field=sp_field,
+        default_sp=default_sp,
+        apply=apply,
+        normalise=normalise,
+    )
+
+
 # ── focal cache ───────────────────────────────────────────────────────────────
 
 

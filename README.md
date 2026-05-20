@@ -63,10 +63,26 @@ Once set up, you can drive everything in plain language:
 - *"What's our iteration status?"*
 - *"Log the I1 retro — we hit our goal, estimates were a bit off"*
 
+## Why not just use Jira / Linear / GitHub Projects?
+
+GitHub Projects gives you a Kanban board. Jira and Linear give you a full planning
+suite — but at the cost of a separate system, a subscription, and half your project
+state living outside GitHub. Focal stays entirely inside GitHub and git: iteration
+plans, retro logs, and design docs are markdown files committed to your repo,
+readable by anyone without an account.
+
+The other thing no free tool offers: **what-if forecasting** — model the impact of
+PTO, an injected urgent story, or a re-estimate before you touch the plan.
+
+**→ [Full comparison and value breakdown](docs/why-focal.md)**
+
+---
+
 ## Docs
 
 | | |
 |---|---|
+| [Why Focal?](docs/why-focal.md) | How Focal compares to Jira, Linear, GitHub Projects, and spreadsheets |
 | [User Guide](docs/user-guide.md) | Install, board sync, PM CLI, scheduler, troubleshooting |
 | [PM Guide](docs/pm-guide.md) | Full project management workflow — design docs, epics, delivery cycle |
 | [Testing Guide](docs/testing-guide.md) | Beta testing — test cases for every command |

@@ -359,17 +359,91 @@ def _manage_existing(focal_home: Path, config_path: Path) -> None:
     raise typer.Exit(0)
 
 
-def run(focal_home: Path) -> None:
+def run(
+    focal_home: Path,
+    # Non-interactive params — when all are supplied the wizard runs without prompts
+    owner: str | None = None,
+    assignee: str | None = None,
+    repos: list[str] | None = None,
+    create_board: bool = True,
+    board_number: int | None = None,
+    board_title: str = "My Board",
+    done_status: str = "✅ Done",
+) -> dict | None:
+    """Run the setup wizard.
+
+    When owner/assignee/repos are supplied, skips interactive prompts and
+    runs non-interactively. Returns {board_number, project_id, config_path}
+    on success, or None on failure.
+    """
+    non_interactive = owner is not None and assignee is not None and repos is not None
+
     console.print("\n[bold cyan]  ◎  Focal Setup Wizard[/bold cyan]\n")
 
     focal_home.mkdir(parents=True, exist_ok=True)
     config_path = focal_home / "config.json"
-    if config_path.exists():
+    if config_path.exists() and not non_interactive:
         _manage_existing(focal_home, config_path)
         # Only reaches here if choice == "3" (full reconfigure)
 
     if not _check_prerequisites():
+        if non_interactive:
+            return None
         raise typer.Exit(1)
+
+    if non_interactive:
+        # Non-interactive path: use supplied params directly
+        if create_board:
+            console.print(f"\n[cyan]Creating project '{board_title}'...[/cyan]")
+            try:
+                proj = gh.create_project(owner, board_title)
+            except RuntimeError as e:
+                console.print(f"[red]Could not create project: {e}[/red]")
+                return None
+            board_owner = owner
+            board_number = proj["number"]
+            project_id = proj["id"]
+            console.print(f"[green]✔[/green] Created: {proj['url']}")
+            _apply_template_fields(project_id)
+        else:
+            if board_number is None:
+                console.print(
+                    "[red]board_number required when create_board=False[/red]"
+                )
+                return None
+            board_owner = owner
+            project_id = gh.project_id(board_number, board_owner)
+
+        # Fetch Status field
+        try:
+            fields = gh.project_fields(board_number, board_owner)
+        except RuntimeError as e:
+            console.print(f"[red]Could not fetch board fields: {e}[/red]")
+            return None
+        status_field = next((f for f in fields if f.get("name") == "Status"), None)
+        if not status_field:
+            console.print("[red]No 'Status' field found on board.[/red]")
+            return None
+        status_field_id = status_field["id"]
+
+        cfg = Config(
+            board_owner=board_owner,
+            board_number=board_number,
+            assignee=assignee,
+            status_field_id=status_field_id,
+            done_status=done_status,
+            repos=repos,
+        )
+        cfg.save(config_path)
+        console.print(f"[green]✔[/green] Written: {config_path}")
+        console.print("\n[bold green]Setup complete![/bold green]")
+        return {
+            "board_number": board_number,
+            "project_id": project_id,
+            "config_path": str(config_path),
+        }
+
+    # ── Interactive path ──────────────────────────────────────────────────────
 
     # Board — create or use existing
     console.rule("[bold]Step 2: Personal board[/bold]")
@@ -478,3 +552,8 @@ def run(focal_home: Path) -> None:
     console.print(
         "  Follow logs:         [bold]tail -f ~/.focal/logs/$(date '+%Y-%m-%d').log[/bold]"
     )
+    return {
+        "board_number": board_number,
+        "project_id": project_id if "project_id" in dir() else "",
+        "config_path": str(config_path),
+    }

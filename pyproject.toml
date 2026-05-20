@@ -43,6 +43,7 @@ focal = ["templates/**/*"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-cov>=5"]
+mcp = ["mcp>=1.27"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

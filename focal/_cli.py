@@ -1012,6 +1012,117 @@ def pm_what_if(
     )
 
 
+# focal mcp — MCP server commands
+mcp_app = typer.Typer(help="MCP server for AI agent integration.")
+app.add_typer(mcp_app, name="mcp")
+
+# focal skill — agent skill installation
+skill_app = typer.Typer(help="Install Focal as a skill in AI agent environments.")
+app.add_typer(skill_app, name="skill")
+
+
+@mcp_app.command("serve")
+def mcp_serve():
+    """Start the Focal MCP server (stdio transport).
+
+    Wire it up once with: focal skill install claude
+    Then any MCP-compatible agent can call Focal tools directly.
+    """
+    from focal.mcp_server import serve
+
+    serve()
+
+
+@skill_app.command("install")
+def skill_install(
+    target: str = typer.Argument(
+        "auto",
+        help="Agent environment to install into: claude, cursor, or auto (default).",
+    ),
+):
+    """Install Focal as an MCP skill in an AI agent environment.
+
+    Writes the MCP server config entry so the agent can call focal tools directly.
+
+    Supported targets:
+      claude  — writes to ~/.claude/settings.json (Claude Code)
+      cursor  — writes to ~/.cursor/mcp.json (Cursor)
+      auto    — detects installed agents and installs into all of them
+    """
+    import json
+
+    entry = {"command": "focal", "args": ["mcp", "serve"]}
+    installed: list[str] = []
+    skipped: list[str] = []
+
+    targets = []
+    if target == "auto":
+        if (Path.home() / ".claude").exists():
+            targets.append("claude")
+        if (Path.home() / ".cursor").exists():
+            targets.append("cursor")
+        if not targets:
+            typer.echo(
+                "No supported agent environments detected. "
+                "Use 'focal skill install claude' or 'focal skill install cursor' explicitly."
+            )
+            raise typer.Exit(1)
+    else:
+        targets = [target.lower()]
+
+    for t in targets:
+        if t == "claude":
+            settings_path = Path.home() / ".claude" / "settings.json"
+            settings_path.parent.mkdir(parents=True, exist_ok=True)
+            cfg: dict = {}
+            if settings_path.exists():
+                with open(settings_path) as f:
+                    try:
+                        cfg = json.load(f)
+                    except json.JSONDecodeError:
+                        cfg = {}
+            servers = cfg.setdefault("mcpServers", {})
+            if "focal" in servers:
+                skipped.append("claude (already configured)")
+            else:
+                servers["focal"] = entry
+                with open(settings_path, "w") as f:
+                    json.dump(cfg, f, indent=2)
+                installed.append(f"claude ({settings_path})")
+
+        elif t == "cursor":
+            mcp_path = Path.home() / ".cursor" / "mcp.json"
+            mcp_path.parent.mkdir(parents=True, exist_ok=True)
+            cfg = {}
+            if mcp_path.exists():
+                with open(mcp_path) as f:
+                    try:
+                        cfg = json.load(f)
+                    except json.JSONDecodeError:
+                        cfg = {}
+            servers = cfg.setdefault("mcpServers", {})
+            if "focal" in servers:
+                skipped.append("cursor (already configured)")
+            else:
+                servers["focal"] = entry
+                with open(mcp_path, "w") as f:
+                    json.dump(cfg, f, indent=2)
+                installed.append(f"cursor ({mcp_path})")
+
+        else:
+            typer.echo(f"Unknown target '{t}'. Supported: claude, cursor, auto.")
+            raise typer.Exit(1)
+
+    for name in installed:
+        typer.echo(f"✔ Installed focal MCP skill → {name}")
+    for name in skipped:
+        typer.echo(f"  Already configured: {name}")
+
+    if installed:
+        typer.echo("\nRestart your agent to pick up the new skill.")
+        typer.echo('Test it by asking: "List my focal design docs"')
+
+
 def main() -> None:
     app()
 

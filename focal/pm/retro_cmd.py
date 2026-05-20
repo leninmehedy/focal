@@ -70,10 +70,36 @@ def _check_story_statuses(
 # ── Slip reason prompts ───────────────────────────────────────────────────────
 
 
-def _prompt_slip_reasons(carry_over: list[dict]) -> list[dict]:
-    """Prompt for a slip reason code per carry-over story."""
+def _prompt_slip_reasons(
+    carry_over: list[dict],
+    slip_reasons: list[str] | None = None,
+) -> list[dict]:
+    """Prompt for a slip reason code per carry-over story.
+
+    slip_reasons: optional list of "STORY_ID:CODE" or "STORY_ID:CODE:note" strings.
+    When supplied, skips interactive prompts and uses the provided values.
+    Unknown story IDs are ignored; missing stories default to CARRY.
+    """
     if not carry_over:
         return []
+
+    if slip_reasons is not None:
+        parsed: dict[str, tuple[str, str]] = {}
+        for entry in slip_reasons:
+            parts = entry.split(":", 2)
+            if len(parts) >= 2:
+                sid = parts[0].strip()
+                code = parts[1].strip().upper()
+                note = parts[2].strip() if len(parts) == 3 else ""
+                parsed[sid] = (code if code in SLIP_REASONS else "CARRY", note)
+        return [
+            {
+                "story": s,
+                "code": parsed.get(s["id"], ("CARRY", ""))[0],
+                "note": parsed.get(s["id"], ("CARRY", ""))[1],
+            }
+            for s in carry_over
+        ]
 
     console.print("\n[bold]Slip reasons[/bold] (for carry-over stories)\n")
     console.print("Codes: " + " · ".join(f"[bold]{c}[/bold]" for c in SLIP_REASONS))
@@ -325,6 +351,7 @@ def run(
     refresh: bool = False,
     iteration_label: str | None = None,
     goal_met: bool | None = None,
+    slip_reasons: list[str] | None = None,
     went_well: list[str] | None = None,
     to_improve: list[str] | None = None,
     action_items: list[dict] | None = None,
@@ -391,7 +418,7 @@ def run(
         f"Carry-over: {len(carry_over)} stories"
     )
 
-    slips = _prompt_slip_reasons(carry_over)
+    slips = _prompt_slip_reasons(carry_over, slip_reasons)
 
     goal = iteration.get("goal", "")
     if goal_met is None:

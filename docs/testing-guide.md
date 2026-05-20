@@ -331,6 +331,45 @@ Shows cache health across all registered repos.
 
 ---
 
+## MCP server (`focal mcp serve` / `focal skill install`)
+
+### `focal skill install`
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| MCP1 | Install for Claude | `focal skill install claude` | `~/.claude/settings.json` updated; `mcpServers.focal` entry present with `"command": "focal", "args": ["mcp", "serve"]` ✅ |
+| MCP2 | Install for Cursor | `focal skill install cursor` | `~/.cursor/mcp.json` updated with same entry ✅ |
+| MCP3 | Auto-detect | `focal skill install` (auto) | Detects installed tool and writes to correct config ✅ |
+| MCP4 | Idempotent | Run `focal skill install claude` twice | Second run prints "already installed" — no duplicate entries ✅ |
+| MCP5 | Unknown target | `focal skill install vscode` | Clear error listing supported targets ❌ |
+
+### `focal mcp serve` (tool smoke tests)
+
+Run in Claude Code after `focal skill install claude` with `focal` configured:
+
+| # | Test | How to invoke | Expected result |
+|---|------|--------------|-----------------|
+| MCP6 | Board sync | Ask agent: "sync my focal board" → agent calls `focal_board_sync` | Returns `{"ok": true, "added": N, "stale": N, ...}` ✅ |
+| MCP7 | Board setup | Ask agent: "set up focal with owner X, assignee Y, repos [Z]" → `focal_board_setup` | Returns `{"ok": true}`, `~/.focal/config.json` created ✅ |
+| MCP8 | PM init | Agent calls `focal_pm_init(repo="org/repo", repo_root=".")` | Returns `{"ok": true, "repo": "org/repo"}` ✅ |
+| MCP9 | Epic create | Agent calls `focal_pm_epic_create(repo="org/repo", title="...", description="...", sp=8)` | Returns `{"ok": true, "issue_number": N, "url": "..."}` ✅ |
+| MCP10 | Story create | Agent calls `focal_pm_story_create(repo="org/repo", epic_id="E1", title="...", description="...", sp=3)` | Returns `{"ok": true, "story_id": "1.1", ...}` ✅ |
+| MCP11 | PM status | Agent calls `focal_pm_status(repo="org/repo")` | Returns iteration stats dict with `ok: true` ✅ |
+| MCP12 | Design list | Agent calls `focal_pm_design_list(repo_root=".")` | Returns list of design doc metadata ✅ |
+| MCP13 | Cache refresh | Agent calls `focal_cache_refresh(repo="org/repo")` | Returns `{"ok": true, "epics": N, "stories": N}` ✅ |
+| MCP14 | Cache status | Agent calls `focal_cache_status()` | Returns per-repo sync health dict ✅ |
+| MCP15 | Not configured | Call any board tool before `focal board setup` | Returns `{"ok": false, "error": "Not configured..."}` ❌ |
+
+### Unit tests
+
+```
+pytest tests/test_mcp_server.py -v
+```
+
+Expected: 10 tests pass covering `_cfg_dict`, error paths for `focal_board_sync`, `focal_pm_status`, `focal_pm_design_list`, `focal_cache_status`, `focal_pm_whatif`.
+
+---
+
 ## Scheduler (macOS launchd)
 
 | # | Test | How to run | Expected result |

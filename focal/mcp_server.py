@@ -219,7 +219,9 @@ def focal_pm_story_create(
     from focal.pm import pm_state
 
     state_before = pm_state.load(root)
-    ids_before = {s["id"] for e in state_before.get("epics", []) for s in e.get("stories", [])}
+    ids_before = {
+        s["id"] for e in state_before.get("epics", []) for s in e.get("stories", [])
+    }
 
     story_cmd.run(
         repo=repo,
@@ -244,7 +246,10 @@ def focal_pm_story_create(
             "ok": True,
             "issue_number": s.get("issue_number"),
             "story_id": s["id"],
-            "url": s.get("issue_url", f"https://github.com/{repo}/issues/{s.get('issue_number', '')}"),
+            "url": s.get(
+                "issue_url",
+                f"https://github.com/{repo}/issues/{s.get('issue_number', '')}",
+            ),
         }
     return {"ok": False, "error": "Story creation failed — check output above"}
 
@@ -341,7 +346,10 @@ def focal_pm_whatif(
     plan_path = root / "docs" / "focal" / "iteration-planning.md"
     plan = load_plan(plan_path)
     if plan is None:
-        return {"ok": False, "error": "No iteration plan found. Run focal_pm_plan first."}
+        return {
+            "ok": False,
+            "error": "No iteration plan found. Run focal_pm_plan first.",
+        }
 
     state = pm_state.load(root)
     all_stories: list[dict] = []
@@ -350,7 +358,10 @@ def focal_pm_whatif(
             all_stories.append({**s, "epic_id": epic.get("id", "")})
 
     if not all_stories:
-        return {"ok": False, "error": "No stories in cache. Run focal_cache_refresh first."}
+        return {
+            "ok": False,
+            "error": "No stories in cache. Run focal_cache_refresh first.",
+        }
 
     try:
         pto_list = _parse_pto(pto or [])
@@ -424,7 +435,9 @@ def focal_pm_status(repo: str, repo_root: str = ".", refresh: bool = False) -> d
 
     all_stories = pm_state.all_stories(state)
     story_map = {s["id"]: s for s in all_stories}
-    planned = [story_map[sid] for sid in current_iter.get("story_ids", []) if sid in story_map]
+    planned = [
+        story_map[sid] for sid in current_iter.get("story_ids", []) if sid in story_map
+    ]
 
     delivered, in_progress, blocked, not_started = [], [], [], []
     for s in planned:
@@ -524,7 +537,10 @@ def focal_pm_design_list(repo_root: str = ".") -> dict:
     root = Path(repo_root).resolve()
     design_dir = root / "docs" / "focal" / "design"
     if not design_dir.exists():
-        return {"ok": False, "error": "docs/focal/design/ not found. Run focal_pm_init first."}
+        return {
+            "ok": False,
+            "error": "docs/focal/design/ not found. Run focal_pm_init first.",
+        }
 
     designs = []
     for path in sorted(design_dir.glob("D*.md")):
@@ -591,7 +607,8 @@ def focal_cache_status() -> dict:
     for entry in pm_repos:
         repo = entry if isinstance(entry, str) else entry.get("repo", "")
         repo_root = (
-            Path(entry["repo_root"]) if isinstance(entry, dict) and "repo_root" in entry
+            Path(entry["repo_root"])
+            if isinstance(entry, dict) and "repo_root" in entry
             else Path(".")
         )
         state_path = repo_root / "docs" / "focal" / ".cache" / "focal-state.json"
@@ -611,7 +628,13 @@ def focal_cache_status() -> dict:
             )
         else:
             result.append(
-                {"repo": repo, "epics": 0, "stories": 0, "last_synced": "never", "status": "no cache"}
+                {
+                    "repo": repo,
+                    "epics": 0,
+                    "stories": 0,
+                    "last_synced": "never",
+                    "status": "no cache",
+                }
             )
     return {"ok": True, "repos": result}
 

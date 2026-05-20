@@ -1120,7 +1120,7 @@ def skill_install(
 
     if installed:
         typer.echo("\nRestart your agent to pick up the new skill.")
-        typer.echo("Test it by asking: \"List my focal design docs\"")
+        typer.echo('Test it by asking: "List my focal design docs"')
 
 
 def main() -> None:

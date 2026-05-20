@@ -407,7 +407,9 @@ def run(
             _apply_template_fields(project_id)
         else:
             if board_number is None:
-                console.print("[red]board_number required when create_board=False[/red]")
+                console.print(
+                    "[red]board_number required when create_board=False[/red]"
+                )
                 return None
             board_owner = owner
             project_id = gh.project_id(board_number, board_owner)

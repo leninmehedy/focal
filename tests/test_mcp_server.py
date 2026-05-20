@@ -48,6 +48,7 @@ def test_cfg_dict_loads_config(tmp_path):
 
 def test_focal_board_sync_not_configured(tmp_path, monkeypatch):
     import focal._cli as cli_module
+
     monkeypatch.setattr(cli_module, "FOCAL_HOME", tmp_path)
 
     from focal.mcp_server import focal_board_sync

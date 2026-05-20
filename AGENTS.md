@@ -10,6 +10,44 @@ Focal is two tools in one:
    iteration planning, retrospectives, and live iteration status. Designed to be
    driven by an AI agent on behalf of a project manager.
 
+## Integration modes
+
+There are two ways to drive Focal as an agent:
+
+| Mode | How | When to use |
+|---|---|---|
+| **CLI (AGENTS.md)** | Shell out to `focal` commands | Always available; no extra setup |
+| **MCP skill** | Call `focal_*` tools directly as structured functions | When user has run `focal skill install` |
+
+**Detecting which mode is available:** check whether `focal mcp serve` is in the
+user's agent config (`~/.claude/settings.json` → `mcpServers.focal`). If present,
+prefer MCP tools. Otherwise use CLI commands.
+
+**MCP tool → CLI command mapping:**
+
+| MCP tool | Equivalent CLI |
+|---|---|
+| `focal_board_setup` | `focal board setup` (non-interactive) |
+| `focal_board_sync` | `focal board sync` |
+| `focal_pm_init` | `focal pm init` |
+| `focal_pm_adopt` | `focal pm adopt` |
+| `focal_pm_epic_create` | `focal pm epic-create` |
+| `focal_pm_story_create` | `focal pm story-create` |
+| `focal_pm_plan` | `focal pm plan` |
+| `focal_pm_whatif` | `focal pm what-if` |
+| `focal_pm_status` | `focal pm status` |
+| `focal_pm_retro` | `focal pm retro` |
+| `focal_pm_design_list` | `focal pm design` |
+| `focal_cache_refresh` | `focal cache refresh` |
+| `focal_cache_status` | `focal cache status` |
+
+**Installing the MCP skill** (do this once during onboarding if the user wants it):
+
+```bash
+pip install focal[mcp]
+focal skill install claude   # or: focal skill install cursor
+```
+
 ---
 
 ## Repo contents
@@ -30,6 +68,7 @@ Focal is two tools in one:
 | `focal/pm/retro_cmd.py` | `focal pm retro` |
 | `focal/pm/status_cmd.py` | `focal pm status` |
 | `focal/pm/sync_state_cmd.py` | `focal cache refresh` |
+| `focal/mcp_server.py` | MCP server — 13 tools exposing all PM and board commands |
 | `templates/` | Markdown templates copied to target repos by `focal pm init` |
 | `docs/pm-guide.md` | Full PM workflow guide — read this for deep context |
 
@@ -48,14 +87,17 @@ focal pm epic-create <owner/repo>    — create a GitHub epic issue
 focal pm story-create <owner/repo>   — create a story linked to an epic
 focal pm plan <owner/repo>           — generate iteration-planning.md
 focal pm retro <owner/repo>          — log completed iteration to retro-log.md
-focal pm status <owner/repo>         — live terminal summary of current iteration
-focal pm design list <owner/repo>    — list design docs with status and epic linkage
+focal pm status [<owner/repo>]       — live iteration summary; omit repo to show all registered repos
+focal pm design [--repo-root PATH]   — list design docs with status and epic linkage
 focal pm what-if <owner/repo>        — dry-run simulation of plan under hypothetical scenarios
 focal pm remove-repo <owner/repo>    — unregister a repo from PM tracking
 
 focal cache refresh <owner/repo>     — re-fetch state for one repo from GitHub
 focal cache refresh-all [--force]    — re-fetch all registered PM repos in one shot
 focal cache status                   — show last sync time, counts, and auto-refresh config
+
+focal mcp serve                      — start the MCP server (stdio transport)
+focal skill install [claude|cursor]  — install Focal as an MCP skill in your agent
 
 focal reset [--yes]                  — remove all config, state, and scheduler
 ```
@@ -122,11 +164,17 @@ multiple times for multiple items.
 
 ```bash
 focal pm adopt <owner/repo> \
-  --sp-field "Estimated SP" \   # optional; auto-detects common names if omitted
-  --prompt-missing              # prompt for SP on stories where none was found
+  --epic-label "epic,feature" \   # comma-separated labels identifying epics (default: epic)
+  --story-label "story,task" \    # comma-separated labels identifying stories (default: story)
+  --sp-field "Estimated SP" \     # optional; auto-detects common names if omitted
+  --default-sp 3 \                # fallback SP for issues with no estimate
+  --apply \                       # write focal-state.json (default: dry-run)
+  --normalise \                   # re-format issues to Focal conventions (requires --apply)
+  --prompt-missing                # prompt for SP on stories where none was found
 ```
 
-Use `--prompt-missing` when onboarding a repo that has no SP estimates — the user can fill them in interactively.
+**Always dry-run by default.** Pass `--apply` to write files. Use `--prompt-missing`
+only in interactive sessions — skip it when running as an agent.
 
 ### `focal pm what-if`
 

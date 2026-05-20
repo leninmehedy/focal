@@ -14,7 +14,8 @@ accelerate — not to unlock.
 
 **AI-ready when you are** — Focal ships with [`AGENTS.md`](AGENTS.md) so any
 capable agent can set it up, run PM commands, and manage your backlog on your
-behalf.
+behalf. For deeper integration, `focal skill install` wires Focal into your
+agent as an MCP server — every PM command becomes a callable tool.
 
 ## The problem
 
@@ -88,6 +89,14 @@ Set up Focal from https://raw.githubusercontent.com/leninmehedy/focal/main/AGENT
 The agent installs Focal, runs the wizard, verifies sync, and sets up the hourly
 scheduler — no manual steps required.
 
+For a deeper integration, install Focal as an MCP skill so your agent can call
+every PM command as a structured tool — no CLI invocations needed:
+
+```bash
+focal skill install claude   # writes to ~/.claude/settings.json
+focal skill install cursor   # writes to ~/.cursor/mcp.json
+```
+
 Once set up, you can drive everything in plain language:
 
 - *"Add leninmehedy/focal to my sync"*
@@ -106,3 +115,4 @@ Once set up, you can drive everything in plain language:
 | [PM Guide](docs/pm-guide.md) | Full project management workflow — design docs, epics, delivery cycle |
 | [Testing Guide](docs/testing-guide.md) | Beta testing — test cases for every command |
 | [AGENTS.md](AGENTS.md) | Full command reference for AI agents |
+| [MCP Server](docs/focal/design/D003-focal-mcp-server.md) | MCP integration — `focal skill install` wires every PM command as an agent tool |

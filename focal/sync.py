@@ -21,8 +21,11 @@ def load_status_map(path: Path) -> dict:
 
 
 class Syncer:
-    def __init__(self, cfg: Config, status_map: dict):
+    def __init__(
+        self, cfg: Config, status_map: dict, config_path: Optional[Path] = None
+    ):
         self.cfg = cfg
+        self.config_path = config_path
         self.status_map = status_map
         self.log = log.get()
 
@@ -145,7 +148,8 @@ class Syncer:
         extra_repos = board_repos - watched
         if extra_repos:
             self.log.info(
-                f"=== Step 1b: Checking {len(extra_repos)} board repo(s) not in cfg.repos ==="
+                f"=== Step 1b: {len(extra_repos)} board repo(s) not in cfg.repos — "
+                "auto-registering ==="
             )
             for repo in sorted(extra_repos):
                 self.log.info(f"Checking (board-only) {repo} ...")
@@ -156,6 +160,14 @@ class Syncer:
                     continue
                 for url in urls:
                     open_urls.add(url)
+                cfg.repos.append(repo)
+                self.log.info(f"  Auto-registered {repo} in cfg.repos")
+
+            if self.config_path:
+                cfg.save(self.config_path)
+                self.log.info(
+                    f"  Config updated — {len(extra_repos)} new repo(s) added to cfg.repos"
+                )
 
         # Step 2: Detect changes, act
         self.log.info("=== Step 2: Detecting status changes ===")

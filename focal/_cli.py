@@ -118,7 +118,7 @@ def board_sync():
     status_map = load_status_map(FOCAL_HOME / "status_map.json")
 
     try:
-        Syncer(cfg, status_map).run()
+        Syncer(cfg, status_map, config_path=config_path).run()
     except Exception as e:
         logger.error(str(e))
         if cfg.notifications:

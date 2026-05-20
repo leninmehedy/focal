@@ -286,12 +286,14 @@ arguments in a single tool are cleaner and match how agents actually use what-if
 
 ## Open questions
 
-| Question | Owner | Due |
-|---|---|---|
-| Which MCP SDK version to pin? Latest stable at implementation time. | @leninmehedy | Before implementation |
-| Should `focal skill install` modify global (`~/.claude/settings.json`) or project-local (`.claude/settings.json`) config? Global makes sense for a CLI tool. | @leninmehedy | Before implementation |
-| Do we expose `focal_whatif` with `apply: bool` to allow the agent to commit the simulated plan? Useful but adds risk — agent could write to disk without human review. Default `apply=False`, require explicit opt-in. | @leninmehedy | Before implementation |
-| Should `focal_board_setup` create the GitHub Projects board via API or require the user to create it first and pass the board number? Creating it via API is more seamless but requires `project` write scope confirmed at runtime. | @leninmehedy | Before implementation |
+All resolved — none outstanding.
+
+| Question | Resolution |
+|---|---|
+| Which MCP SDK version to pin? | Pin latest stable at implementation time; managed by dependency bot going forward. |
+| Global vs project-local config for `focal skill install`? | **Global** (`~/.claude/settings.json`). Focal is a personal CLI tool — the MCP server is the same binary regardless of repo. |
+| Expose `focal_whatif` with `apply: bool`? | **No.** `focal_whatif` is read-only. Applying a plan is a side-effectful action that belongs in the human's hands — agent shows the diff, human decides whether to run `focal pm what-if --apply` themselves. |
+| Should `focal_board_setup` create the board or require an existing board number? | **Both, defaulting to create.** `create_board=True` is the happy path for new users; `board_number` is the opt-in for users with an existing board. Agent asks the human which applies before calling the tool. `project` write scope is already required for board sync mutations — no new auth requirement. |
 
 ## Breakdown hint
 

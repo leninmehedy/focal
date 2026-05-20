@@ -1,127 +1,191 @@
 # Why Focal?
 
-Open-source maintainers and contributors live in GitHub. Issues are there, PRs are
-there, project boards are there. But the moment you try to do real delivery planning —
-capacity, iteration scheduling, velocity tracking, impact forecasting — you hit a wall.
-GitHub Projects is a Kanban board, not a planning tool. So people reach for Jira,
-Linear, or Notion, and suddenly half their project state lives outside GitHub.
+Most open-source projects don't have a dedicated PM. They have engineers who also
+have to plan, estimate, track velocity, and make delivery decisions — often on top
+of their day jobs. The tooling built for that work (Jira, Linear, Notion) was
+designed for full-time PMs in funded teams. It doesn't fit how engineers think or
+work, so most open-source projects either skip planning entirely or do it badly in
+a spreadsheet.
 
-That split is where things rot: docs go stale, boards drift, estimates disappear.
-
-**Focal's answer: stay entirely in GitHub, but get the planning layer you've been missing.**
-
----
-
-## How Focal compares
-
-| Tool | What it gives you | What it costs |
-|---|---|---|
-| **GitHub Projects alone** | Kanban view | Free — but no capacity planning, velocity, or forecasting |
-| **Jira / Linear / Notion** | Full planning suite | Separate system — issues duplicated, context switched, subscription required |
-| **ZenHub / Shortcut** | Board overlay on GitHub | Paid seat, another login, another vendor |
-| **Spreadsheet planning** | Flexible | Disconnects from actual issue state immediately; manual upkeep |
-| **Focal** | Iteration planning, velocity, what-if forecasting | Free, no SaaS, no extra accounts — just `gh` CLI and markdown |
-
-Focal is **zero additional infrastructure**. No database, no hosted service, no
-webhook, no API token beyond what `gh` already has. It writes markdown files into
-your repo and reads GitHub issues. That's it.
+Focal is built on a different premise: **every engineer can run their own projects
+at a professional level, without needing a dedicated PM — if the tooling gets out
+of their way.**
 
 ---
 
-## What you actually get
+## 1. Engineer as their own PM
 
-### Iteration planning without leaving the repo
-
-`focal pm plan` generates `docs/focal/iteration-planning.md` directly from your open
-issues and SP estimates. The plan is a markdown file — version-controlled,
-PR-reviewable, and readable by any contributor without an account or subscription.
-
-### Velocity that tracks itself
-
-`focal pm retro` logs delivered vs carry-over story points per iteration into
-`retro-log.md`. After 3–4 iterations you have a real velocity baseline. No
-spreadsheet, no manual entry — Focal reads issue close state from GitHub and writes
-structured history into the repo.
-
-### What-if forecasting
-
-This is the hardest thing to do in any other free tool. Before committing to a plan:
+Focal is a CLI tool. Planning is a command you run, not a dashboard you maintain.
 
 ```bash
-# What slips if alice is out next week?
-focal pm what-if owner/repo --pto "alice:2026-06-27:2026-07-04"
+focal pm plan automa-saga/automa --weeks 2 --start 2026-06-02 --team "me:8"
+focal pm retro automa-saga/automa --iteration I1 --goal-met
+focal pm what-if automa-saga/automa --pto "me:2026-06-27:2026-07-04"
+```
 
-# What gets pushed if we inject an urgent fix?
-focal pm what-if owner/repo --inject "Security patch:8"
+There are no ticket views to configure, no board columns to drag, no reporting
+dashboards to set up. The output is a markdown file in your repo. The workflow is
+the same whether you're a team of one or five.
 
-# Story 1.3 grew — reforecast the whole plan
-focal pm what-if owner/repo --reestimate "1.3:13"
+For engineers who live in the terminal, this means **planning never requires leaving
+the console**. No browser tab, no login, no context switch. You can plan an
+iteration, run a what-if scenario, and log a retro in the same session where you
+just pushed code.
+
+This matters because the barrier to structured delivery isn't willingness — most
+engineers care about shipping well. The barrier is that PM tools impose a PM's
+mental model on people who think in code, commits, and terminals. Focal meets
+engineers where they are.
+
+---
+
+## 4. Opinionated conventions that scale across projects
+
+Focal is opinionated by design. Every repo that runs `focal pm init` gets the same
+structure: the same file layout, the same issue templates, the same iteration
+planning format, the same retro log schema.
+
+For an engineer contributing to five different open-source projects, this means
+**every project works the same way**. There's no re-learning a new planning
+convention, no deciphering a custom spreadsheet, no figuring out which Notion
+template this team chose. The mental model transfers immediately.
+
+This is the alternative to two failure modes that plague open-source projects today:
+
+- **Chaos** — every project invents its own planning setup (or skips it entirely),
+  making cross-project contribution expensive and context-switching constant
+- **Over-engineering** — a well-meaning contributor introduces a heavyweight PM
+  process that the rest of the team can't maintain
+
+Focal's conventions are lightweight enough to adopt in minutes (`focal pm init`),
+structured enough to produce real planning artifacts, and consistent enough that
+familiarity with one project immediately transfers to the next.
+
+The opinions aren't arbitrary either — they reflect real delivery best practices:
+design docs before backlog creation, SP estimation at the story level, iteration
+goals tied to retros, slip reasons tracked per story. Engineers who follow the
+workflow naturally build good delivery habits without needing a PM to enforce them.
+
+---
+
+## 2. Git is the system of record
+
+Every planning artifact Focal produces is a plain markdown file committed to your
+repo, on the same timeline as your code:
+
+| File | What it captures |
+|---|---|
+| `docs/focal/design/D*.md` | Problem framing, design decisions, breakdown hints |
+| `docs/focal/epics.md` | Epic/story tracker with SP rollups |
+| `docs/focal/iteration-planning.md` | Capacity, schedule, story assignments |
+| `docs/focal/retro-log.md` | Velocity, slip reasons, retrospective history |
+
+This is not just convenience — it's a fundamentally different model from every
+other planning tool.
+
+**The delivery trail lives with the code.** A new contributor can `git log` and
+understand not just what changed, but why it was planned that way — which stories
+were carried over and why, what the velocity looked like, what tradeoffs were made
+during planning. That context is usually locked inside a PM tool that only some
+people have access to, or lost entirely.
+
+**AI agents can read it natively.** No integrations, no API keys, no special
+tooling. An agent that can read a file can read your entire project history —
+design rationale, iteration plans, retro notes — and contribute meaningfully. This
+is what "AI-native" actually means in practice: context that lives in files, not in
+a SaaS database.
+
+**It survives tool changes.** If Focal disappears tomorrow, your planning history
+is still in your repo, readable by anyone, forever. No export required.
+
+---
+
+## 3. What-if before you commit
+
+Most planning tools tell you what happened. Focal helps you decide what to do
+*before it happens*.
+
+Before finalising a plan, you can model the consequences of real-world disruptions:
+
+```bash
+# Alice is out for a week — what slips?
+focal pm what-if automa-saga/automa --pto "alice:2026-06-27:2026-07-04"
+
+# A security issue just landed — what gets pushed if we absorb it?
+focal pm what-if automa-saga/automa --inject "CVE patch:8"
+
+# Story 2.3 is bigger than we thought — reforecast
+focal pm what-if automa-saga/automa --reestimate "2.3:13"
 ```
 
 Focal shows exactly which stories slip to later iterations — before you touch
-anything. Pass `--apply` only when you're happy with the result.
+anything. The plan doesn't change until you pass `--apply`.
 
-### AI-agent native from day one
-
-Focal ships with [`AGENTS.md`](../AGENTS.md) — a machine-readable command reference
-that any capable AI agent (Claude Code, Cursor, Codex) can use to drive the entire
-PM workflow without custom prompting:
-
-- Write design docs with structured breakdown hints
-- Create epics and stories from those docs in one command
-- Run what-if scenarios on request
-- Log retros and update velocity
-
-For maintainers who are time-poor, this is the practical payoff: delegate the PM
-overhead to an agent that already knows the tool.
-
-### Personal board sync that stays accurate
-
-Multi-repo contributors often maintain a personal GitHub Projects board to see all
-their work in one place. Without automation, that board is wrong within a day.
-Focal keeps it accurate — open assigned issues flow in automatically, status changes
-push back to origin projects, and closed issues move to Done without any manual work.
+This kind of active decision support used to require a PM who knew the tool well
+enough to run scenarios manually. Now any engineer can run it in seconds, as often
+as needed, with the actual plan data — not a copy of it in a spreadsheet.
 
 ---
 
-## Who is it for?
+## 5. Works without an agent — better with one
 
-The sweet spot is **solo maintainers or small core teams (2–5 people)** running
-open-source projects on GitHub who:
+Focal does not require an AI agent. Every command runs interactively in the
+terminal, prompting for inputs when flags aren't supplied:
 
-- Care about delivery cadence and velocity but don't want to manage a SaaS
-- Already use GitHub Issues as their source of truth
-- Want planning artifacts (iteration plans, retro logs, design docs) version-controlled
-  alongside the code
-- Use or want to use AI agents as collaborators
+```
+$ focal pm epic-create automa-saga/automa
+  Title: Add distributed tracing
+  Description: Instrument all service boundaries with OpenTelemetry.
+  Estimate (SP): 13
+  ✔ Created issue #47
+  ✔ Added to project board
+  ✔ docs/focal/epics.md updated (E4)
+```
 
-It's not designed for large organisations with dedicated PMs — those teams already have
-Jira. It's for the engineer-PM hybrid who wants structure without overhead.
+No agent, no config, no API key beyond what `gh` already has. An engineer on a
+fresh machine with only `gh` and Focal installed can run the full delivery
+workflow — plan an iteration, log a retro, run a what-if — entirely from the
+terminal, entirely without AI.
+
+The agent support is an accelerator, not a requirement. The same workflow exists
+on a spectrum:
+
+| Mode | How it works | What the engineer does |
+|---|---|---|
+| **Terminal only** | Interactive prompts for every input | Types answers, reviews output |
+| **Terminal + agent** | Agent supplies non-interactive flags | Reviews and approves |
+| **Fully delegated** | Agent reads design docs, creates backlog, runs what-if, logs retros | Merges PRs |
+
+All three modes produce identical artifacts and the same git history. The agent
+removes keystrokes — it doesn't change what gets created or how it's stored.
+
+This matters for adoption: an engineer can start using Focal today, on any machine,
+without setting up an AI environment. If they later add an agent, the workflow
+accelerates without any migration or reconfiguration. And on machines where an
+agent isn't available — a remote server, a pairing session, a locked-down
+corporate laptop — Focal still works exactly as designed.
 
 ---
 
-## The "just markdown" principle
+## Who it's for
 
-Every planning artifact Focal produces is a plain markdown file committed to your repo:
+Focal is built for **engineers running their own open-source projects** — solo
+maintainers or small core teams (2–5 people) who:
 
-| File | What it contains |
-|---|---|
-| `docs/focal/iteration-planning.md` | Capacity, schedule, story assignments, risks |
-| `docs/focal/retro-log.md` | Per-iteration velocity and retrospective history |
-| `docs/focal/epics.md` | Epic/story tracker with SP rollups |
-| `docs/focal/design/D*.md` | Per-feature design records with breakdown hints |
+- Want structured delivery without the overhead of a PM role or a PM tool
+- Use GitHub Issues as their source of truth and want to keep it that way
+- Want their planning history version-controlled alongside their code
+- Work with or want to use AI agents as collaborators
 
-This is a principled stance against lock-in:
-
-- **Readable by humans** — open the file in GitHub, no login required
-- **Readable by AI agents** — context is always available for any tool that can read a file
-- **Diffs in PRs** — plan changes are reviewed like code, with full history
-- **Survives tool changes** — if Focal disappears tomorrow, your planning history is still in your repo
+It is not built for large organisations with dedicated PMs. Those teams have Jira,
+and they should keep using it. Focal is for the engineer who has always wanted to
+run their projects well but found existing tools too heavy, too expensive, or too
+far from where the actual work happens.
 
 ---
 
-## One-sentence pitch
+## The one-sentence version
 
-> *Focal gives GitHub-native open-source projects iteration planning, velocity
-> tracking, and what-if forecasting — entirely in markdown and GitHub Issues,
-> with no SaaS, no subscription, and full AI-agent support.*
+> *Focal lets engineers run their own projects at a professional level — planning,
+> velocity, and forecasting — entirely inside GitHub and git, with no SaaS, no PM
+> role required, and full AI-agent support.*

@@ -12,6 +12,10 @@ markdown.
 Works entirely from the terminal, no AI required. Add an agent later to
 accelerate — not to unlock.
 
+**AI-ready when you are** — Focal ships with [`AGENTS.md`](AGENTS.md) so any
+capable agent can set it up, run PM commands, and manage your backlog on your
+behalf.
+
 ## The problem
 
 If you're an engineer contributing across many repos, planning your day means
@@ -74,11 +78,6 @@ Projects board and asks which repos to watch.
 **→ [Full setup and usage guide](docs/user-guide.md)**
 
 ## Set up with an AI agent
-
-> **Built with AI. Best used with AI.**
-> Focal ships with [`AGENTS.md`](AGENTS.md) so any capable AI agent can set it
-> up, run PM commands, and manage your backlog on your behalf — no manual steps
-> required.
 
 Open Claude Code (or any agent that can fetch a URL) and paste:
 

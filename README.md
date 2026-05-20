@@ -1,8 +1,8 @@
 # Focal
 
-**For engineers who contribute to many GitHub repos and want real project
-management — without Jira, without context switching, without leaving the
-terminal.**
+**For engineers who contribute to many GitHub repos and want structured project
+management — without the overhead, without context switching, without leaving
+the terminal.**
 
 Focal gives you one personal Kanban board that stays in sync with every project
 you contribute to, plus a full PM CLI for running delivery end-to-end: epics,
@@ -19,8 +19,8 @@ markdown.
 If you're an engineer contributing across many repos, planning your day means
 opening every project board one by one — context switching before you've written
 a single line of code. And when it comes to planning a release, you're either
-reaching for Jira (another context switch) or keeping it in your head (no
-record, no accountability).
+reaching for a separate PM tool (another context switch) or keeping it in your
+head (no record, no accountability).
 
 Most teams also spend energy maintaining the process itself — updating boards,
 attending standups for status, fielding "where are we on X?" questions. Focal
@@ -95,7 +95,7 @@ Once set up, you can drive everything in plain language:
 
 | | |
 |---|---|
-| [Why Focal?](docs/why-focal.md) | How Focal compares to Jira, Linear, GitHub Projects, and spreadsheets |
+| [Why Focal?](docs/why-focal.md) | The motivation, philosophy, and design principles behind Focal |
 | [User Guide](docs/user-guide.md) | Install, board sync, PM CLI, scheduler, troubleshooting |
 | [PM Guide](docs/pm-guide.md) | Full project management workflow — design docs, epics, delivery cycle |
 | [Testing Guide](docs/testing-guide.md) | Beta testing — test cases for every command |

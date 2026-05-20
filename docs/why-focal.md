@@ -2,10 +2,10 @@
 
 Most open-source projects don't have a dedicated PM. They have engineers who also
 have to plan, estimate, track velocity, and make delivery decisions — often on top
-of their day jobs. The tooling built for that work (Jira, Linear, Notion) was
-designed for full-time PMs in funded teams. It doesn't fit how engineers think or
-work, so most open-source projects either skip planning entirely or do it badly in
-a spreadsheet.
+of their day jobs. The tooling built for that work was designed for full-time PMs
+in funded teams with dedicated process budgets. It doesn't fit how engineers think
+or work, so most open-source projects either skip planning entirely or do it badly
+in a spreadsheet.
 
 Focal is built on a different premise: **every engineer can run their own projects
 at a professional level, without needing a dedicated PM — if the tooling gets out
@@ -41,10 +41,11 @@ engineers where they are.
 
 ## 4. GitHub-native — no new tool to learn or maintain
 
-Most PM tools sit *beside* GitHub. You close a PR, then open Jira to move the
-ticket. You finish a sprint, then export a report to Notion. You onboard a new
-contributor, then give them a separate login to Linear. Every hand-off is a
-context switch, and every context switch is a place where discipline erodes.
+Most PM tools sit *beside* GitHub. You close a PR, then open a separate tool to
+move the ticket. You finish a sprint, then export a report somewhere else. You
+onboard a new contributor, then give them a login to yet another system. Every
+hand-off is a context switch, and every context switch is a place where discipline
+erodes.
 
 Focal works *inside* GitHub. Everything it creates — issues, markdown files,
 project board items — is standard GitHub. No new login. No subscription. No
@@ -78,8 +79,8 @@ planning format, the same retro log schema.
 
 For an engineer contributing to five different open-source projects, this means
 **every project works the same way**. There's no re-learning a new planning
-convention, no deciphering a custom spreadsheet, no figuring out which Notion
-template this team chose. The mental model transfers immediately.
+convention, no deciphering a custom spreadsheet, no figuring out which template
+or tool this team chose. The mental model transfers immediately.
 
 This is the alternative to two failure modes that plague open-source projects today:
 
@@ -208,10 +209,10 @@ maintainers or small core teams (2–5 people) who:
 - Want their planning history version-controlled alongside their code
 - Work with or want to use AI agents as collaborators
 
-It is not built for large organisations with dedicated PMs. Those teams have Jira,
-and they should keep using it. Focal is for the engineer who has always wanted to
-run their projects well but found existing tools too heavy, too expensive, or too
-far from where the actual work happens.
+It is not built for large organisations with dedicated PMs and established tooling
+— those teams already have what they need. Focal is for the engineer who has
+always wanted to run their projects well but found existing tools too heavy, too
+expensive, or too far from where the actual work happens.
 
 ---
 

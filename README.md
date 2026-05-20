@@ -9,10 +9,12 @@ you contribute to, plus a full PM CLI for running delivery end-to-end: epics,
 stories, iteration planning, retros, and velocity — all in GitHub issues and
 markdown.
 
-> **Built with AI. Best used with AI.**
-> Focal ships with [`AGENTS.md`](AGENTS.md) so any capable AI agent (Claude Code,
-> Cursor, Codex) can set it up, run PM commands, and manage your backlog on your
-> behalf — no manual steps required.
+Works entirely from the terminal, no AI required. Add an agent later to
+accelerate — not to unlock.
+
+**AI-ready when you are** — Focal ships with [`AGENTS.md`](AGENTS.md) so any
+capable agent can set it up, run PM commands, and manage your backlog on your
+behalf.
 
 ## The problem
 
@@ -52,9 +54,13 @@ interrupting the engineer.
 
 ## What it does
 
-**Board sync** — open issues assigned to you flow automatically onto one personal
-Kanban board. Status changes you make there push back to every origin project.
-Closed or unassigned issues move to Done on their own.
+**Board sync**
+
+| Without Focal | With Focal |
+|---|---|
+| Open 5 project boards to see what's assigned to you | One board aggregates everything automatically |
+| Update status on your board, then update every origin project board too | Move a card once — status pushes back to every origin project automatically |
+| Closed or unassigned issues linger on your board until you remove them manually | Closed or unassigned issues move to Done automatically |
 
 **PM CLI** — epics, stories, iteration planning, retros, and velocity — all in
 GitHub issues and markdown, without leaving the terminal.
@@ -63,11 +69,11 @@ GitHub issues and markdown, without leaving the terminal.
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/leninmehedy/focal/main/install.sh)
-focal board setup
 ```
 
-The installer handles Python, pipx, and `focal-cli` in one step.
-The wizard creates your GitHub Projects board automatically and asks which repos to watch.
+The installer handles Python, pipx, and `focal-cli` in one step, then prompts
+you to run `focal board setup` — an interactive wizard that creates your GitHub
+Projects board and asks which repos to watch.
 
 **→ [Full setup and usage guide](docs/user-guide.md)**
 

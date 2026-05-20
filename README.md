@@ -9,10 +9,8 @@ you contribute to, plus a full PM CLI for running delivery end-to-end: epics,
 stories, iteration planning, retros, and velocity — all in GitHub issues and
 markdown.
 
-> **Built with AI. Best used with AI.**
-> Focal ships with [`AGENTS.md`](AGENTS.md) so any capable AI agent (Claude Code,
-> Cursor, Codex) can set it up, run PM commands, and manage your backlog on your
-> behalf — no manual steps required.
+Works entirely from the terminal, no AI required. Add an agent later to
+accelerate — not to unlock.
 
 ## The problem
 
@@ -52,9 +50,13 @@ interrupting the engineer.
 
 ## What it does
 
-**Board sync** — open issues assigned to you flow automatically onto one personal
-Kanban board. Status changes you make there push back to every origin project.
-Closed or unassigned issues move to Done on their own.
+**Board sync**
+
+| Without Focal | With Focal |
+|---|---|
+| Open 5 project boards to see what's assigned to you | One board aggregates everything automatically |
+| Move a card manually on your personal board | Status changes push back to every origin project |
+| Chase closed issues off your board | Closed or unassigned issues move to Done on their own |
 
 **PM CLI** — epics, stories, iteration planning, retros, and velocity — all in
 GitHub issues and markdown, without leaving the terminal.
@@ -72,6 +74,11 @@ The wizard creates your GitHub Projects board automatically and asks which repos
 **→ [Full setup and usage guide](docs/user-guide.md)**
 
 ## Set up with an AI agent
+
+> **Built with AI. Best used with AI.**
+> Focal ships with [`AGENTS.md`](AGENTS.md) so any capable AI agent can set it
+> up, run PM commands, and manage your backlog on your behalf — no manual steps
+> required.
 
 Open Claude Code (or any agent that can fetch a URL) and paste:
 

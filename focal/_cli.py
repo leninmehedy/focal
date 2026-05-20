@@ -733,6 +733,11 @@ def pm_adopt(
         "--normalise",
         help="Re-label issues, move SP from title to body, create sub-issue links. Requires --apply.",
     ),
+    prompt_missing: bool = typer.Option(
+        False,
+        "--prompt-missing",
+        help="Interactively prompt for SP on issues where no estimate is found.",
+    ),
 ):
     """Scan an existing repo's issues and bootstrap Focal PM state.
 
@@ -753,6 +758,7 @@ def pm_adopt(
         story_labels=[lb.strip() for lb in story_label.split(",")],
         sp_field=sp_field,
         default_sp=default_sp,
+        prompt_missing=prompt_missing,
         apply=apply,
         normalise=normalise,
     )

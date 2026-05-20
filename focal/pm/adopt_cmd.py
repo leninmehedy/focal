@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional
 
 from rich.console import Console
+from rich.prompt import IntPrompt
 from rich.table import Table
 
 from . import pm_state
@@ -27,12 +28,20 @@ def _gh_edit_issue(repo: str, number: int, **kwargs: str) -> None:
 # ── Discovery ─────────────────────────────────────────────────────────────────
 
 
+def _prompt_sp(issue: dict) -> int:
+    console.print(
+        f"  [yellow]?[/yellow]  #{issue['number']} — {issue['title']}"
+    )
+    return IntPrompt.ask("    Estimate (story points)", default=0)
+
+
 def _discover(
     repo: str,
     epic_labels: list[str],
     story_labels: list[str],
     sp_field: str,
     default_sp: Optional[int],
+    prompt_missing: bool,
 ) -> tuple[list[dict], list[dict], list[str]]:
     """Fetch issues and enrich with SP + hierarchy.
 
@@ -68,26 +77,52 @@ def _discover(
 
     # Enrich epics with SP
     epics: list[dict] = []
+    missing_sp_epics = []
     for e in epics_raw:
         pf = gh.project_field_value(repo, e["number"], sp_field)
         sp = extract_sp(e, pf) or default_sp
         if sp is None:
-            warnings.append(
-                f"#{e['number']} — no SP estimate found (use --default-sp or add to issue body)"
-            )
+            missing_sp_epics.append(e)
         epics.append({**e, "sp": sp, "sub_issues": sub_issue_map.get(e["number"], [])})
+
+    if missing_sp_epics:
+        if prompt_missing:
+            console.print("\n[bold yellow]Missing SP estimates — epics:[/bold yellow]")
+            for e in missing_sp_epics:
+                sp = _prompt_sp(e)
+                next(ep for ep in epics if ep["number"] == e["number"])["sp"] = sp
+        else:
+            for e in missing_sp_epics:
+                warnings.append(
+                    f"#{e['number']} — no SP estimate found (use --default-sp or --prompt-missing)"
+                )
 
     # Enrich stories with SP + parent
     stories: list[dict] = []
+    missing_sp_stories = []
     for s in stories_raw:
         pf = gh.project_field_value(repo, s["number"], sp_field)
         sp = extract_sp(s, pf) or default_sp
         parent = parent_map.get(s["number"])
+        if sp is None:
+            missing_sp_stories.append(s)
         if parent is None:
             warnings.append(
                 f"#{s['number']} '{s['title']}' — no parent epic found (will be orphaned)"
             )
         stories.append({**s, "sp": sp, "parent_epic_number": parent})
+
+    if missing_sp_stories:
+        if prompt_missing:
+            console.print("\n[bold yellow]Missing SP estimates — stories:[/bold yellow]")
+            for s in missing_sp_stories:
+                sp = _prompt_sp(s)
+                next(st for st in stories if st["number"] == s["number"])["sp"] = sp
+        else:
+            for s in missing_sp_stories:
+                warnings.append(
+                    f"#{s['number']} '{s['title']}' — no SP estimate found (use --default-sp or --prompt-missing)"
+                )
 
     return epics, stories, warnings
 
@@ -434,9 +469,10 @@ def run(
     default_sp: Optional[int],
     apply: bool,
     normalise: bool,
+    prompt_missing: bool = False,
 ) -> None:
     epics, stories, warnings = _discover(
-        repo, epic_labels, story_labels, sp_field, default_sp
+        repo, epic_labels, story_labels, sp_field, default_sp, prompt_missing
     )
     epics, stories = _assign_ids(epics, stories)
     _render_report(repo, epics, stories, warnings, apply)

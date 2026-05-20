@@ -264,6 +264,22 @@ Lists design docs in `docs/focal/design/`.
 | DS3 | No design dir | Run on repo without `docs/focal/design/` | Friendly message: no design directory found ✅ |
 | DS4 | In pm status | `focal pm status owner/repo` | Footer includes one line per Draft/Planned/Active design doc ✅ |
 
+### `focal pm what-if`
+
+Simulates what happens to the iteration plan under a hypothetical scenario.
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| WI1 | No scenario | `focal pm what-if owner/repo` | Clear message: "No scenario specified. Use --pto, --inject, or --reestimate." ❌ |
+| WI2 | PTO dry-run | `focal pm what-if owner/repo --pto alice:2026-06-02:2026-06-06` | Impact table shows reduced capacity for affected iterations; stories that no longer fit listed as "slipped out"; dry-run footer ✅ |
+| WI3 | Inject dry-run | `focal pm what-if owner/repo --inject "P1 fix:8"` | INJ1 appears in "added in" for the earliest iteration with capacity; stories displaced show as "slipped out" ✅ |
+| WI4 | Re-estimate dry-run | `focal pm what-if owner/repo --reestimate 1.3:13` | Story 1.3 SP updated; ripple reflected in iteration assignments; summary shows slipped count ✅ |
+| WI5 | Combined scenario | `--pto alice:... --inject "Fix:5" --reestimate 1.2:8` | All three scenarios applied; report shows combined impact ✅ |
+| WI6 | Apply | `focal pm what-if owner/repo --pto alice:... --apply` | `docs/focal/iteration-planning.md` overwritten with simulated plan; git commit created ✅ |
+| WI7 | No plan file | Run before `focal pm plan` | Clear error: "No iteration plan found… Run focal pm plan first." ❌ |
+| WI8 | Unknown PTO handle | `--pto unknownuser:2026-06-02:2026-06-06` | No capacity change (handle not in team); no error ✅ |
+| WI9 | Bad flag format | `--pto alice-only` | Clear error showing expected format ❌ |
+
 ### `focal pm remove-repo`
 
 Unregisters a repo from PM tracking.

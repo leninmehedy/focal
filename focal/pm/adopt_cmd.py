@@ -29,9 +29,7 @@ def _gh_edit_issue(repo: str, number: int, **kwargs: str) -> None:
 
 
 def _prompt_sp(issue: dict) -> int:
-    console.print(
-        f"  [yellow]?[/yellow]  #{issue['number']} — {issue['title']}"
-    )
+    console.print(f"  [yellow]?[/yellow]  #{issue['number']} — {issue['title']}")
     return IntPrompt.ask("    Estimate (story points)", default=0)
 
 
@@ -120,7 +118,9 @@ def _discover(
 
     if missing_sp_stories:
         if prompt_missing:
-            console.print("\n[bold yellow]Missing SP estimates — stories:[/bold yellow]")
+            console.print(
+                "\n[bold yellow]Missing SP estimates — stories:[/bold yellow]"
+            )
             for s in missing_sp_stories:
                 sp = _prompt_sp(s)
                 next(st for st in stories if st["number"] == s["number"])["sp"] = sp

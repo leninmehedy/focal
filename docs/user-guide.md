@@ -240,12 +240,14 @@ Optional flags:
 ### Check iteration progress
 
 ```bash
-focal pm status myorg/my-project
+focal pm status myorg/my-project   # one repo
+focal pm status                    # all registered PM repos
 ```
 
 Shows a live terminal dashboard: progress bar, SP delivered vs planned, list of
 stories with assignee and project status. Add `--refresh` to pull latest GitHub
-state first.
+state first. With no repo argument, iterates over every repo registered via
+`focal pm init`.
 
 ### Log a retro
 
@@ -291,6 +293,59 @@ cp /path/to/focal/launchd/com.your-username.focal-cache.plist \
 launchctl load ~/Library/LaunchAgents/com.YOUR_USERNAME.focal-cache.plist
 ```
 
+### Adopt an existing project
+
+If a repo already has epics and stories on GitHub before you introduced Focal,
+use `focal pm adopt` to bootstrap the local state cache from the existing issues
+rather than starting from scratch:
+
+```bash
+# Dry run — discover issues and print a report, no files written
+focal pm adopt myorg/my-project
+
+# Write focal-state.json once you're happy with the report
+focal pm adopt myorg/my-project --apply --repo-root .
+
+# Customise which labels identify epics and stories
+focal pm adopt myorg/my-project --epic-label "epic,feature" --story-label "story,task" --apply
+
+# Use a fallback SP for issues with no estimate, and re-format issues to Focal conventions
+focal pm adopt myorg/my-project --apply --default-sp 3 --normalise
+```
+
+Key flags:
+- `--epic-label` — comma-separated label(s) that identify epics (default: `epic`)
+- `--story-label` — comma-separated label(s) that identify stories (default: `story`)
+- `--sp-field NAME` — GitHub Projects custom field name for SP (auto-detected if omitted)
+- `--default-sp N` — fallback SP for issues with no estimate
+- `--apply` — write `focal-state.json` (dry-run without this flag)
+- `--normalise` — re-label issues, move SP from title to body, create sub-issue links (requires `--apply`)
+- `--prompt-missing` — interactively prompt for SP on unestimated issues
+
+### Simulate plan changes with what-if
+
+Before touching the plan, model the impact of real-world disruptions:
+
+```bash
+# What slips if alice is out next week?
+focal pm what-if myorg/my-project --pto "alice:2026-06-09:2026-06-13"
+
+# A security fix just landed — what gets pushed?
+focal pm what-if myorg/my-project --inject "CVE patch:8"
+
+# Story 1.3 is bigger than estimated — reforecast
+focal pm what-if myorg/my-project --reestimate "1.3:13"
+
+# Combine scenarios and apply the result
+focal pm what-if myorg/my-project \
+  --pto "alice:2026-06-09:2026-06-13" \
+  --inject "CVE patch:8" \
+  --apply
+```
+
+Shows a before/after per iteration: which stories slip, which move in, capacity
+notes. Does not change any files unless `--apply` is passed.
+
 ### Stop tracking a repo
 
 ```bash
@@ -307,6 +362,8 @@ included in `refresh-all`. Does not delete any local files.
 Focal is designed to be driven by an AI agent. Every command has full
 non-interactive flags so an agent can run it without answering prompts.
 
+### Via AGENTS.md (any agent)
+
 With Claude Code (or any agent that reads `AGENTS.md`):
 
 ```
@@ -315,11 +372,33 @@ With Claude Code (or any agent that reads `AGENTS.md`):
 "Read our design doc and create the epics and stories"
 "Plan I1 — 2-week sprint, me and @bob at 8 SP each, starting Monday"
 "What's our iteration status?"
-"Log the I1 retro — we hit our goal, no blockers, estimates were a bit off"
+"What slips if I'm out next week?"
+"Walk me through the I1 retro — we hit our goal"
 ```
 
 The agent reads `AGENTS.md` automatically, so it already knows every command,
 flag, and workflow before you ask.
+
+### Via MCP skill (deeper integration)
+
+Install Focal as an MCP server so your agent can call every PM command as a
+structured tool — no CLI invocations needed:
+
+```bash
+focal skill install claude   # writes to ~/.claude/settings.json
+focal skill install cursor   # writes to ~/.cursor/mcp.json
+focal skill install          # auto-detect installed agent
+```
+
+Then start the MCP server (your agent does this automatically once installed):
+
+```bash
+focal mcp serve
+```
+
+With the MCP skill active, agents call Focal tools directly (`focal_board_sync`,
+`focal_pm_plan`, `focal_pm_status`, etc.) rather than shelling out to the CLI.
+Requires `pip install focal[mcp]`.
 
 ---
 

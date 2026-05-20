@@ -102,7 +102,7 @@ Once set up, you can drive everything in plain language:
 - *"Add leninmehedy/focal to my sync"*
 - *"Plan I1 — 2-week sprint, me and @bob at 8 SP each, starting Monday"*
 - *"What's our iteration status?"*
-- *"Log the I1 retro — we hit our goal, estimates were a bit off"*
+- *"Walk me through the I1 retro — we hit our goal"* — agent asks follow-up questions for went-well, to-improve, and action items
 
 ---
 

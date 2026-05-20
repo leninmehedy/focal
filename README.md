@@ -76,6 +76,8 @@ were designed for full-time PMs, not engineers. Focal is different:
   before touching the plan
 - **Opinionated conventions that scale** — every repo initialized with Focal works the same
   way; engineers contributing across many projects never re-learn a planning setup
+- **Works without an agent** — fully interactive terminal prompts mean no AI setup required;
+  add an agent later to accelerate, not to unlock
 
 **→ [Full breakdown](docs/why-focal.md)**
 

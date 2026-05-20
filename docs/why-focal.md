@@ -127,6 +127,46 @@ as needed, with the actual plan data — not a copy of it in a spreadsheet.
 
 ---
 
+## 5. Works without an agent — better with one
+
+Focal does not require an AI agent. Every command runs interactively in the
+terminal, prompting for inputs when flags aren't supplied:
+
+```
+$ focal pm epic-create automa-saga/automa
+  Title: Add distributed tracing
+  Description: Instrument all service boundaries with OpenTelemetry.
+  Estimate (SP): 13
+  ✔ Created issue #47
+  ✔ Added to project board
+  ✔ docs/focal/epics.md updated (E4)
+```
+
+No agent, no config, no API key beyond what `gh` already has. An engineer on a
+fresh machine with only `gh` and Focal installed can run the full delivery
+workflow — plan an iteration, log a retro, run a what-if — entirely from the
+terminal, entirely without AI.
+
+The agent support is an accelerator, not a requirement. The same workflow exists
+on a spectrum:
+
+| Mode | How it works | What the engineer does |
+|---|---|---|
+| **Terminal only** | Interactive prompts for every input | Types answers, reviews output |
+| **Terminal + agent** | Agent supplies non-interactive flags | Reviews and approves |
+| **Fully delegated** | Agent reads design docs, creates backlog, runs what-if, logs retros | Merges PRs |
+
+All three modes produce identical artifacts and the same git history. The agent
+removes keystrokes — it doesn't change what gets created or how it's stored.
+
+This matters for adoption: an engineer can start using Focal today, on any machine,
+without setting up an AI environment. If they later add an agent, the workflow
+accelerates without any migration or reconfiguration. And on machines where an
+agent isn't available — a remote server, a pairing session, a locked-down
+corporate laptop — Focal still works exactly as designed.
+
+---
+
 ## Who it's for
 
 Focal is built for **engineers running their own open-source projects** — solo

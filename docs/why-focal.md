@@ -39,6 +39,35 @@ engineers where they are.
 
 ---
 
+## 4. Opinionated conventions that scale across projects
+
+Focal is opinionated by design. Every repo that runs `focal pm init` gets the same
+structure: the same file layout, the same issue templates, the same iteration
+planning format, the same retro log schema.
+
+For an engineer contributing to five different open-source projects, this means
+**every project works the same way**. There's no re-learning a new planning
+convention, no deciphering a custom spreadsheet, no figuring out which Notion
+template this team chose. The mental model transfers immediately.
+
+This is the alternative to two failure modes that plague open-source projects today:
+
+- **Chaos** — every project invents its own planning setup (or skips it entirely),
+  making cross-project contribution expensive and context-switching constant
+- **Over-engineering** — a well-meaning contributor introduces a heavyweight PM
+  process that the rest of the team can't maintain
+
+Focal's conventions are lightweight enough to adopt in minutes (`focal pm init`),
+structured enough to produce real planning artifacts, and consistent enough that
+familiarity with one project immediately transfers to the next.
+
+The opinions aren't arbitrary either — they reflect real delivery best practices:
+design docs before backlog creation, SP estimation at the story level, iteration
+goals tied to retros, slip reasons tracked per story. Engineers who follow the
+workflow naturally build good delivery habits without needing a PM to enforce them.
+
+---
+
 ## 2. Git is the system of record
 
 Every planning artifact Focal produces is a plain markdown file committed to your

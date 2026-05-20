@@ -74,6 +74,8 @@ were designed for full-time PMs, not engineers. Focal is different:
   committed to your repo, on the same timeline as your code, readable by humans and AI agents alike
 - **What-if before you commit** — model the impact of PTO, scope injection, or a re-estimate
   before touching the plan
+- **Opinionated conventions that scale** — every repo initialized with Focal works the same
+  way; engineers contributing across many projects never re-learn a planning setup
 
 **→ [Full breakdown](docs/why-focal.md)**
 

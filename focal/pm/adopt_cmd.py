@@ -47,15 +47,6 @@ def _discover(
     epics_raw = gh.issues_by_label(repo, epic_labels, state="open")
     stories_raw = gh.issues_by_label(repo, story_labels, state="open")
 
-    # Strip optional "Epic: " / "Epic " prefix from epic titles — it's a
-    # labelling convention, not part of the description.
-    import re as _re
-
-    for e in epics_raw:
-        e["title"] = _re.sub(
-            r"^Epic:\s*|^Epic\s+", "", e["title"], flags=_re.IGNORECASE
-        ).strip()
-
     # Remove any issue that appears in both (edge case: labelled both)
     epic_numbers = {e["number"] for e in epics_raw}
     stories_raw = [s for s in stories_raw if s["number"] not in epic_numbers]

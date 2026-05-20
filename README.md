@@ -65,11 +65,11 @@ GitHub issues and markdown, without leaving the terminal.
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/leninmehedy/focal/main/install.sh)
-focal board setup
 ```
 
-The installer handles Python, pipx, and `focal-cli` in one step.
-The wizard creates your GitHub Projects board automatically and asks which repos to watch.
+The installer handles Python, pipx, and `focal-cli` in one step, then prompts
+you to run `focal board setup` — an interactive wizard that creates your GitHub
+Projects board and asks which repos to watch.
 
 **→ [Full setup and usage guide](docs/user-guide.md)**
 

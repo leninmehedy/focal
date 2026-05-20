@@ -713,10 +713,10 @@ def pm_adopt(
         "--story-label",
         help="Comma-separated label(s) that identify stories (e.g. 'story,task').",
     ),
-    sp_field: str = typer.Option(
-        "Story Points",
+    sp_field: Optional[str] = typer.Option(
+        None,
         "--sp-field",
-        help="GitHub Projects custom field name for SP.",
+        help="GitHub Projects custom field name for SP. Omit to auto-detect common names.",
     ),
     default_sp: Optional[int] = typer.Option(
         None,

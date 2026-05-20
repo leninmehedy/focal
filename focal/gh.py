@@ -552,3 +552,23 @@ def project_field_value(repo: str, issue_number: int, field_name: str) -> Option
     except RuntimeError:
         pass
     return None
+
+
+# Common SP field names across teams/tools (tried in order, first match wins)
+_SP_FIELD_CANDIDATES = [
+    "Story Points",
+    "Estimated SP",
+    "Estimate",
+    "SP",
+    "Points",
+    "Size",
+]
+
+
+def project_field_value_auto(repo: str, issue_number: int) -> Optional[int]:
+    """Like project_field_value but tries common SP field names automatically."""
+    for name in _SP_FIELD_CANDIDATES:
+        val = project_field_value(repo, issue_number, name)
+        if val is not None:
+            return val
+    return None

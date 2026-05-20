@@ -39,7 +39,7 @@ def _discover(
     repo: str,
     epic_labels: list[str],
     story_labels: list[str],
-    sp_field: str,
+    sp_field: Optional[str],
     default_sp: Optional[int],
     prompt_missing: bool,
 ) -> tuple[list[dict], list[dict], list[str]]:
@@ -75,11 +75,17 @@ def _discover(
 
     warnings: list[str] = []
 
+    _pf = (
+        gh.project_field_value_auto
+        if sp_field is None
+        else lambda r, n: gh.project_field_value(r, n, sp_field)
+    )
+
     # Enrich epics with SP
     epics: list[dict] = []
     missing_sp_epics = []
     for e in epics_raw:
-        pf = gh.project_field_value(repo, e["number"], sp_field)
+        pf = _pf(repo, e["number"])
         sp = extract_sp(e, pf) or default_sp
         if sp is None:
             missing_sp_epics.append(e)
@@ -101,7 +107,7 @@ def _discover(
     stories: list[dict] = []
     missing_sp_stories = []
     for s in stories_raw:
-        pf = gh.project_field_value(repo, s["number"], sp_field)
+        pf = _pf(repo, s["number"])
         sp = extract_sp(s, pf) or default_sp
         parent = parent_map.get(s["number"])
         if sp is None:
@@ -465,7 +471,7 @@ def run(
     repo_root: Path,
     epic_labels: list[str],
     story_labels: list[str],
-    sp_field: str,
+    sp_field: Optional[str],
     default_sp: Optional[int],
     apply: bool,
     normalise: bool,

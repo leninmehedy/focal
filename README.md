@@ -1,8 +1,13 @@
 # Focal
 
-Your personal command center for GitHub — one Kanban board that stays in sync
-with every project you contribute to, plus a full project management CLI for
-running delivery end-to-end without leaving the terminal.
+**For engineers who contribute to many GitHub repos and want structured project
+management — without the overhead, without context switching, without leaving
+the terminal.**
+
+Focal gives you one personal Kanban board that stays in sync with every project
+you contribute to, plus a full PM CLI for running delivery end-to-end: epics,
+stories, iteration planning, retros, and velocity — all in GitHub issues and
+markdown.
 
 > **Built with AI. Best used with AI.**
 > Focal ships with [`AGENTS.md`](AGENTS.md) so any capable AI agent (Claude Code,
@@ -11,18 +16,39 @@ running delivery end-to-end without leaving the terminal.
 
 ## The problem
 
-If you contribute to many GitHub repositories, each with its own project board,
-planning your day means opening every repo board one by one. By the time you've
-done the rounds, you've lost 20 minutes and still don't have a single prioritized
-view of your work.
+If you're an engineer contributing across many repos, planning your day means
+opening every project board one by one — context switching before you've written
+a single line of code. And when it comes to planning a release, you're either
+reaching for a separate PM tool (another context switch) or keeping it in your
+head (no record, no accountability).
 
-And when it comes to planning a release — creating epics, estimating stories,
-building an iteration schedule, logging retros — you're either doing it in Jira
-(context switch) or in your head (no record).
+Most teams also spend energy maintaining the process itself — updating boards,
+attending standups for status, fielding "where are we on X?" questions. Focal
+makes the process self-maintaining: the board syncs automatically, plans and
+retros are committed to the repo, and anyone can see current status without
+interrupting the engineer.
 
-**Focal solves both.** One personal Kanban board that syncs everywhere, plus a
-PM CLI that manages your entire delivery lifecycle in GitHub and markdown — no
-external tools, no context switching.
+**Focal solves this by working inside GitHub — not beside it:**
+
+- **One board, every repo** — open issues assigned to you flow onto a single
+  personal Kanban board automatically; status changes push back to every origin
+  project
+- **GitHub-native, no new tool** — everything Focal creates lives in GitHub
+  issues and markdown files; no new login, no new subscription, no data silo
+- **PM in the terminal** — epics, stories, iteration planning, retros, velocity
+  — all committed alongside your code, readable by anyone with repo access
+- **Engineer as their own PM** — planning is a CLI command, not a dashboard to
+  maintain; every plan, retro, and design doc lives in git on the same timeline
+  as your code
+- **What-if before you commit** — model the impact of PTO, scope injection, or
+  a re-estimate before touching the plan
+- **Opinionated conventions that scale** — every repo initialized with Focal
+  works the same way; engineers across many projects never re-learn a planning
+  setup
+- **Works without an agent** — fully interactive terminal prompts mean no AI
+  required; add an agent later to accelerate, not to unlock
+
+**→ [Full breakdown and comparisons](docs/why-focal.md)**
 
 ## What it does
 
@@ -63,31 +89,13 @@ Once set up, you can drive everything in plain language:
 - *"What's our iteration status?"*
 - *"Log the I1 retro — we hit our goal, estimates were a bit off"*
 
-## Why Focal?
-
-Most open-source projects don't have a dedicated PM — they have engineers who also
-have to plan, estimate, and track velocity. Existing tools (Jira, Linear, Notion)
-were designed for full-time PMs, not engineers. Focal is different:
-
-- **Engineer as their own PM** — planning is a CLI command, not a dashboard to maintain; never leave the console
-- **Git as the system of record** — every plan, retro, and design doc is a markdown file
-  committed to your repo, on the same timeline as your code, readable by humans and AI agents alike
-- **What-if before you commit** — model the impact of PTO, scope injection, or a re-estimate
-  before touching the plan
-- **Opinionated conventions that scale** — every repo initialized with Focal works the same
-  way; engineers contributing across many projects never re-learn a planning setup
-- **Works without an agent** — fully interactive terminal prompts mean no AI setup required;
-  add an agent later to accelerate, not to unlock
-
-**→ [Full breakdown](docs/why-focal.md)**
-
 ---
 
 ## Docs
 
 | | |
 |---|---|
-| [Why Focal?](docs/why-focal.md) | How Focal compares to Jira, Linear, GitHub Projects, and spreadsheets |
+| [Why Focal?](docs/why-focal.md) | The motivation, philosophy, and design principles behind Focal |
 | [User Guide](docs/user-guide.md) | Install, board sync, PM CLI, scheduler, troubleshooting |
 | [PM Guide](docs/pm-guide.md) | Full project management workflow — design docs, epics, delivery cycle |
 | [Testing Guide](docs/testing-guide.md) | Beta testing — test cases for every command |

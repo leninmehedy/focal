@@ -2,10 +2,10 @@
 
 Most open-source projects don't have a dedicated PM. They have engineers who also
 have to plan, estimate, track velocity, and make delivery decisions — often on top
-of their day jobs. The tooling built for that work (Jira, Linear, Notion) was
-designed for full-time PMs in funded teams. It doesn't fit how engineers think or
-work, so most open-source projects either skip planning entirely or do it badly in
-a spreadsheet.
+of their day jobs. The tooling built for that work was designed for full-time PMs
+in funded teams with dedicated process budgets. It doesn't fit how engineers think
+or work, so most open-source projects either skip planning entirely or do it badly
+in a spreadsheet.
 
 Focal is built on a different premise: **every engineer can run their own projects
 at a professional level, without needing a dedicated PM — if the tooling gets out
@@ -39,7 +39,39 @@ engineers where they are.
 
 ---
 
-## 4. Opinionated conventions that scale across projects
+## 4. GitHub-native — no new tool to learn or maintain
+
+Most PM tools sit *beside* GitHub. You close a PR, then open a separate tool to
+move the ticket. You finish a sprint, then export a report somewhere else. You
+onboard a new contributor, then give them a login to yet another system. Every
+hand-off is a context switch, and every context switch is a place where discipline
+erodes.
+
+Focal works *inside* GitHub. Everything it creates — issues, markdown files,
+project board items — is standard GitHub. No new login. No subscription. No
+data in a SaaS database that only some people can access.
+
+This means:
+
+- **Any engineer with repo access can read the full project state** — iteration
+  plan, retro history, design docs — without installing Focal or touching a
+  separate tool
+- **The delivery record survives tool changes** — if Focal disappears tomorrow,
+  everything it created is still in your repo, in plain text, forever
+- **Focal aligns with GitHub best practices** rather than replacing them — issue
+  templates, labels, sub-issues, and Projects v2 are used as designed, just
+  wired together consistently
+
+There's also a subtler benefit: **the process becomes self-maintaining**. Most
+teams spend real time on process overhead — updating boards after standups,
+fielding "where are we on X?" questions, chasing engineers for status. Focal
+eliminates that ceremony. The board syncs automatically. Plans and retros are
+committed to the repo. Anyone who wants current status reads the repo; nobody
+has to interrupt the engineer to ask.
+
+---
+
+## 5. Opinionated conventions that scale across projects
 
 Focal is opinionated by design. Every repo that runs `focal pm init` gets the same
 structure: the same file layout, the same issue templates, the same iteration
@@ -47,8 +79,8 @@ planning format, the same retro log schema.
 
 For an engineer contributing to five different open-source projects, this means
 **every project works the same way**. There's no re-learning a new planning
-convention, no deciphering a custom spreadsheet, no figuring out which Notion
-template this team chose. The mental model transfers immediately.
+convention, no deciphering a custom spreadsheet, no figuring out which template
+or tool this team chose. The mental model transfers immediately.
 
 This is the alternative to two failure modes that plague open-source projects today:
 
@@ -127,7 +159,7 @@ as needed, with the actual plan data — not a copy of it in a spreadsheet.
 
 ---
 
-## 5. Works without an agent — better with one
+## 6. Works without an agent — better with one
 
 Focal does not require an AI agent. Every command runs interactively in the
 terminal, prompting for inputs when flags aren't supplied:
@@ -177,15 +209,47 @@ maintainers or small core teams (2–5 people) who:
 - Want their planning history version-controlled alongside their code
 - Work with or want to use AI agents as collaborators
 
-It is not built for large organisations with dedicated PMs. Those teams have Jira,
-and they should keep using it. Focal is for the engineer who has always wanted to
-run their projects well but found existing tools too heavy, too expensive, or too
-far from where the actual work happens.
+It is not built for large organisations with dedicated PMs and established tooling
+— those teams already have what they need. Focal is for the engineer who has
+always wanted to run their projects well but found existing tools too heavy, too
+expensive, or too far from where the actual work happens.
+
+---
+
+## The bigger vision
+
+Focal started as a tool for engineers. But the underlying idea is not limited to
+software.
+
+GitHub is already free, widely accessible, and used far beyond software
+development. At its core it is a platform for tracking work, recording decisions,
+and collaborating asynchronously — capabilities that every kind of project needs,
+not just codebases. Most people just don't know how to wire GitHub into a real PM
+workflow. Focal is the opinionated layer that does that wiring.
+
+Once that layer exists, the user doesn't have to be an engineer.
+
+A PhD student can use GitHub Issues to track experiments, Focal to plan
+dissertation chapters as iterations, and the retro log to capture what worked
+and what didn't each semester. A research team can coordinate across multiple
+projects from a single board without a paid PM tool. A small business can track
+client deliverables, log retrospectives, and forecast capacity — all in a free
+platform with a full audit trail in version control.
+
+The common thread is this: **anyone who manages a project — whether it's a
+codebase, a thesis, a research programme, or a business initiative — deserves
+structured, professional-grade delivery tooling without the cost, complexity, or
+context switching that comes with dedicated PM software.**
+
+GitHub already provides the foundation. Focal provides the workflow. Together,
+they make professional project management accessible to anyone with a browser.
+
+That's where this is going.
 
 ---
 
 ## The one-sentence version
 
 > *Focal lets engineers run their own projects at a professional level — planning,
-> velocity, and forecasting — entirely inside GitHub and git, with no SaaS, no PM
-> role required, and full AI-agent support.*
+> velocity, and forecasting — entirely inside GitHub and git, with no new tool to
+> learn, no process ceremony to maintain, and full AI-agent support.*

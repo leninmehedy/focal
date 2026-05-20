@@ -2,7 +2,7 @@
 
 Focal's `pm` commands let you manage your entire delivery lifecycle — epics, stories,
 iteration planning, and retrospectives — using only GitHub Issues, GitHub Projects,
-and markdown files in your repo. No Jira, no Linear, no external tools.
+and markdown files in your repo. No external tools, no extra logins, no context switching.
 
 ---
 

@@ -135,6 +135,62 @@ def _select_repos() -> list[str]:
     return repos
 
 
+# ── Template field application ───────────────────────────────────────────────
+
+_TEMPLATE_PROJECT_NUMBER = 106
+_TEMPLATE_PROJECT_OWNER = "hashgraph"
+
+
+def _apply_template_fields(project_id: str) -> None:
+    """Fetch custom fields from the template project and recreate them on project_id.
+
+    Handles Status (single-select), Number, Date, and Iteration field types.
+    Skips fields that already exist on the target project (idempotent).
+    """
+    console.print(
+        "[cyan]Fetching template fields from hashgraph/projects/106...[/cyan]"
+    )
+    try:
+        template = gh.template_fields(_TEMPLATE_PROJECT_NUMBER, _TEMPLATE_PROJECT_OWNER)
+    except RuntimeError as e:
+        console.print(f"[yellow]⚠[/yellow]  Could not fetch template fields: {e}")
+        return
+
+    # Find existing field names on the new project to skip duplicates
+    try:
+        existing = {f["name"] for f in gh.project_fields_by_id(project_id)}
+    except RuntimeError:
+        existing = set()
+
+    created = []
+    skipped = []
+    failed = []
+
+    for field in template:
+        if field["name"] in existing:
+            skipped.append(field["name"])
+            continue
+        try:
+            gh.add_project_field(
+                project_id,
+                field["name"],
+                field["type"],
+                field["options"],
+            )
+            created.append(field["name"])
+        except RuntimeError as e:
+            failed.append((field["name"], str(e)))
+
+    if created:
+        console.print("[green]✔[/green] Fields created: " + "  ·  ".join(created))
+    if skipped:
+        console.print(
+            "[dim]  Skipped (already exist): " + ", ".join(skipped) + "[/dim]"
+        )
+    for name, err in failed:
+        console.print(f"[yellow]⚠[/yellow]  Could not create field '{name}': {err}")
+
+
 # ── Status column inspection ──────────────────────────────────────────────────
 
 
@@ -336,26 +392,8 @@ def run(focal_home: Path) -> None:
         project_id = proj["id"]
         console.print(f"[green]✔[/green] Created: {proj['url']}")
 
-        # Populate Status options
-        console.print("[cyan]Adding recommended Status columns...[/cyan]")
-        try:
-            status_field = gh.get_status_field(project_id)
-            if status_field:
-                gh.set_status_options(
-                    project_id,
-                    status_field["id"],
-                    gh.RECOMMENDED_STATUS_OPTIONS,
-                )
-                console.print(
-                    "[green]✔[/green] Status columns: "
-                    + "  ·  ".join(gh.RECOMMENDED_STATUS_OPTIONS)
-                )
-            else:
-                console.print(
-                    "[yellow]⚠[/yellow]  No Status field found — add one manually on the board"
-                )
-        except RuntimeError as e:
-            console.print(f"[yellow]⚠[/yellow]  Could not set Status columns: {e}")
+        # Apply template fields from hashgraph/projects/106
+        _apply_template_fields(project_id)
 
         done_status = "✅ Done"
 

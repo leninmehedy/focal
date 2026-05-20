@@ -5,9 +5,11 @@ MCP tools return dicts; we test the shape and error paths.
 """
 
 import json
-import dataclasses
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
+
+import pytest
+
+mcp = pytest.importorskip("mcp", reason="mcp package not installed; skipping MCP tests")
 
 
 # ── _cfg_dict ─────────────────────────────────────────────────────────────────
@@ -75,6 +77,7 @@ def test_focal_pm_status_no_iteration(tmp_path):
 def test_focal_pm_status_returns_shape(tmp_path):
     """focal_pm_status returns expected keys when an active iteration exists."""
     import datetime
+
     from focal.mcp_server import focal_pm_status
     from focal.pm import pm_state
 

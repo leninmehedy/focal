@@ -68,6 +68,11 @@ MCP treats agents like code calling a library.
 - As an agent, I want structured output from what-if scenarios so I can chain
   decisions (e.g. automatically suggest deferring a story after a what-if shows
   a slip) without parsing terminal text
+- As an engineer without an AI agent, I want the full interactive CLI to keep
+  working exactly as before — MCP is an optional accelerator, not a requirement
+- As an agent setting up a new project for a user, I want to drive the entire
+  setup sequence — board creation, repo init, first epic, first plan — by
+  conversing with the user to collect inputs, then executing non-interactively
 
 ## Design
 
@@ -181,10 +186,40 @@ For Claude Code, the entry written to `~/.claude/settings.json`:
 
 `focal skill install` is idempotent — re-running it is safe.
 
+Human:  "Just automa-saga/logx for now, create a new board, username is leninmehedy"
+
+Agent:  [calls focal_board_setup with all inputs — no prompts, no wizard]
+        ✔ Board created
+        ✔ ~/.focal/config.json written
+```
+
+This pattern — agent converses, human answers once, agent executes non-interactively —
+applies to the full setup sequence: board setup → `focal pm init` → first epic →
+first plan. The human is never blocked waiting for a wizard prompt; they just
+answer the agent's questions in natural language.
+
+The `focal_board_setup` MCP tool signature:
+
+```python
+@mcp.tool()
+def focal_board_setup(
+    owner: str,
+    assignee: str,
+    repos: list[str],
+    create_board: bool = True,
+    board_number: int | None = None,  # required if create_board=False
+) -> dict:
+    """Set up Focal board sync. Creates a GitHub Projects board if create_board
+    is True, otherwise uses the supplied board_number. Writes ~/.focal/config.json.
+    Returns {board_number, project_id, config_path}."""
+    ...
+```
+
 ### Tool inventory (initial scope)
 
 | Tool | Maps to | Returns |
 |---|---|---|
+| `focal_board_setup` | `focal board setup` | `{board_number, project_id, config_path}` |
 | `focal_whatif` | `focal pm what-if` | `{diffs, capacity_notes, summary}` |
 | `focal_plan_status` | `focal pm status` | `{iteration, delivered_sp, in_progress, blocked, days_remaining}` |
 | `focal_epic_create` | `focal pm epic-create` | `{issue_number, epic_id, url}` |
@@ -192,9 +227,35 @@ For Claude Code, the entry written to `~/.claude/settings.json`:
 | `focal_plan` | `focal pm plan` | `{iterations, total_sp, risk_count}` |
 | `focal_cache_refresh` | `focal cache refresh` | `{epics, stories, last_synced}` |
 
-Board sync commands (`focal board sync`) are out of scope for the initial
-implementation — they have side effects and interactive setup that makes them
-less suited to tool-call semantics.
+`focal board sync` (the recurring sync daemon) is out of scope for MCP tools —
+it runs on a scheduler and has no agent call site.
+
+### Non-interactive `focal board setup`
+
+`focal board setup` is currently a wizard — it cannot be driven by an agent.
+This design adds a `focal_board_setup` MCP tool and a corresponding
+`--non-interactive` CLI mode:
+
+```bash
+focal board setup \
+  --owner leninmehedy \
+  --repos "automa-saga/automa,automa-saga/logx" \
+  --create-board \
+  --assignee leninmehedy
+```
+
+The agent's role is to **collect inputs through conversation first**, then call
+the tool once with all required values — never to guess or fill in defaults
+silently. The interaction pattern looks like:
+
+```
+Human:  "Set up Focal for my new project automa-saga/logx"
+
+Agent:  "I need a few things:
+         1. Which GitHub repos should I watch for board sync?
+            (I can see automa-saga/logx — any others?)
+         2. Do you have an existing GitHub Projects board, or should I create one?
+         3. Your GitHub username for assignments?"
 
 ## Impact
 
@@ -230,12 +291,15 @@ arguments in a single tool are cleaner and match how agents actually use what-if
 | Which MCP SDK version to pin? Latest stable at implementation time. | @leninmehedy | Before implementation |
 | Should `focal skill install` modify global (`~/.claude/settings.json`) or project-local (`.claude/settings.json`) config? Global makes sense for a CLI tool. | @leninmehedy | Before implementation |
 | Do we expose `focal_whatif` with `apply: bool` to allow the agent to commit the simulated plan? Useful but adds risk — agent could write to disk without human review. Default `apply=False`, require explicit opt-in. | @leninmehedy | Before implementation |
+| Should `focal_board_setup` create the GitHub Projects board via API or require the user to create it first and pass the board number? Creating it via API is more seamless but requires `project` write scope confirmed at runtime. | @leninmehedy | Before implementation |
 
 ## Breakdown hint
 
-Epic: Focal MCP server (~34 SP)
+Epic: Focal MCP server (~42 SP)
   - Story: Add mcp dependency as optional extra in pyproject.toml (1 SP)
   - Story: Implement focal mcp serve subcommand with FastMCP scaffold (3 SP)
+  - Story: Add --non-interactive mode to focal board setup with all flags (5 SP)
+  - Story: Implement focal_board_setup MCP tool (3 SP)
   - Story: Implement focal_whatif MCP tool with structured dict output (5 SP)
   - Story: Implement focal_plan_status MCP tool (3 SP)
   - Story: Implement focal_epic_create MCP tool (3 SP)

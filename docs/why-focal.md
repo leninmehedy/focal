@@ -216,6 +216,38 @@ expensive, or too far from where the actual work happens.
 
 ---
 
+## The bigger vision
+
+Focal started as a tool for engineers. But the underlying idea is not limited to
+software.
+
+GitHub is already free, widely accessible, and used far beyond software
+development. At its core it is a platform for tracking work, recording decisions,
+and collaborating asynchronously — capabilities that every kind of project needs,
+not just codebases. Most people just don't know how to wire GitHub into a real PM
+workflow. Focal is the opinionated layer that does that wiring.
+
+Once that layer exists, the user doesn't have to be an engineer.
+
+A PhD student can use GitHub Issues to track experiments, Focal to plan
+dissertation chapters as iterations, and the retro log to capture what worked
+and what didn't each semester. A research team can coordinate across multiple
+projects from a single board without a paid PM tool. A small business can track
+client deliverables, log retrospectives, and forecast capacity — all in a free
+platform with a full audit trail in version control.
+
+The common thread is this: **anyone who manages a project — whether it's a
+codebase, a thesis, a research programme, or a business initiative — deserves
+structured, professional-grade delivery tooling without the cost, complexity, or
+context switching that comes with dedicated PM software.**
+
+GitHub already provides the foundation. Focal provides the workflow. Together,
+they make professional project management accessible to anyone with a browser.
+
+That's where this is going.
+
+---
+
 ## The one-sentence version
 
 > *Focal lets engineers run their own projects at a professional level — planning,

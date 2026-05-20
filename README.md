@@ -103,6 +103,8 @@ Once set up, you can drive everything in plain language:
 - *"Plan I1 — 2-week sprint, me and @bob at 8 SP each, starting Monday"*
 - *"What's our iteration status?"*
 - *"Walk me through the I1 retro — we hit our goal"* — agent asks follow-up questions for went-well, to-improve, and action items
+- *"What slips if I'm out next week?"*
+- *"We just got a security fix dropped in — what gets pushed to I2?"*
 
 ---
 

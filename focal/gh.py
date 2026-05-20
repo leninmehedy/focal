@@ -42,6 +42,74 @@ def project_fields(number: int, owner: str) -> list[dict]:
     return json.loads(out).get("fields", [])
 
 
+# Built-in GitHub Projects field types that cannot / need not be recreated
+_BUILTIN_FIELD_TYPES = {
+    "ProjectV2Field",  # Title, Assignees, Labels, Repository, etc.
+    "ProjectV2ReviewerField",
+}
+
+# Built-in field names to skip even if their type looks copyable
+_BUILTIN_FIELD_NAMES = {
+    "Title",
+    "Assignees",
+    "Labels",
+    "Linked pull requests",
+    "Milestone",
+    "Repository",
+    "Reviewers",
+    "Parent issue",
+    "Sub-issues progress",
+    "Created",
+    "Updated",
+    "Closed",
+}
+
+
+def template_fields(number: int, owner: str) -> list[dict]:
+    """Return copyable custom fields from a template project.
+
+    Each entry: {name, type, options} where options is a list of option names
+    for SingleSelect fields and [] for all others.
+    Skips built-in read-only fields that GitHub manages automatically.
+    """
+    raw = project_fields(number, owner)
+    result = []
+    for f in raw:
+        if f["name"] in _BUILTIN_FIELD_NAMES:
+            continue
+        if f["type"] in _BUILTIN_FIELD_TYPES:
+            continue
+        result.append(
+            {
+                "name": f["name"],
+                "type": f["type"],
+                "options": [o["name"] for o in f.get("options", [])],
+            }
+        )
+    return result
+
+
+def project_fields_by_id(project_id: str) -> list[dict]:
+    """Return all fields on a project given its node ID."""
+    data = _graphql(f"""
+      query {{
+        node(id: "{project_id}") {{
+          ... on ProjectV2 {{
+            fields(first: 50) {{
+              nodes {{
+                ... on ProjectV2Field {{ name }}
+                ... on ProjectV2SingleSelectField {{ name }}
+                ... on ProjectV2IterationField {{ name }}
+              }}
+            }}
+          }}
+        }}
+      }}
+    """)
+    nodes = data["data"]["node"]["fields"]["nodes"]
+    return [n for n in nodes if n.get("name")]
+
+
 def project_items(number: int, owner: str, limit: int = 500) -> list[dict]:
     out = _run(
         "project",
@@ -420,6 +488,91 @@ def set_status_options(project_id: str, field_id: str, options: list[str]) -> No
         }}
       }}
     """)
+
+
+# ── Field creation ────────────────────────────────────────────────────────────
+
+_FIELD_TYPE_MAP = {
+    "ProjectV2IterationField": "ITERATION",
+    "ProjectV2SingleSelectField": "SINGLE_SELECT",
+}
+
+# GitHub GraphQL dataType for number/date ProjectV2Field subtypes
+_FIELD_DATATYPE_MAP = {
+    "Estimated SP": "NUMBER",
+    "Actual SP": "NUMBER",
+    "Estimated Start": "DATE",
+    "Estimated Completion": "DATE",
+}
+
+
+def add_project_field(
+    project_id: str,
+    name: str,
+    field_type: str,
+    options: list[str],
+) -> Optional[str]:
+    """Create a custom field on a GitHub Projects v2 board.
+
+    Returns the new field ID, or None if the field type is not supported.
+
+    field_type is the raw GitHub type string from template_fields()
+    (e.g. 'ProjectV2SingleSelectField', 'ProjectV2IterationField',
+    'ProjectV2Field' for number/date).
+    """
+    if field_type == "ProjectV2SingleSelectField":
+        opts_gql = ", ".join(f'{{name: "{o}"}}' for o in options)
+        data = _graphql(f"""
+          mutation {{
+            createProjectV2Field(input: {{
+              projectId: "{project_id}"
+              dataType: SINGLE_SELECT
+              name: "{name}"
+              singleSelectOptions: [{opts_gql}]
+            }}) {{
+              projectV2Field {{
+                ... on ProjectV2SingleSelectField {{ id }}
+              }}
+            }}
+          }}
+        """)
+        return data["data"]["createProjectV2Field"]["projectV2Field"]["id"]
+
+    if field_type == "ProjectV2IterationField":
+        data = _graphql(f"""
+          mutation {{
+            createProjectV2Field(input: {{
+              projectId: "{project_id}"
+              dataType: ITERATION
+              name: "{name}"
+            }}) {{
+              projectV2Field {{
+                ... on ProjectV2IterationField {{ id }}
+              }}
+            }}
+          }}
+        """)
+        return data["data"]["createProjectV2Field"]["projectV2Field"]["id"]
+
+    if field_type == "ProjectV2Field":
+        # Plain fields: determine dataType by name
+        data_type = _FIELD_DATATYPE_MAP.get(name, "TEXT")
+        data = _graphql(f"""
+          mutation {{
+            createProjectV2Field(input: {{
+              projectId: "{project_id}"
+              dataType: {data_type}
+              name: "{name}"
+            }}) {{
+              projectV2Field {{
+                ... on ProjectV2Field {{ id }}
+              }}
+            }}
+          }}
+        """)
+        return data["data"]["createProjectV2Field"]["projectV2Field"]["id"]
+
+    return None
 
 
 # ── Adopt helpers ─────────────────────────────────────────────────────────────

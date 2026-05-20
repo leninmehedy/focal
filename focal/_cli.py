@@ -713,10 +713,10 @@ def pm_adopt(
         "--story-label",
         help="Comma-separated label(s) that identify stories (e.g. 'story,task').",
     ),
-    sp_field: str = typer.Option(
-        "Story Points",
+    sp_field: Optional[str] = typer.Option(
+        None,
         "--sp-field",
-        help="GitHub Projects custom field name for SP.",
+        help="GitHub Projects custom field name for SP. Omit to auto-detect common names.",
     ),
     default_sp: Optional[int] = typer.Option(
         None,
@@ -732,6 +732,11 @@ def pm_adopt(
         False,
         "--normalise",
         help="Re-label issues, move SP from title to body, create sub-issue links. Requires --apply.",
+    ),
+    prompt_missing: bool = typer.Option(
+        False,
+        "--prompt-missing",
+        help="Interactively prompt for SP on issues where no estimate is found.",
     ),
 ):
     """Scan an existing repo's issues and bootstrap Focal PM state.
@@ -753,6 +758,7 @@ def pm_adopt(
         story_labels=[lb.strip() for lb in story_label.split(",")],
         sp_field=sp_field,
         default_sp=default_sp,
+        prompt_missing=prompt_missing,
         apply=apply,
         normalise=normalise,
     )

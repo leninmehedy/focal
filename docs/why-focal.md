@@ -248,6 +248,42 @@ That's where this is going.
 
 ---
 
+## Why not just use an AI agent and /loop?
+
+A natural question once you know Focal works with AI agents: *why install
+anything at all? Can't Claude just run the `gh` commands directly, and use
+`/loop` to keep the board synced?*
+
+Yes — and that's actually a valid entry point. A Claude skill loaded with Focal's
+conventions and `gh` command patterns can cover most of the PM workflow with zero
+installation. `/loop` can trigger a board sync on a schedule while your session
+is active.
+
+But there are meaningful differences as your usage grows:
+
+| | Claude skill + `/loop` | Focal CLI | Focal + MCP skill |
+|---|---|---|---|
+| **PM workflow** (epics, stories, planning, retros) | ✓ Claude generates on request | ✓ Deterministic, idempotent commands | ✓ Agent calls structured tools directly |
+| **Board sync** | Active session only — stops when you close Claude | Always-on via launchd/cron, runs in background | Always-on |
+| **State cache** | Re-fetches from GitHub on every request | Local JSON cache — fast, works offline | Local JSON cache |
+| **File format consistency** | May drift as model responses vary | Exact, versioned output every time | Exact, versioned output every time |
+| **Works without AI** | ✗ | ✓ Full interactive CLI | Partial — CLI works, MCP tools need an agent |
+| **Setup friction** | Minimal — import a prompt | `install.sh` + `focal board setup` | Above + `focal skill install` |
+
+The pattern is: **the skill is the lowest-friction way to start**; Focal adds
+reliability, always-on sync, and consistency at scale; the MCP integration gives
+you the best of both.
+
+This also explains why Focal exists. It isn't built because AI agents can't do
+PM work — they can. It's built because some things should be **deterministic and
+always-on**, independent of whether an AI session is open. A board that only
+syncs when Claude is running is not a board you can rely on. A plan file that
+looks slightly different each time it's regenerated is not a plan file you can
+diff in git. Focal provides the stable, always-available foundation; the AI
+layer accelerates on top of it.
+
+---
+
 ## The one-sentence version
 
 > *Focal lets engineers run their own projects at a professional level — planning,

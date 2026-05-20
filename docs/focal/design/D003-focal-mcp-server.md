@@ -215,20 +215,43 @@ def focal_board_setup(
     ...
 ```
 
-### Tool inventory (initial scope)
+### Tool inventory
+
+All commands with agent value are exposed. The full surface:
 
 | Tool | Maps to | Returns |
 |---|---|---|
+| **Setup** | | |
 | `focal_board_setup` | `focal board setup` | `{board_number, project_id, config_path}` |
-| `focal_whatif` | `focal pm what-if` | `{diffs, capacity_notes, summary}` |
-| `focal_plan_status` | `focal pm status` | `{iteration, delivered_sp, in_progress, blocked, days_remaining}` |
+| `focal_board_sync` | `focal board sync` | `{added, inherited, pushed, stale}` |
+| **Repo lifecycle** | | |
+| `focal_pm_init` | `focal pm init` | `{repo, files_created, labels_created}` |
+| `focal_pm_adopt` | `focal pm adopt` | `{epics, stories, sp_missing, state_path}` |
+| **Backlog** | | |
 | `focal_epic_create` | `focal pm epic-create` | `{issue_number, epic_id, url}` |
 | `focal_story_create` | `focal pm story-create` | `{issue_number, story_id, url}` |
+| **Planning** | | |
 | `focal_plan` | `focal pm plan` | `{iterations, total_sp, risk_count}` |
+| `focal_whatif` | `focal pm what-if` | `{diffs, capacity_notes, summary}` |
+| `focal_plan_status` | `focal pm status` | `{iteration, delivered_sp, in_progress, blocked, days_remaining}` |
+| **Delivery close** | | |
+| `focal_retro` | `focal pm retro` | `{iteration, planned_sp, delivered_sp, carryover_sp}` |
+| **Cache** | | |
 | `focal_cache_refresh` | `focal cache refresh` | `{epics, stories, last_synced}` |
+| `focal_cache_status` | `focal cache status` | `{repos: [{repo, epics, stories, last_synced, status}]}` |
+| **Design docs** | | |
+| `focal_design_list` | `focal pm design list` | `{designs: [{id, title, status, epic}]}` |
 
-`focal board sync` (the recurring sync daemon) is out of scope for MCP tools —
-it runs on a scheduler and has no agent call site.
+**Why `focal_board_sync` is included:**
+Although `focal board sync` normally runs on a scheduler, there is a valid agent
+call site: after creating a batch of new issues, the agent can immediately trigger
+a sync to pull them onto the personal board without waiting for the next scheduled
+run. It is also non-interactive and exits cleanly — a natural fit for a tool call.
+
+**Not exposed:**
+`focal pm remove-repo` — administrative housekeeping with no agent-driven use case.
+`focal cache refresh-all` — covered by `focal_cache_refresh` per-repo; the
+all-repos variant is a maintenance operation better left to the scheduler.
 
 ### Non-interactive `focal board setup`
 
@@ -297,17 +320,23 @@ All resolved — none outstanding.
 
 ## Breakdown hint
 
-Epic: Focal MCP server (~42 SP)
+Epic: Focal MCP server (~58 SP)
   - Story: Add mcp dependency as optional extra in pyproject.toml (1 SP)
   - Story: Implement focal mcp serve subcommand with FastMCP scaffold (3 SP)
   - Story: Add --non-interactive mode to focal board setup with all flags (5 SP)
   - Story: Implement focal_board_setup MCP tool (3 SP)
-  - Story: Implement focal_whatif MCP tool with structured dict output (5 SP)
-  - Story: Implement focal_plan_status MCP tool (3 SP)
+  - Story: Implement focal_board_sync MCP tool (2 SP)
+  - Story: Implement focal_pm_init MCP tool (3 SP)
+  - Story: Implement focal_pm_adopt MCP tool (3 SP)
   - Story: Implement focal_epic_create MCP tool (3 SP)
   - Story: Implement focal_story_create MCP tool (3 SP)
   - Story: Implement focal_plan MCP tool (5 SP)
+  - Story: Implement focal_whatif MCP tool with structured dict output (5 SP)
+  - Story: Implement focal_plan_status MCP tool (3 SP)
+  - Story: Implement focal_retro MCP tool (5 SP)
   - Story: Implement focal_cache_refresh MCP tool (2 SP)
+  - Story: Implement focal_cache_status MCP tool (2 SP)
+  - Story: Implement focal_design_list MCP tool (2 SP)
   - Story: Implement focal skill install for Claude Code (3 SP)
   - Story: Implement focal skill install for Cursor (3 SP)
   - Story: Write tests for MCP tool return shapes (3 SP)

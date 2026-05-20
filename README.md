@@ -115,4 +115,3 @@ Once set up, you can drive everything in plain language:
 | [PM Guide](docs/pm-guide.md) | Full project management workflow — design docs, epics, delivery cycle |
 | [Testing Guide](docs/testing-guide.md) | Beta testing — test cases for every command |
 | [AGENTS.md](AGENTS.md) | Full command reference for AI agents |
-| [MCP Server](docs/focal/design/D003-focal-mcp-server.md) | MCP integration — `focal skill install` wires every PM command as an agent tool |

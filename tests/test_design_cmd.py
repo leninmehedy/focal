@@ -2,7 +2,12 @@
 
 from pathlib import Path
 
-from focal.pm.design_cmd import _parse_frontmatter, load_designs, summary_lines
+from focal.pm.design_cmd import (
+    _parse_frontmatter,
+    load_designs,
+    rewrite_frontmatter,
+    summary_lines,
+)
 
 
 def _write_doc(
@@ -172,3 +177,50 @@ class TestSummaryLines:
 
     def test_returns_empty_when_no_design_dir(self, tmp_path):
         assert summary_lines(tmp_path) == []
+
+
+class TestRewriteFrontmatter:
+    def test_updates_existing_key(self, tmp_path):
+        p = _write_doc(tmp_path, "D001.md", {"id": "D001", "status": "Planned"})
+        rewrite_frontmatter(p, {"status": "Active"})
+        fm = _parse_frontmatter(p)
+        assert fm["status"] == "Active"
+        assert fm["id"] == "D001"  # unchanged
+
+    def test_adds_new_key(self, tmp_path):
+        p = _write_doc(tmp_path, "D001.md", {"id": "D001", "status": "Planned"})
+        rewrite_frontmatter(p, {"epic": "42"})
+        fm = _parse_frontmatter(p)
+        assert fm["epic"] == "42"
+        assert fm["status"] == "Planned"
+
+    def test_multiple_updates(self, tmp_path):
+        p = _write_doc(
+            tmp_path, "D001.md", {"id": "D001", "status": "Planned", "epic": ""}
+        )
+        rewrite_frontmatter(
+            p, {"status": "Active", "epic": "99", "updated": "2026-05-20"}
+        )
+        fm = _parse_frontmatter(p)
+        assert fm["status"] == "Active"
+        assert fm["epic"] == "99"
+        assert fm["updated"] == "2026-05-20"
+
+    def test_body_preserved(self, tmp_path):
+        p = _write_doc(
+            tmp_path,
+            "D001.md",
+            {"id": "D001", "status": "Planned"},
+            body="## My section\n\nSome text.",
+        )
+        rewrite_frontmatter(p, {"status": "Active"})
+        text = p.read_text()
+        assert "## My section" in text
+        assert "Some text." in text
+
+    def test_no_frontmatter_is_noop(self, tmp_path):
+        p = tmp_path / "plain.md"
+        p.write_text("# No frontmatter\n\nJust text.", encoding="utf-8")
+        original = p.read_text()
+        rewrite_frontmatter(p, {"status": "Active"})
+        assert p.read_text() == original

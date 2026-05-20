@@ -168,6 +168,10 @@ Creates a GitHub epic issue.
 | EC3 | ID increments | Create two epics | First gets `E1`, second gets `E2` ✅ |
 | EC4 | State cache updated | After EC2, `cat docs/focal/.cache/focal-state.json` in the target repo | Epic entry present with correct `issue_number`, `sp`, `status: "open"` ✅ |
 | EC5 | No board setup | Run without config | Clear error ❌ |
+| EC6 | From design doc | `focal pm epic-create owner/repo --from-design docs/focal/design/D001-foo.md --repo-root .` | Prints dry-run summary (epic title, SP, story list), asks for confirmation, creates epic + all stories, links stories as sub-issues, sets SP on board, rewrites design doc frontmatter to `status: Active` and adds `epic: <N>` ✅ |
+| EC7 | From design — no breakdown | `--from-design` on a doc with no `## Breakdown hint` section | Clear error: "No '## Breakdown hint' section found" — no traceback ❌ |
+| EC8 | From design — design not found | `--from-design non-existent.md` | Clear error: "Design doc not found" ❌ |
+| EC9 | From design — design still Draft | `--from-design` on a doc with `status: Draft` | Command proceeds; prints current status in dry-run summary; frontmatter updated to Active ✅ |
 
 ### `focal pm story-create`
 
@@ -233,6 +237,32 @@ Historical velocity table from `docs/focal/retro-log.md`.
 | V3 | Footer totals | | One-line footer: `N iterations · X SP delivered · avg carry-over: Y SP/iter` ✅ |
 | V4 | No retro-log.md | Run before any retro | Friendly message: no retro data found — no traceback ✅ |
 | V5 | Empty retro-log.md | File exists but has no iteration blocks | Same friendly message as V4 ✅ |
+
+### `focal pm adopt`
+
+Onboards an existing repo's issues into Focal PM state.
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| AD1 | Dry run | `focal pm adopt owner/repo` | Prints epics + stories tables with focal IDs, SP, hierarchy links. No files written. Footer: "Dry run — pass --apply" ✅ |
+| AD2 | Apply | `focal pm adopt owner/repo --apply --repo-root .` | Writes `docs/focal/.cache/focal-state.json`. Epics and stories have `focal_id`, `issue_number`, `sp`, `status` ✅ |
+| AD3 | SP auto-detect | Repo has issues with "Estimated SP" project field | SP populated from field without needing `--sp-field` ✅ |
+| AD4 | SP fallback | `--default-sp 3` on a repo with no SP anywhere | All missing estimates set to 3 ✅ |
+| AD5 | Prompt missing | `--prompt-missing` on repo with some unestimated issues | Interactively prompts once per unestimated issue; SP recorded in output ✅ |
+| AD6 | Orphaned stories | Stories with no epic linkage | Reported as orphaned in warnings; added to synthetic `E0` in state when `--apply` ✅ |
+| AD7 | Normalise | `--apply --normalise` | Re-labels issues, moves SP from title to body table, creates sub-issue links for inferred hierarchy ✅ |
+| AD8 | Idempotent | Run `--apply` twice | Second run does not duplicate epics or stories in state cache ✅ |
+
+### `focal pm design`
+
+Lists design docs in `docs/focal/design/`.
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| DS1 | List all | `focal pm design owner/repo` | Table grouped by status (Draft → Planned → Active → Done → Archived); shows ID, title, epic ref, updated date ✅ |
+| DS2 | Filter by status | `focal pm design owner/repo --status Active` | Only Active docs shown ✅ |
+| DS3 | No design dir | Run on repo without `docs/focal/design/` | Friendly message: no design directory found ✅ |
+| DS4 | In pm status | `focal pm status owner/repo` | Footer includes one line per Draft/Planned/Active design doc ✅ |
 
 ### `focal pm remove-repo`
 

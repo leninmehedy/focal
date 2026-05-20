@@ -378,12 +378,34 @@ def pm_epic_create(
         None, "--description", help="One-line description (skips prompt)"
     ),
     sp: int = typer.Option(None, "--sp", help="Story point estimate (skips prompt)"),
+    from_design: Optional[Path] = typer.Option(
+        None,
+        "--from-design",
+        help="Path to a design doc — parses ## Breakdown hint and creates epic + stories non-interactively.",
+    ),
 ):
-    """Create a GitHub epic and update docs/focal/epics.md."""
-    from focal.pm.epic_cmd import run
+    """Create a GitHub epic and update docs/focal/epics.md.
 
+    Use --from-design <path> to parse a design doc's breakdown hint and
+    create the full epic + story tree in one command.
+    """
     config, _ = _load_config(require=True)
-    run(repo, repo_root.resolve(), config, title=title, description=description, sp=sp)
+
+    if from_design is not None:
+        from focal.pm.epic_cmd import run_from_design
+
+        run_from_design(repo, repo_root.resolve(), config, from_design.resolve())
+    else:
+        from focal.pm.epic_cmd import run
+
+        run(
+            repo,
+            repo_root.resolve(),
+            config,
+            title=title,
+            description=description,
+            sp=sp,
+        )
 
 
 @pm_app.command("story-create")

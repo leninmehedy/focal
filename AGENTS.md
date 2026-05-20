@@ -144,17 +144,47 @@ on all repos registered in `~/.focal/config.json` via `focal pm init`.
 9. focal cache status                    # check sync age and issue counts across all repos
 ```
 
+### Writing a design doc
+
+When a human asks you to write or draft a design doc, always populate the
+`## Breakdown hint` section before finishing. Use this exact format — the
+parser is strict:
+
+```
+## Breakdown hint
+
+Epic: <plain title, no quotes> (~N SP)
+  - Story: <plain title> (N SP)
+  - Story: <plain title> (N SP)
+```
+
+Rules:
+- **One epic per design doc** (one `Epic:` line)
+- Epic SP uses a tilde prefix: `(~N SP)` — this signals it's an estimate
+- Story SP has no tilde: `(N SP)` — these are per-story point counts
+- Titles are plain text — no backticks, bold, or markdown inside the line
+- Each story line starts with exactly two spaces + `- Story:`
+- The section ends at the next `##` heading or end of file
+
+If any `## Impact` area is marked `Breaking`, add an explicit migration story
+in the breakdown (e.g. `- Story: Write migration guide for X (2 SP)`).
+
 ### Reading the design doc for backlog structure
 
 When a human says "create epics and stories from the design doc", do this:
 
-1. Read `docs/focal/design/D001-*.md`
-2. Find the **Breakdown hint** section — it lists epics with estimated SP and
-   stories under each
-3. Find the **Impact** section — if any area is `Breaking`, add a migration story
-4. Call `focal pm epic-create` for each epic (non-interactively)
-5. Call `focal pm story-create` for each story, passing `--epic E{N}` to attach
-   it to the right epic without prompting
+1. Read the design doc at `docs/focal/design/D*.md`
+2. Check `## Breakdown hint` is populated — if not, fill it in first (see above)
+3. Run:
+   ```
+   focal pm epic-create <owner/repo> \
+     --from-design docs/focal/design/<filename>.md \
+     --repo-root <path>
+   ```
+   This creates the epic, all stories, links sub-issues, updates board SP,
+   and advances the design doc status from `Planned → Active` — all in one command.
+4. If the design doc is still `Draft` (not yet `Planned`), update its frontmatter
+   `status` to `Planned` before running the command.
 
 ### Local state cache
 
@@ -191,7 +221,7 @@ focal cache refresh-all --force
 ### Typical agent conversation patterns
 
 **PM:** "Create epics and stories from our design doc"
-→ Read `docs/focal/design/*.md`, extract breakdown hint, run `epic-create` + `story-create` per item
+→ Ensure `## Breakdown hint` is populated, then run `focal pm epic-create <repo> --from-design <path>`
 
 **PM:** "Plan I1 — 2 weeks, starts Monday, me and @bob, bob has 6 SP"
 → `focal pm plan owner/repo --weeks 2 --start <next Monday> --team "pm_handle:8,bob:6"`

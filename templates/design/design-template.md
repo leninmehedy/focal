@@ -107,14 +107,20 @@ relates-to:       # optional: D-IDs or GitHub issue numbers this design connects
 
 ## Breakdown hint
 
-<!-- Plain-English suggestion of how this design maps to epics and stories.
-     AI agents use this section when running `focal pm epic-create` and
-     `focal pm story-create` to generate the initial backlog.
+<!-- Machine-readable breakdown used by `focal pm epic-create --from-design`.
+     Always populate this section before running that command.
 
-     Format:
-     Epic: <title> (~N SP)
-       - Story: <title> (N SP)
-       - Story: <title> (N SP)
+     Strict format (parser is exact):
+       Epic: <plain title> (~N SP)
+         - Story: <plain title> (N SP)
+         - Story: <plain title> (N SP)
+
+     Rules:
+     - One Epic: line per doc
+     - Epic SP uses tilde (~N SP); story SP has no tilde (N SP)
+     - Titles are plain text — no markdown, backticks, or bold
+     - Story lines: two spaces + "- Story:"
+     - If any Impact area is Breaking, add a migration story here
 -->
 
 Epic: <!-- title --> (~N SP)

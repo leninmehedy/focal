@@ -129,6 +129,41 @@ def run(repo_root: Path, status_filter: str | None = None) -> None:
     console.print()
 
 
+def rewrite_frontmatter(path: Path, updates: dict) -> None:
+    """Apply *updates* to the YAML frontmatter of *path* in-place.
+
+    Preserves all unchanged fields and the entire document body.
+    Adds new keys at the end of the frontmatter block if not already present.
+    """
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines(keepends=True)
+    if not lines or lines[0].strip() != "---":
+        return
+    end = next((i for i, ln in enumerate(lines[1:], 1) if ln.strip() == "---"), None)
+    if end is None:
+        return
+
+    # Rewrite lines that match an updated key; track which keys were written
+    written = set()
+    new_fm: list[str] = []
+    for line in lines[1:end]:
+        if ":" in line:
+            key = line.partition(":")[0].strip()
+            if key in updates:
+                new_fm.append(f"{key}: {updates[key]}\n")
+                written.add(key)
+                continue
+        new_fm.append(line)
+
+    # Append any new keys that weren't already in the frontmatter
+    for key, value in updates.items():
+        if key not in written:
+            new_fm.append(f"{key}: {value}\n")
+
+    result = ["---\n"] + new_fm + ["---\n"] + lines[end + 1 :]
+    path.write_text("".join(result), encoding="utf-8")
+
+
 def summary_lines(repo_root: Path) -> list[str]:
     """Return one-line summaries for active design docs (for pm status footer)."""
     design_dir = repo_root / "docs" / "focal" / "design"

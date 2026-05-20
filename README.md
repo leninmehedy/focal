@@ -55,7 +55,7 @@ interrupting the engineer.
 | Without Focal | With Focal |
 |---|---|
 | Open 5 project boards to see what's assigned to you | One board aggregates everything automatically |
-| Move a card manually on your personal board | Status changes push back to every origin project |
+| Update status on your board, then update every origin project board too | Move a card once — status pushes back to every origin project automatically |
 | Chase closed issues off your board | Closed or unassigned issues move to Done on their own |
 
 **PM CLI** — epics, stories, iteration planning, retros, and velocity — all in

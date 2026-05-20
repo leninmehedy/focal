@@ -56,6 +56,24 @@ class TestBodyTable:
         assert extract_sp(_issue(body="Just prose text.")) is None
 
 
+class TestBodyProse:
+    def test_bold_estimated(self):
+        assert extract_sp(_issue(body="**Estimated:** 5 SP")) == 5
+
+    def test_plain_estimated(self):
+        assert extract_sp(_issue(body="Estimated: 7 SP")) == 7
+
+    def test_case_insensitive(self):
+        assert extract_sp(_issue(body="estimated: 3 sp")) == 3
+
+    def test_table_beats_prose(self):
+        body = "| SP | 10 |\n|---|---|\n**Estimated:** 3 SP"
+        assert extract_sp(_issue(body=body)) == 10
+
+    def test_no_match_returns_none(self):
+        assert extract_sp(_issue(body="Some prose without estimate.")) is None
+
+
 class TestFallback:
     def test_none_when_nothing_found(self):
         assert extract_sp(_issue(title="Plain", body="No SP here")) is None

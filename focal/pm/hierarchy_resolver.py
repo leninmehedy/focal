@@ -11,7 +11,7 @@ import re
 from typing import Optional
 
 _BODY_PARENT_RE = re.compile(
-    r"(?:Part\s+of|Parent:?)\s+#(\d+)",
+    r"(?:Part\s+of(?:\s+epic)?|Parent:?)\s+#(\d+)",
     re.IGNORECASE,
 )
 

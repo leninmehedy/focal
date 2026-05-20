@@ -156,7 +156,9 @@ def run(
     board_owner = config.get("board_owner", "")
 
     body = (
-        f"Part of #{epic['issue_number']}\n\n{description}\n\n| SP | {sp} |\n|---|---|"
+        f"Part of epic #{epic['issue_number']}.\n\n"
+        f"{description}\n\n"
+        f"**Estimated:** {sp} SP"
     )
 
     # Create GitHub issue

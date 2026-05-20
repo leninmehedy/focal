@@ -23,6 +23,12 @@ _BODY_TABLE_RE = re.compile(
     re.IGNORECASE | re.MULTILINE,
 )
 
+# Matches prose like:  **Estimated:** 5 SP  or  Estimated: 5 SP
+_BODY_PROSE_RE = re.compile(
+    r"\*{0,2}Estimated:?\*{0,2}\s*(\d+)\s*SP",
+    re.IGNORECASE,
+)
+
 
 def _from_title(title: str) -> Optional[int]:
     for pattern in _TITLE_PATTERNS:
@@ -32,8 +38,13 @@ def _from_title(title: str) -> Optional[int]:
     return None
 
 
-def _from_body(body: str) -> Optional[int]:
+def _from_body_table(body: str) -> Optional[int]:
     m = _BODY_TABLE_RE.search(body)
+    return int(m.group(1)) if m else None
+
+
+def _from_body_prose(body: str) -> Optional[int]:
+    m = _BODY_PROSE_RE.search(body)
     return int(m.group(1)) if m else None
 
 
@@ -60,8 +71,15 @@ def extract_sp(
     if sp is not None:
         return sp
 
+    body = issue.get("body", "")
+
     # 3. Body table
-    sp = _from_body(issue.get("body", ""))
+    sp = _from_body_table(body)
+    if sp is not None:
+        return sp
+
+    # 4. Body prose: **Estimated:** N SP
+    sp = _from_body_prose(body)
     if sp is not None:
         return sp
 

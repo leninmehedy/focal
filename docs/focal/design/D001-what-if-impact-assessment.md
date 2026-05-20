@@ -2,10 +2,10 @@
 id: D001
 title: What-if impact assessment for iteration planning
 author: @leninmehedy
-status: Planned
+status: Active
 epic: 69
 created: 2026-05-19
-updated: 2026-05-19
+updated: 2026-05-20
 relates-to:
 ---
 
@@ -212,7 +212,7 @@ no new on-disk format is needed.
 
 ## Breakdown hint
 
-Epic: What-if impact assessment (`focal pm what-if`) (~34 SP)
+Epic: What-if impact assessment (focal pm what-if) (~34 SP)
   - Story: Extract shared plan helpers from plan_cmd.py (greedy assign, capacity calc) (3 SP)
   - Story: Implement iteration_parser.py — parse iteration-planning.md into structured data (5 SP)
   - Story: Implement scenario application — PTO capacity reduction (5 SP)

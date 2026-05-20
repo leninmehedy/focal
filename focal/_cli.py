@@ -963,6 +963,55 @@ def cache_status():
         )
 
 
+@pm_app.command("what-if")
+def pm_what_if(
+    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
+    repo_root: Path = typer.Option(
+        Path("."), "--repo-root", help="Local path to the repo root"
+    ),
+    pto: Optional[list[str]] = typer.Option(
+        None,
+        "--pto",
+        help="PTO scenario: HANDLE:FROM:TO (e.g. alice:2026-06-02:2026-06-06). Repeatable.",
+    ),
+    inject: Optional[list[str]] = typer.Option(
+        None,
+        "--inject",
+        help="Inject a high-priority story: 'TITLE:SP' (e.g. 'P1 fix:8'). Repeatable.",
+    ),
+    reestimate: Optional[list[str]] = typer.Option(
+        None,
+        "--reestimate",
+        help="Re-estimate a story: STORY_ID:NEW_SP (e.g. 1.3:13). Repeatable.",
+    ),
+    apply: bool = typer.Option(
+        False,
+        "--apply",
+        help="Write the updated iteration-planning.md. Dry-run by default.",
+    ),
+):
+    """Simulate what happens to the iteration plan under a hypothetical scenario.
+
+    Dry-run by default — prints a before/after impact report without writing anything.
+    Pass --apply to overwrite docs/focal/iteration-planning.md with the simulated plan.
+
+    Examples:
+      focal pm what-if owner/repo --pto alice:2026-06-02:2026-06-06
+      focal pm what-if owner/repo --inject "Urgent fix:8" --reestimate 1.3:13
+      focal pm what-if owner/repo --pto me:2026-06-02:2026-06-06 --apply
+    """
+    from focal.pm.whatif_cmd import run
+
+    run(
+        repo=repo,
+        repo_root=repo_root.resolve(),
+        pto_raw=pto or [],
+        inject_raw=inject or [],
+        reestimate_raw=reestimate or [],
+        apply=apply,
+    )
+
+
 def main() -> None:
     app()
 

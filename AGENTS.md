@@ -43,11 +43,14 @@ focal board sync                     — sync personal board with all origin boa
 focal board setup                    — interactive wizard, writes ~/.focal/config.json
 
 focal pm init <owner/repo>           — bootstrap repo with Focal PM structure
+focal pm adopt <owner/repo>          — bootstrap state from existing issues (onboarding)
 focal pm epic-create <owner/repo>    — create a GitHub epic issue
 focal pm story-create <owner/repo>   — create a story linked to an epic
 focal pm plan <owner/repo>           — generate iteration-planning.md
 focal pm retro <owner/repo>          — log completed iteration to retro-log.md
 focal pm status <owner/repo>         — live terminal summary of current iteration
+focal pm design list <owner/repo>    — list design docs with status and epic linkage
+focal pm what-if <owner/repo>        — dry-run simulation of plan under hypothetical scenarios
 focal pm remove-repo <owner/repo>    — unregister a repo from PM tracking
 
 focal cache refresh <owner/repo>     — re-fetch state for one repo from GitHub
@@ -114,6 +117,28 @@ python3 focal.py pm retro <owner/repo> \
 
 `--went-well`, `--to-improve`, and `--action` are all repeatable — pass the flag
 multiple times for multiple items.
+
+### `focal pm adopt`
+
+```bash
+focal pm adopt <owner/repo> \
+  --sp-field "Estimated SP" \   # optional; auto-detects common names if omitted
+  --prompt-missing              # prompt for SP on stories where none was found
+```
+
+Use `--prompt-missing` when onboarding a repo that has no SP estimates — the user can fill them in interactively.
+
+### `focal pm what-if`
+
+```bash
+focal pm what-if <owner/repo> \
+  --pto "alice:2026-06-27:2026-07-04" \   # repeatable; HANDLE:FROM:TO
+  --inject "Urgent fix:8" \               # repeatable; "TITLE:SP"
+  --reestimate "1.3:13" \                 # repeatable; STORY_ID:SP
+  --apply                                 # write updated iteration-planning.md (default: dry run)
+```
+
+All scenario flags are repeatable. Combine them freely — e.g. `--pto` + `--inject` in one command.
 
 ### `focal pm status`
 
@@ -231,6 +256,18 @@ focal cache refresh-all --force
 
 **PM:** "What's our iteration status?"
 → `focal pm status owner/repo --refresh`
+
+**PM:** "What slips if alice is out next week?" / "Model the impact of this PTO"
+→ `focal pm what-if owner/repo --pto "alice:FROM:TO"` — dry run by default; add `--apply` to commit the updated plan
+
+**PM:** "We need to squeeze in an urgent fix — what gets pushed?" / "Add X as high priority"
+→ `focal pm what-if owner/repo --inject "Urgent fix:SP"` — shows which existing stories slip out
+
+**PM:** "Story 1.3 is bigger than we thought — reforecast the plan"
+→ `focal pm what-if owner/repo --reestimate "1.3:NEW_SP"`
+
+**PM:** "We're onboarding Focal to an existing repo — bootstrap the state"
+→ `focal pm adopt owner/repo --sp-field "Estimated SP"` (or omit `--sp-field` for auto-detect; add `--prompt-missing` if SP is absent from many issues)
 
 ---
 

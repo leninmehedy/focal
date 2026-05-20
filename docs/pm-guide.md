@@ -75,19 +75,24 @@ when all flags are supplied — useful for scripting and AI agents.
 
 ```bash
 # Interactive — prompts for all inputs
-python3 focal.py pm init owner/repo
-python3 focal.py pm epic-create owner/repo
-python3 focal.py pm story-create owner/repo
-python3 focal.py pm plan owner/repo
-python3 focal.py pm retro owner/repo
-python3 focal.py pm status owner/repo
-python3 focal.py cache refresh owner/repo
+focal pm init owner/repo
+focal pm epic-create owner/repo
+focal pm story-create owner/repo
+focal pm plan owner/repo
+focal pm retro owner/repo
+focal pm status owner/repo
+focal pm adopt owner/repo
+focal cache refresh owner/repo
 
 # Non-interactive — common flags (see each command section for full reference)
-python3 focal.py pm epic-create owner/repo --title "Title" --description "..." --sp 8
-python3 focal.py pm story-create owner/repo --epic E1 --title "Title" --sp 3
-python3 focal.py pm plan owner/repo --weeks 2 --start 2026-05-19 --team "alice:8,bob:6"
-python3 focal.py pm retro owner/repo --iteration I1 --goal-met --notes "..."
+focal pm epic-create owner/repo --title "Title" --description "..." --sp 8
+focal pm epic-create owner/repo --from-design docs/focal/design/D001-feature.md
+focal pm story-create owner/repo --epic E1 --title "Title" --sp 3
+focal pm plan owner/repo --weeks 2 --start 2026-05-19 --team "alice:8,bob:6"
+focal pm retro owner/repo --iteration I1 --goal-met --notes "..."
+focal pm adopt owner/repo --sp-field "Estimated SP"
+focal pm what-if owner/repo --pto "alice:2026-06-27:2026-07-04"
+focal pm what-if owner/repo --inject "Urgent fix:8" --reestimate "1.3:13"
 ```
 
 ---
@@ -171,7 +176,7 @@ as its primary input — it does not need to infer the structure from the rest o
 Bootstrap a repo with the Focal project management structure. Safe to re-run — existing files are never overwritten.
 
 ```bash
-python3 focal.py pm init <owner/repo> [--repo-root PATH]
+focal pm init <owner/repo> [--repo-root PATH]
 ```
 
 **What it creates:**
@@ -195,7 +200,7 @@ Your changes will be applied to every repo you initialise.
 **Example:**
 
 ```
-$ python3 focal.py pm init leninmehedy/my-project
+$ focal pm init leninmehedy/my-project
   ✔ Label 'epic' ready
   ✔ Label 'story' ready
   ✔ .github/ISSUE_TEMPLATE/epic.md
@@ -213,7 +218,7 @@ $ python3 focal.py pm init leninmehedy/my-project
 Guided wizard to create a GitHub epic issue and record it in `docs/focal/epics.md`.
 
 ```bash
-python3 focal.py pm epic-create <owner/repo> [--repo-root PATH]
+focal pm epic-create <owner/repo> [--repo-root PATH]
 ```
 
 **What it does:**
@@ -238,7 +243,7 @@ Allow users to log in with GitHub and Google.
 **Example:**
 
 ```
-$ python3 focal.py pm epic-create leninmehedy/my-project
+$ focal pm epic-create leninmehedy/my-project
   Title: Add OAuth support
   Description: Allow users to log in with GitHub and Google.
   Estimate (SP): 21
@@ -256,7 +261,7 @@ $ python3 focal.py pm epic-create leninmehedy/my-project
 Create a story issue attached to an existing epic.
 
 ```bash
-python3 focal.py pm story-create <owner/repo> [--repo-root PATH]
+focal pm story-create <owner/repo> [--repo-root PATH]
 ```
 
 **What it does:**
@@ -271,7 +276,7 @@ python3 focal.py pm story-create <owner/repo> [--repo-root PATH]
 **Example:**
 
 ```
-$ python3 focal.py pm story-create leninmehedy/my-project
+$ focal pm story-create leninmehedy/my-project
   Select epic:
     1  E3 — Add OAuth support (#42) · 21 SP
   Choice: 1
@@ -299,7 +304,7 @@ $ python3 focal.py pm story-create leninmehedy/my-project
 Generate or update `docs/focal/iteration-planning.md` from the local state cache.
 
 ```bash
-python3 focal.py pm plan <owner/repo> [--repo-root PATH] [--refresh]
+focal pm plan <owner/repo> [--repo-root PATH] [--refresh]
 ```
 
 **What it does:**
@@ -319,7 +324,7 @@ Use `--refresh` to re-fetch all story state from GitHub before planning.
 **Example:**
 
 ```
-$ python3 focal.py pm plan leninmehedy/my-project
+$ focal pm plan leninmehedy/my-project
   Iteration length (weeks) [2]: 2
   Start date [2026-05-18]: 2026-05-18
   GitHub handles (comma-separated): leninmehedy,collaborator
@@ -349,7 +354,7 @@ $ python3 focal.py pm plan leninmehedy/my-project
 Close out a completed iteration and append a retrospective record to `docs/focal/retro-log.md`.
 
 ```bash
-python3 focal.py pm retro <owner/repo> [--repo-root PATH] [--refresh]
+focal pm retro <owner/repo> [--repo-root PATH] [--refresh]
 ```
 
 **What it does:**
@@ -380,7 +385,7 @@ Use `--refresh` to re-fetch all story state from GitHub before logging.
 **Example:**
 
 ```
-$ python3 focal.py pm retro leninmehedy/my-project
+$ focal pm retro leninmehedy/my-project
   Select iteration to close:
     1  I1 — 2026-05-18 → 2026-05-31  (14 SP)
   Choice: 1
@@ -471,7 +476,7 @@ Good iteration overall despite scope slip on #44.
 Print a live terminal summary of the current iteration.
 
 ```bash
-python3 focal.py pm status <owner/repo> [--repo-root PATH] [--refresh]
+focal pm status <owner/repo> [--repo-root PATH] [--refresh]
 ```
 
 Reads story state from the local cache. Use `--refresh` to pull the latest status
@@ -508,14 +513,14 @@ read-through for speed.
 Check sync health across all registered PM repos before deciding whether to refresh:
 
 ```bash
-python3 focal.py cache status
+focal cache status
 ```
 
 ```
 Focal cache status  (auto-refresh: enabled  |  limit: 500 issues)
 
  Repo                     Epics  Stories  Total  Last synced                    Status
- hashgraph/solo-operator      3       18     21  2026-05-16 08:00 UTC (2h ago)  ✔ ok
+ automa-saga/automa-operator      3       18     21  2026-05-16 08:00 UTC (2h ago)  ✔ ok
  automa-saga/automa           5       34     39  2026-05-14 14:00 UTC (2d ago)  ⚠ over limit (201)
 ```
 
@@ -525,8 +530,8 @@ Re-fetch all registered PM repos in one pass. Registered automatically when you 
 `focal pm init`:
 
 ```bash
-python3 focal.py cache refresh-all           # respects scaling guards (see below)
-python3 focal.py cache refresh-all --force   # bypass all guards
+focal cache refresh-all           # respects scaling guards (see below)
+focal cache refresh-all --force   # bypass all guards
 ```
 
 #### `focal cache refresh` (single repo)
@@ -535,7 +540,7 @@ Re-fetch one specific repo — useful when `refresh-all` skips it due to size, o
 want to refresh one repo immediately without waiting for the scheduler:
 
 ```bash
-python3 focal.py cache refresh <owner/repo> [--repo-root PATH]
+focal cache refresh <owner/repo> [--repo-root PATH]
 ```
 
 **When to run any of the above:**
@@ -548,7 +553,7 @@ python3 focal.py cache refresh <owner/repo> [--repo-root PATH]
 **Example:**
 
 ```
-$ python3 focal.py cache refresh leninmehedy/my-project
+$ focal cache refresh leninmehedy/my-project
   ✔ Synced 3 epics, 14 stories
   ✔ Last synced: 2026-05-18T09:42:11+00:00
 ```
@@ -567,8 +572,163 @@ When `auto_cache_refresh` is false, the scheduler job exits immediately. Refresh
 manually on your own schedule:
 
 ```bash
-python3 focal.py cache refresh-all --force   # refreshes all repos regardless of limits
+focal cache refresh-all --force   # refreshes all repos regardless of limits
 ```
+
+---
+
+### `focal pm adopt`
+
+Bootstrap the local state cache from existing GitHub issues in a repo that already has epics and stories. Useful when Focal is introduced into a repo that pre-dates Focal, or after a migration.
+
+```bash
+focal pm adopt <owner/repo> [--repo-root PATH] [--sp-field NAME] [--prompt-missing]
+```
+
+**What it does:**
+
+1. Lists all open issues labelled `epic` or `story` in the repo
+2. Resolves hierarchy via sub-issues API, `Part of epic #N` body references, or `[Epic N]` title prefixes
+3. Extracts story points from (in priority order): GitHub Projects field → title pattern → body table → prose `**Estimated:** N SP`
+4. If `--sp-field` is given, reads that named field on the project board; otherwise tries common field names automatically (`Story Points`, `Estimated SP`, `Estimate`, `SP`, `Points`, `Size`)
+5. If `--prompt-missing` is set, prompts interactively for SP on stories where none was found
+6. Writes `docs/focal/.cache/focal-state.json` and `docs/focal/epics.md`
+
+**Flags:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--sp-field NAME` | auto-detect | Exact name of the SP field on the project board |
+| `--prompt-missing` | off | Prompt for SP on stories that have no estimate |
+
+**Example:**
+
+```
+$ focal pm adopt automa-saga/automa --sp-field "Estimated SP"
+  Discovering issues...
+  Found 5 epics, 34 stories
+  Resolved hierarchy: 34/34 stories linked to epics
+  SP extracted: 31/34  (3 missing)
+  ✔ docs/focal/epics.md written
+  ✔ focal-state.json written
+  ✔ Committed
+```
+
+With `--prompt-missing`:
+
+```
+$ focal pm adopt automa-saga/automa --prompt-missing
+  ...
+  SP missing for: #88 "Implement retry logic" — estimate (SP): 3
+  SP missing for: #91 "Add integration test" — estimate (SP): 2
+```
+
+---
+
+### `focal pm design`
+
+Manage design docs in `docs/focal/design/`. Currently used to list all design docs with their status and linked epic.
+
+```bash
+focal pm design list <owner/repo> [--repo-root PATH]
+```
+
+**What it does:**
+
+Lists all `D*.md` files in `docs/focal/design/`, reading YAML frontmatter to display status, title, and linked epic number:
+
+```
+$ focal pm design list leninmehedy/my-project
+
+  ID     Title                          Status    Epic
+  D001   What-if impact assessment      Active    #69
+  D002   Board sync engine v2           Planned   —
+  D003   Auth middleware refactor       Draft     —
+```
+
+**Design doc lifecycle:**
+
+| Status | Meaning |
+|--------|---------|
+| `Draft` | Being written — no backlog items created yet |
+| `Planned` | Design approved — ready for `--from-design` |
+| `Active` | Epic created — delivery in progress |
+| `Done` | All stories closed |
+| `Abandoned` | Withdrawn before implementation |
+
+`focal pm epic-create --from-design` automatically advances the status from `Planned` → `Active` and records the epic number in frontmatter.
+
+---
+
+### `focal pm what-if`
+
+Dry-run simulation of the iteration plan under hypothetical scenarios. Shows which stories slip to later iterations without modifying any files.
+
+```bash
+focal pm what-if <owner/repo> [--repo-root PATH] \
+  [--pto "HANDLE:FROM:TO"] \
+  [--inject "TITLE:SP"] \
+  [--reestimate "STORY_ID:SP"] \
+  [--apply]
+```
+
+**Scenarios** (one or more; all are combinable):
+
+| Flag | Format | Effect |
+|------|--------|--------|
+| `--pto` | `handle:YYYY-MM-DD:YYYY-MM-DD` | Reduce capacity for the handle over the date range |
+| `--inject` | `"Title:SP"` | Inject a high-priority story at the top of the backlog |
+| `--reestimate` | `STORY_ID:SP` | Change a story's SP and ripple the change through all iterations |
+
+All flags are repeatable — pass multiple `--pto` for multiple people, etc.
+
+**Dry-run by default.** Pass `--apply` to write the updated `iteration-planning.md` and commit it.
+
+**How capacity reduction works for `--pto`:**
+Focal counts working days (Mon–Fri) in the overlap between the PTO window and each iteration window, then subtracts `(overlap_days / 10) × sp_per_iter` from that iteration's capacity.
+
+**Example — PTO impact:**
+
+```
+$ focal pm what-if automa-saga/automa --pto "alice:2026-06-27:2026-07-04"
+
+  ◎  Focal — what-if (automa-saga/automa)
+
+Scenario
+  PTO  @alice  2026-06-27 – 2026-07-04
+
+Impact by iteration
+Iter  Orig SP  Sim SP  Cap  Slipped out      Added in
+I3         18      18   12  1.5, 1.7         —
+I4         14      16   14  —                1.5, 1.7
+
+Summary
+  2 story slot(s) slipped across 1 iteration(s)
+
+Capacity changes
+  I3  @alice PTO 2026-06-27 – 2026-07-04 (−4 SP)
+
+  Dry run — pass --apply to write updated iteration-planning.md
+```
+
+**Example — inject + reestimate:**
+
+```
+$ focal pm what-if automa-saga/automa \
+    --inject "Urgent security patch:8" \
+    --reestimate "1.3:13"
+
+  ◎  Focal — what-if (automa-saga/automa)
+
+Scenario
+  Inject  'Urgent security patch'  8 SP
+  Re-estimate  1.3:  5 SP → 13 SP
+
+Impact by iteration
+...
+```
+
+**Tip:** run `focal pm plan` first if `iteration-planning.md` does not yet exist — `what-if` reads it as its baseline.
 
 ---
 

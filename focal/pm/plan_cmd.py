@@ -8,6 +8,7 @@ from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
 from . import pm_state
+from .plan_helpers import assign_stories_to_iters as _assign_greedy
 
 console = Console()
 
@@ -129,30 +130,7 @@ def _build_iterations(
 
 def _assign_stories_to_iters(stories: list[dict], iters: list[dict]) -> list[dict]:
     """Greedily pack open stories into iterations by SP capacity."""
-    open_stories = [s for s in stories if s.get("status") != "closed"]
-    # Sort: stories with no SP last (unblocking known work first)
-    open_stories.sort(
-        key=lambda s: (s.get("sp", 0) == 0, s.get("epic_id", ""), s["id"])
-    )
-
-    remaining = list(open_stories)
-    for it in iters:
-        budget = it["capacity_sp"]
-        assigned = []
-        leftover = []
-        for story in remaining:
-            sp = story.get("sp", 0)
-            if sp <= budget:
-                assigned.append(story["id"])
-                budget -= sp
-            else:
-                leftover.append(story)
-        it["story_ids"] = assigned
-        remaining = leftover
-        if not remaining:
-            break
-
-    return iters
+    return _assign_greedy(stories, iters)
 
 
 # ── Risk identification ───────────────────────────────────────────────────────

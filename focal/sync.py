@@ -132,6 +132,31 @@ class Syncer:
         self.log.info("=== Fetching personal board state ===")
         board_items = gh.project_items(cfg.board_number, cfg.board_owner)
 
+        # Step 1b: Extend open_urls to cover repos on the board but not in cfg.repos.
+        # Without this, issues from unwatched repos are incorrectly marked Done.
+        watched = set(cfg.repos)
+        board_repos: set[str] = set()
+        for item in board_items:
+            url = item.get("content", {}).get("url", "")
+            # URL shape: https://github.com/owner/repo/issues/N
+            parts = url.split("/")
+            if len(parts) >= 5 and parts[2] == "github.com":
+                board_repos.add(f"{parts[3]}/{parts[4]}")
+        extra_repos = board_repos - watched
+        if extra_repos:
+            self.log.info(
+                f"=== Step 1b: Checking {len(extra_repos)} board repo(s) not in cfg.repos ==="
+            )
+            for repo in sorted(extra_repos):
+                self.log.info(f"Checking (board-only) {repo} ...")
+                try:
+                    urls = gh.open_assigned_issues(repo, cfg.assignee)
+                except RuntimeError as e:
+                    self.log.warning(f"  Could not list issues: {e}")
+                    continue
+                for url in urls:
+                    open_urls.add(url)
+
         # Step 2: Detect changes, act
         self.log.info("=== Step 2: Detecting status changes ===")
         new_issues = dict(issues)

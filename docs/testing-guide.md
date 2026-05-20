@@ -246,12 +246,13 @@ Onboards an existing repo's issues into Focal PM state.
 |---|------|-----------|-----------------|
 | AD1 | Dry run | `focal pm adopt owner/repo` | Prints epics + stories tables with focal IDs, SP, hierarchy links. No files written. Footer: "Dry run — pass --apply" ✅ |
 | AD2 | Apply | `focal pm adopt owner/repo --apply --repo-root .` | Writes `docs/focal/.cache/focal-state.json`. Epics and stories have `focal_id`, `issue_number`, `sp`, `status` ✅ |
-| AD3 | SP auto-detect | Repo has issues with "Estimated SP" project field | SP populated from field without needing `--sp-field` ✅ |
-| AD4 | SP fallback | `--default-sp 3` on a repo with no SP anywhere | All missing estimates set to 3 ✅ |
-| AD5 | Prompt missing | `--prompt-missing` on repo with some unestimated issues | Interactively prompts once per unestimated issue; SP recorded in output ✅ |
-| AD6 | Orphaned stories | Stories with no epic linkage | Reported as orphaned in warnings; added to synthetic `E0` in state when `--apply` ✅ |
-| AD7 | Normalise | `--apply --normalise` | Re-labels issues, moves SP from title to body table, creates sub-issue links for inferred hierarchy ✅ |
-| AD8 | Idempotent | Run `--apply` twice | Second run does not duplicate epics or stories in state cache ✅ |
+| AD3 | Custom labels | `focal pm adopt owner/repo --epic-label "epic,feature" --story-label "story,task"` | Discovers issues with either label; both treated as epics/stories respectively ✅ |
+| AD4 | SP auto-detect | Repo has issues with "Estimated SP" project field | SP populated from field without needing `--sp-field` ✅ |
+| AD5 | SP fallback | `--default-sp 3` on a repo with no SP anywhere | All missing estimates set to 3 ✅ |
+| AD6 | Prompt missing | `--prompt-missing` on repo with some unestimated issues | Interactively prompts once per unestimated issue; SP recorded in output ✅ |
+| AD7 | Orphaned stories | Stories with no epic linkage | Reported as orphaned in warnings; added to synthetic `E0` in state when `--apply` ✅ |
+| AD8 | Normalise | `--apply --normalise` | Re-labels issues, moves SP from title to body table, creates sub-issue links for inferred hierarchy ✅ |
+| AD9 | Idempotent | Run `--apply` twice | Second run does not duplicate epics or stories in state cache ✅ |
 
 ### `focal pm design`
 
@@ -259,10 +260,11 @@ Lists design docs in `docs/focal/design/`.
 
 | # | Test | How to run | Expected result |
 |---|------|-----------|-----------------|
-| DS1 | List all | `focal pm design owner/repo` | Table grouped by status (Draft → Planned → Active → Done → Archived); shows ID, title, epic ref, updated date ✅ |
-| DS2 | Filter by status | `focal pm design owner/repo --status Active` | Only Active docs shown ✅ |
-| DS3 | No design dir | Run on repo without `docs/focal/design/` | Friendly message: no design directory found ✅ |
-| DS4 | In pm status | `focal pm status owner/repo` | Footer includes one line per Draft/Planned/Active design doc ✅ |
+| DS1 | List all | `focal pm design` (run from repo root) or `focal pm design --repo-root PATH` | Table grouped by status (Draft → Planned → Active → Done → Archived); shows ID, title, epic ref, updated date ✅ |
+| DS2 | Filter by status | `focal pm design --status Active` | Only Active docs shown ✅ |
+| DS3 | Update index | `focal pm design --update-index` | Regenerates `docs/focal/design/INDEX.md` from current design docs ✅ |
+| DS4 | No design dir | `focal pm design` on repo without `docs/focal/design/` | Friendly message: no design directory found ✅ |
+| DS5 | In pm status | `focal pm status owner/repo` | Footer includes one line per Draft/Planned/Active design doc ✅ |
 
 ### `focal pm what-if`
 

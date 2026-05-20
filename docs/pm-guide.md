@@ -582,29 +582,38 @@ focal cache refresh-all --force   # refreshes all repos regardless of limits
 Bootstrap the local state cache from existing GitHub issues in a repo that already has epics and stories. Useful when Focal is introduced into a repo that pre-dates Focal, or after a migration.
 
 ```bash
-focal pm adopt <owner/repo> [--repo-root PATH] [--sp-field NAME] [--prompt-missing]
+focal pm adopt <owner/repo> [--repo-root PATH] [--epic-label LABELS] [--story-label LABELS]
+               [--sp-field NAME] [--default-sp N] [--apply] [--normalise] [--prompt-missing]
 ```
+
+**Dry-run by default.** Pass `--apply` to write files.
 
 **What it does:**
 
-1. Lists all open issues labelled `epic` or `story` in the repo
+1. Lists all open issues matching the epic and story labels in the repo
 2. Resolves hierarchy via sub-issues API, `Part of epic #N` body references, or `[Epic N]` title prefixes
 3. Extracts story points from (in priority order): GitHub Projects field → title pattern → body table → prose `**Estimated:** N SP`
 4. If `--sp-field` is given, reads that named field on the project board; otherwise tries common field names automatically (`Story Points`, `Estimated SP`, `Estimate`, `SP`, `Points`, `Size`)
 5. If `--prompt-missing` is set, prompts interactively for SP on stories where none was found
-6. Writes `docs/focal/.cache/focal-state.json` and `docs/focal/epics.md`
+6. With `--apply`: writes `docs/focal/.cache/focal-state.json` and `docs/focal/epics.md`
+7. With `--apply --normalise`: also re-labels issues, moves SP from title to body, creates sub-issue links
 
 **Flags:**
 
 | Flag | Default | Description |
 |------|---------|-------------|
+| `--epic-label LABELS` | `epic` | Comma-separated label(s) that identify epics (e.g. `epic,feature`) |
+| `--story-label LABELS` | `story` | Comma-separated label(s) that identify stories (e.g. `story,task`) |
 | `--sp-field NAME` | auto-detect | Exact name of the SP field on the project board |
+| `--default-sp N` | none | Fallback SP for issues with no estimate |
+| `--apply` | off | Write `focal-state.json` and `epics.md`; without this flag runs as dry-run |
+| `--normalise` | off | Re-format issues to Focal conventions (requires `--apply`) |
 | `--prompt-missing` | off | Prompt for SP on stories that have no estimate |
 
 **Example:**
 
 ```
-$ focal pm adopt automa-saga/automa --sp-field "Estimated SP"
+$ focal pm adopt automa-saga/automa --sp-field "Estimated SP" --apply
   Discovering issues...
   Found 5 epics, 34 stories
   Resolved hierarchy: 34/34 stories linked to epics
@@ -614,10 +623,16 @@ $ focal pm adopt automa-saga/automa --sp-field "Estimated SP"
   ✔ Committed
 ```
 
+With custom labels and a fallback SP:
+
+```
+$ focal pm adopt automa-saga/automa --epic-label "epic,feature" --default-sp 3 --apply
+```
+
 With `--prompt-missing`:
 
 ```
-$ focal pm adopt automa-saga/automa --prompt-missing
+$ focal pm adopt automa-saga/automa --prompt-missing --apply
   ...
   SP missing for: #88 "Implement retry logic" — estimate (SP): 3
   SP missing for: #91 "Add integration test" — estimate (SP): 2
@@ -630,20 +645,34 @@ $ focal pm adopt automa-saga/automa --prompt-missing
 Manage design docs in `docs/focal/design/`. Currently used to list all design docs with their status and linked epic.
 
 ```bash
-focal pm design list <owner/repo> [--repo-root PATH]
+focal pm design [--repo-root PATH] [--status STATUS] [--update-index]
 ```
+
+Run from inside the repo root, or pass `--repo-root` explicitly.
 
 **What it does:**
 
 Lists all `D*.md` files in `docs/focal/design/`, reading YAML frontmatter to display status, title, and linked epic number:
 
 ```
-$ focal pm design list leninmehedy/my-project
+$ focal pm design
 
   ID     Title                          Status    Epic
   D001   What-if impact assessment      Active    #69
   D002   Board sync engine v2           Planned   —
   D003   Auth middleware refactor       Draft     —
+```
+
+Filter by status:
+
+```
+$ focal pm design --status Active
+```
+
+Regenerate `docs/focal/design/INDEX.md`:
+
+```
+$ focal pm design --update-index
 ```
 
 **Design doc lifecycle:**
@@ -654,7 +683,7 @@ $ focal pm design list leninmehedy/my-project
 | `Planned` | Design approved — ready for `--from-design` |
 | `Active` | Epic created — delivery in progress |
 | `Done` | All stories closed |
-| `Abandoned` | Withdrawn before implementation |
+| `Archived` | Withdrawn before implementation |
 
 `focal pm epic-create --from-design` automatically advances the status from `Planned` → `Active` and records the epic number in frontmatter.
 

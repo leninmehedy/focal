@@ -101,7 +101,7 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("focal")
 
 @mcp.tool()
-def focal_whatif(
+def focal_pm_whatif(
     repo: str,
     pto: list[str] = [],
     inject: list[str] = [],
@@ -109,19 +109,15 @@ def focal_whatif(
 ) -> dict:
     """Simulate iteration plan under hypothetical scenarios. Returns per-iteration
     diff with slipped and added stories, capacity changes, and summary counts."""
-    from focal.pm.whatif_cmd import _parse_pto, _parse_inject, _parse_reestimate
-    from focal.pm.whatif_cmd import _apply_pto, _apply_inject, _apply_reestimate
-    from focal.pm.whatif_cmd import _diff_plans
-    from focal.pm.plan_helpers import assign_stories_to_iters
-    # ... returns structured dict, not rendered output
+    ...
 
 @mcp.tool()
-def focal_plan_status(repo: str, repo_root: str = ".") -> dict:
+def focal_pm_status(repo: str, repo_root: str = ".") -> dict:
     """Return current iteration status as structured data."""
     ...
 
 @mcp.tool()
-def focal_epic_create(
+def focal_pm_epic_create(
     repo: str,
     title: str,
     description: str,
@@ -132,7 +128,7 @@ def focal_epic_create(
     ...
 
 @mcp.tool()
-def focal_story_create(
+def focal_pm_story_create(
     repo: str,
     epic_id: str,
     title: str,
@@ -144,7 +140,7 @@ def focal_story_create(
     ...
 
 @mcp.tool()
-def focal_plan(
+def focal_pm_plan(
     repo: str,
     weeks: int,
     start: str,
@@ -221,26 +217,26 @@ All commands with agent value are exposed. The full surface:
 
 | Tool | Maps to | Returns |
 |---|---|---|
-| **Setup** | | |
+| **Board** | | |
 | `focal_board_setup` | `focal board setup` | `{board_number, project_id, config_path}` |
 | `focal_board_sync` | `focal board sync` | `{added, inherited, pushed, stale}` |
-| **Repo lifecycle** | | |
+| **PM — repo lifecycle** | | |
 | `focal_pm_init` | `focal pm init` | `{repo, files_created, labels_created}` |
 | `focal_pm_adopt` | `focal pm adopt` | `{epics, stories, sp_missing, state_path}` |
-| **Backlog** | | |
-| `focal_epic_create` | `focal pm epic-create` | `{issue_number, epic_id, url}` |
-| `focal_story_create` | `focal pm story-create` | `{issue_number, story_id, url}` |
-| **Planning** | | |
-| `focal_plan` | `focal pm plan` | `{iterations, total_sp, risk_count}` |
-| `focal_whatif` | `focal pm what-if` | `{diffs, capacity_notes, summary}` |
-| `focal_plan_status` | `focal pm status` | `{iteration, delivered_sp, in_progress, blocked, days_remaining}` |
-| **Delivery close** | | |
-| `focal_retro` | `focal pm retro` | `{iteration, planned_sp, delivered_sp, carryover_sp}` |
+| **PM — backlog** | | |
+| `focal_pm_epic_create` | `focal pm epic-create` | `{issue_number, epic_id, url}` |
+| `focal_pm_story_create` | `focal pm story-create` | `{issue_number, story_id, url}` |
+| **PM — planning** | | |
+| `focal_pm_plan` | `focal pm plan` | `{iterations, total_sp, risk_count}` |
+| `focal_pm_whatif` | `focal pm what-if` | `{diffs, capacity_notes, summary}` |
+| `focal_pm_status` | `focal pm status` | `{iteration, delivered_sp, in_progress, blocked, days_remaining}` |
+| **PM — delivery close** | | |
+| `focal_pm_retro` | `focal pm retro` | `{iteration, planned_sp, delivered_sp, carryover_sp}` |
+| **PM — design docs** | | |
+| `focal_pm_design_list` | `focal pm design list` | `{designs: [{id, title, status, epic}]}` |
 | **Cache** | | |
 | `focal_cache_refresh` | `focal cache refresh` | `{epics, stories, last_synced}` |
 | `focal_cache_status` | `focal cache status` | `{repos: [{repo, epics, stories, last_synced, status}]}` |
-| **Design docs** | | |
-| `focal_design_list` | `focal pm design list` | `{designs: [{id, title, status, epic}]}` |
 
 **Why `focal_board_sync` is included:**
 Although `focal board sync` normally runs on a scheduler, there is a valid agent
@@ -328,15 +324,15 @@ Epic: Focal MCP server (~58 SP)
   - Story: Implement focal_board_sync MCP tool (2 SP)
   - Story: Implement focal_pm_init MCP tool (3 SP)
   - Story: Implement focal_pm_adopt MCP tool (3 SP)
-  - Story: Implement focal_epic_create MCP tool (3 SP)
-  - Story: Implement focal_story_create MCP tool (3 SP)
-  - Story: Implement focal_plan MCP tool (5 SP)
-  - Story: Implement focal_whatif MCP tool with structured dict output (5 SP)
-  - Story: Implement focal_plan_status MCP tool (3 SP)
-  - Story: Implement focal_retro MCP tool (5 SP)
+  - Story: Implement focal_pm_epic_create MCP tool (3 SP)
+  - Story: Implement focal_pm_story_create MCP tool (3 SP)
+  - Story: Implement focal_pm_plan MCP tool (5 SP)
+  - Story: Implement focal_pm_whatif MCP tool with structured dict output (5 SP)
+  - Story: Implement focal_pm_status MCP tool (3 SP)
+  - Story: Implement focal_pm_retro MCP tool (5 SP)
+  - Story: Implement focal_pm_design_list MCP tool (2 SP)
   - Story: Implement focal_cache_refresh MCP tool (2 SP)
   - Story: Implement focal_cache_status MCP tool (2 SP)
-  - Story: Implement focal_design_list MCP tool (2 SP)
   - Story: Implement focal skill install for Claude Code (3 SP)
   - Story: Implement focal skill install for Cursor (3 SP)
   - Story: Write tests for MCP tool return shapes (3 SP)

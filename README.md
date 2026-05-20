@@ -56,7 +56,7 @@ interrupting the engineer.
 |---|---|
 | Open 5 project boards to see what's assigned to you | One board aggregates everything automatically |
 | Update status on your board, then update every origin project board too | Move a card once — status pushes back to every origin project automatically |
-| Chase closed issues off your board | Closed or unassigned issues move to Done on their own |
+| Closed or unassigned issues linger on your board until you remove them manually | Closed or unassigned issues move to Done automatically |
 
 **PM CLI** — epics, stories, iteration planning, retros, and velocity — all in
 GitHub issues and markdown, without leaving the terminal.

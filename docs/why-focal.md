@@ -39,7 +39,38 @@ engineers where they are.
 
 ---
 
-## 4. Opinionated conventions that scale across projects
+## 4. GitHub-native — no new tool to learn or maintain
+
+Most PM tools sit *beside* GitHub. You close a PR, then open Jira to move the
+ticket. You finish a sprint, then export a report to Notion. You onboard a new
+contributor, then give them a separate login to Linear. Every hand-off is a
+context switch, and every context switch is a place where discipline erodes.
+
+Focal works *inside* GitHub. Everything it creates — issues, markdown files,
+project board items — is standard GitHub. No new login. No subscription. No
+data in a SaaS database that only some people can access.
+
+This means:
+
+- **Any engineer with repo access can read the full project state** — iteration
+  plan, retro history, design docs — without installing Focal or touching a
+  separate tool
+- **The delivery record survives tool changes** — if Focal disappears tomorrow,
+  everything it created is still in your repo, in plain text, forever
+- **Focal aligns with GitHub best practices** rather than replacing them — issue
+  templates, labels, sub-issues, and Projects v2 are used as designed, just
+  wired together consistently
+
+There's also a subtler benefit: **the process becomes self-maintaining**. Most
+teams spend real time on process overhead — updating boards after standups,
+fielding "where are we on X?" questions, chasing engineers for status. Focal
+eliminates that ceremony. The board syncs automatically. Plans and retros are
+committed to the repo. Anyone who wants current status reads the repo; nobody
+has to interrupt the engineer to ask.
+
+---
+
+## 5. Opinionated conventions that scale across projects
 
 Focal is opinionated by design. Every repo that runs `focal pm init` gets the same
 structure: the same file layout, the same issue templates, the same iteration
@@ -127,7 +158,7 @@ as needed, with the actual plan data — not a copy of it in a spreadsheet.
 
 ---
 
-## 5. Works without an agent — better with one
+## 6. Works without an agent — better with one
 
 Focal does not require an AI agent. Every command runs interactively in the
 terminal, prompting for inputs when flags aren't supplied:
@@ -187,5 +218,5 @@ far from where the actual work happens.
 ## The one-sentence version
 
 > *Focal lets engineers run their own projects at a professional level — planning,
-> velocity, and forecasting — entirely inside GitHub and git, with no SaaS, no PM
-> role required, and full AI-agent support.*
+> velocity, and forecasting — entirely inside GitHub and git, with no new tool to
+> learn, no process ceremony to maintain, and full AI-agent support.*

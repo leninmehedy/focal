@@ -22,13 +22,21 @@ a single line of code. And when it comes to planning a release, you're either
 reaching for Jira (another context switch) or keeping it in your head (no
 record, no accountability).
 
-**Focal solves both:**
+Most teams also spend energy maintaining the process itself — updating boards,
+attending standups for status, fielding "where are we on X?" questions. Focal
+makes the process self-maintaining: the board syncs automatically, plans and
+retros are committed to the repo, and anyone can see current status without
+interrupting the engineer.
+
+**Focal solves this by working inside GitHub — not beside it:**
 
 - **One board, every repo** — open issues assigned to you flow onto a single
   personal Kanban board automatically; status changes push back to every origin
   project
+- **GitHub-native, no new tool** — everything Focal creates lives in GitHub
+  issues and markdown files; no new login, no new subscription, no data silo
 - **PM in the terminal** — epics, stories, iteration planning, retros, velocity
-  — all as GitHub issues and markdown files, committed alongside your code
+  — all committed alongside your code, readable by anyone with repo access
 - **Engineer as their own PM** — planning is a CLI command, not a dashboard to
   maintain; every plan, retro, and design doc lives in git on the same timeline
   as your code

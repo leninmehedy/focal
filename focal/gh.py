@@ -420,3 +420,135 @@ def set_status_options(project_id: str, field_id: str, options: list[str]) -> No
         }}
       }}
     """)
+
+
+# ── Adopt helpers ─────────────────────────────────────────────────────────────
+
+
+def issues_by_label(repo: str, labels: list[str], state: str = "open") -> list[dict]:
+    """Return all issues in *repo* that carry any of *labels*.
+
+    Each item includes: number, title, body, labels (list of names),
+    assignees (list of logins), state, url.
+    """
+    owner, name = repo.split("/", 1)
+    # GitHub's GraphQL labelFilter returns issues that have ALL listed labels,
+    # so we fetch each label separately and deduplicate by issue number.
+    seen: dict[int, dict] = {}
+    for label in labels:
+        query = f"""
+          query {{
+            repository(owner: "{owner}", name: "{name}") {{
+              issues(first: 100, states: [{state.upper()}], labels: ["{label}"]) {{
+                nodes {{
+                  number title body state url
+                  labels(first: 10) {{ nodes {{ name }} }}
+                  assignees(first: 5) {{ nodes {{ login }} }}
+                }}
+              }}
+            }}
+          }}
+        """
+        data = _graphql(query)
+        nodes = (
+            data.get("data", {})
+            .get("repository", {})
+            .get("issues", {})
+            .get("nodes", [])
+        )
+        for node in nodes:
+            num = node["number"]
+            if num not in seen:
+                seen[num] = {
+                    "number": num,
+                    "title": node["title"],
+                    "body": node.get("body") or "",
+                    "state": node["state"].lower(),
+                    "url": node["url"],
+                    "labels": [lb["name"] for lb in node["labels"]["nodes"]],
+                    "assignees": [a["login"] for a in node["assignees"]["nodes"]],
+                }
+    return sorted(seen.values(), key=lambda i: i["number"])
+
+
+def issue_sub_issues(repo: str, issue_number: int) -> list[dict]:
+    """Return sub-issues of *issue_number* via the GitHub sub-issues REST API.
+
+    Each item: {number, title, state, url}.
+    Returns [] for repos/issues with no sub-issues.
+    """
+    owner, name = repo.split("/", 1)
+    try:
+        out = _run(
+            "api",
+            f"repos/{owner}/{name}/issues/{issue_number}/sub_issues",
+            "--method",
+            "GET",
+        )
+        items = json.loads(out)
+        return [
+            {
+                "number": i["number"],
+                "title": i["title"],
+                "state": i["state"].lower(),
+                "url": i["html_url"],
+            }
+            for i in items
+        ]
+    except RuntimeError:
+        return []
+
+
+def project_field_value(repo: str, issue_number: int, field_name: str) -> Optional[int]:
+    """Return the integer value of a GitHub Projects custom field for an issue.
+
+    Searches all projects the issue belongs to for a field named *field_name*.
+    Returns None if the field is not found or has no value.
+    """
+    owner, name = repo.split("/", 1)
+    query = f"""
+      query {{
+        repository(owner: "{owner}", name: "{name}") {{
+          issue(number: {issue_number}) {{
+            projectItems(first: 10) {{
+              nodes {{
+                fieldValues(first: 20) {{
+                  nodes {{
+                    ... on ProjectV2ItemFieldNumberValue {{
+                      number
+                      field {{ ... on ProjectV2Field {{ name }} }}
+                    }}
+                    ... on ProjectV2ItemFieldTextValue {{
+                      text
+                      field {{ ... on ProjectV2Field {{ name }} }}
+                    }}
+                  }}
+                }}
+              }}
+            }}
+          }}
+        }}
+      }}
+    """
+    try:
+        data = _graphql(query)
+        project_items = (
+            data.get("data", {})
+            .get("repository", {})
+            .get("issue", {})
+            .get("projectItems", {})
+            .get("nodes", [])
+        )
+        for item in project_items:
+            for fv in item.get("fieldValues", {}).get("nodes", []):
+                fname = (fv.get("field") or {}).get("name", "")
+                if fname.lower() == field_name.lower():
+                    val = fv.get("number") or fv.get("text")
+                    if val is not None:
+                        try:
+                            return int(val)
+                        except (ValueError, TypeError):
+                            return None
+    except RuntimeError:
+        pass
+    return None

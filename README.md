@@ -69,7 +69,7 @@ Most open-source projects don't have a dedicated PM — they have engineers who 
 have to plan, estimate, and track velocity. Existing tools (Jira, Linear, Notion)
 were designed for full-time PMs, not engineers. Focal is different:
 
-- **Engineer as their own PM** — planning is a CLI command, not a dashboard to maintain
+- **Engineer as their own PM** — planning is a CLI command, not a dashboard to maintain; never leave the console
 - **Git as the system of record** — every plan, retro, and design doc is a markdown file
   committed to your repo, on the same timeline as your code, readable by humans and AI agents alike
 - **What-if before you commit** — model the impact of PTO, scope injection, or a re-estimate

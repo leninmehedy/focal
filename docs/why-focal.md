@@ -27,6 +27,11 @@ There are no ticket views to configure, no board columns to drag, no reporting
 dashboards to set up. The output is a markdown file in your repo. The workflow is
 the same whether you're a team of one or five.
 
+For engineers who live in the terminal, this means **planning never requires leaving
+the console**. No browser tab, no login, no context switch. You can plan an
+iteration, run a what-if scenario, and log a retro in the same session where you
+just pushed code.
+
 This matters because the barrier to structured delivery isn't willingness — most
 engineers care about shipping well. The barrier is that PM tools impose a PM's
 mental model on people who think in code, commits, and terminals. Focal meets

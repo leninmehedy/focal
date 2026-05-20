@@ -520,7 +520,7 @@ focal cache status
 Focal cache status  (auto-refresh: enabled  |  limit: 500 issues)
 
  Repo                     Epics  Stories  Total  Last synced                    Status
- hashgraph/solo-operator      3       18     21  2026-05-16 08:00 UTC (2h ago)  ✔ ok
+ automa-saga/automa-operator      3       18     21  2026-05-16 08:00 UTC (2h ago)  ✔ ok
  automa-saga/automa           5       34     39  2026-05-14 14:00 UTC (2d ago)  ⚠ over limit (201)
 ```
 
@@ -604,7 +604,7 @@ focal pm adopt <owner/repo> [--repo-root PATH] [--sp-field NAME] [--prompt-missi
 **Example:**
 
 ```
-$ focal pm adopt hashgraph/solo --sp-field "Estimated SP"
+$ focal pm adopt automa-saga/automa --sp-field "Estimated SP"
   Discovering issues...
   Found 5 epics, 34 stories
   Resolved hierarchy: 34/34 stories linked to epics
@@ -617,7 +617,7 @@ $ focal pm adopt hashgraph/solo --sp-field "Estimated SP"
 With `--prompt-missing`:
 
 ```
-$ focal pm adopt hashgraph/solo --prompt-missing
+$ focal pm adopt automa-saga/automa --prompt-missing
   ...
   SP missing for: #88 "Implement retry logic" — estimate (SP): 3
   SP missing for: #91 "Add integration test" — estimate (SP): 2
@@ -690,9 +690,9 @@ Focal counts working days (Mon–Fri) in the overlap between the PTO window and 
 **Example — PTO impact:**
 
 ```
-$ focal pm what-if leninmehedy/solo --pto "alice:2026-06-27:2026-07-04"
+$ focal pm what-if automa-saga/automa --pto "alice:2026-06-27:2026-07-04"
 
-  ◎  Focal — what-if (leninmehedy/solo)
+  ◎  Focal — what-if (automa-saga/automa)
 
 Scenario
   PTO  @alice  2026-06-27 – 2026-07-04
@@ -714,11 +714,11 @@ Capacity changes
 **Example — inject + reestimate:**
 
 ```
-$ focal pm what-if leninmehedy/solo \
+$ focal pm what-if automa-saga/automa \
     --inject "Urgent security patch:8" \
     --reestimate "1.3:13"
 
-  ◎  Focal — what-if (leninmehedy/solo)
+  ◎  Focal — what-if (automa-saga/automa)
 
 Scenario
   Inject  'Urgent security patch'  8 SP

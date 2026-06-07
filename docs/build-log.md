@@ -27,10 +27,9 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 
 ## Current state (as of 2026-06-07)
 
-**Last action:** PR #136 merged. Issues #137 and #138 created from bug reports.
-Build-log updated to reflect new state. `docs/update-build-log` branch open for this commit.
+**Last action:** PR open for combined fix of #137 + #138 on branch `fix/137-138-board-setup-flags-and-init-hint`.
 
-**Immediate next step:** Merge this build-log PR, then start on #138 (quick 2 SP fix first, then #137, then #135).
+**Immediate next step:** Merge the combined PR, then use `focal board setup --owner … --repos … --use-board --use-board-number 4` to set up focal for the focal repo itself. Next feature work: #135.
 
 ---
 
@@ -38,7 +37,7 @@ Build-log updated to reflect new state. `docs/update-build-log` branch open for 
 
 | PR | Issue | Branch | What | State |
 |---|---|---|---|---|
-| (this) | — | `docs/update-build-log` | Build-log refresh after PR #136 merge + bug triage | 🔄 |
+| — | #137, #138 | `fix/137-138-board-setup-flags-and-init-hint` | `focal board setup` non-interactive flags + `focal pm init` step-0 board hint | 🔄 |
 
 ---
 
@@ -46,9 +45,7 @@ Build-log updated to reflect new state. `docs/update-build-log` branch open for 
 
 | # | Issue | Branch (to create) | SP | What |
 |---|---|---|---|---|
-| 1 | #138 | `fix/138-init-missing-board-setup-hint` | 2 | **`focal pm init` next-steps missing `focal board setup`** — when no config exists, prepend step 0 pointing to `focal board setup` |
-| 2 | #137 | `feat/137-board-setup-cli-flags` | 5 | **`focal board setup` non-interactive flags** — add `--owner`, `--board-title`, `--create-board`, `--use-board-number`, `--repos`, `--assignee` |
-| 3 | #135 | `feat/135-pm-triage` | 3 | **`focal pm triage owner/repo`** — list open GitHub issues not linked to any epic in local state cache |
+| 1 | #135 | `feat/135-pm-triage` | 3 | **`focal pm triage owner/repo`** — list open GitHub issues not linked to any epic in local state cache |
 
 > **Bug 1 (templates `FileNotFoundError`) = already fixed** by PR #132 (merged 2026-06-07).
 > Users on the broken version just need `pipx upgrade focal-cli`.
@@ -56,42 +53,6 @@ Build-log updated to reflect new state. `docs/update-build-log` branch open for 
 ---
 
 ## Implementation notes
-
-### Issue #138 — `focal pm init` next-steps missing `focal board setup` (2 SP)
-
-File: `focal/pm/init_cmd.py` → `run()` function, near the bottom where next-steps are printed.
-
-Change: check `if config is None` (no `~/.focal/config.json`) and prepend step 0:
-```python
-if config is None:
-    console.print(
-        "  0. Create your project board first:  "
-        "[bold]focal board setup[/bold]"
-    )
-```
-Also consider promoting the "no board config" warning to a more prominent banner at the top of init output.
-
-Docs to update: `docs/testing-guide.md` (add PI-x test case).
-
----
-
-### Issue #137 — `focal board setup` non-interactive flags (5 SP)
-
-File: `focal/wizard.py` (or wherever `board setup` is wired) — add a non-interactive path when all required flags are provided.
-
-New flags:
-- `--owner TEXT` — GitHub username / org
-- `--board-title TEXT` — name for the new board (implies `--create-board`)
-- `--create-board` / `--use-board-number N` — mutually exclusive
-- `--repos TEXT` — comma-separated repos to watch
-- `--assignee TEXT` — default assignee
-
-When all required flags are present → skip all prompts, run directly.
-When some flags are missing → fall through to interactive mode for missing values only.
-
-Docs to update: `AGENTS.md` command surface table, `docs/user-guide.md` setup section, `docs/testing-guide.md`.
-
----
 
 ### Issue #135 — `focal pm triage owner/repo` (3 SP)
 

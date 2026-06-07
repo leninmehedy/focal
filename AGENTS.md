@@ -138,6 +138,9 @@ focal skill install claude   # or: focal skill install cursor
 focal --version                      — print version
 focal board sync                     — sync personal board with all origin boards
 focal board setup                    — interactive wizard, writes ~/.focal/config.json
+focal board setup \                  — non-interactive: --owner USER --repos owner/repo1,owner/repo2
+  --owner USER --repos LIST \          --create-board (new) or --use-board --use-board-number N
+  --create-board|--use-board-number N  --board-title TEXT  --assignee USER  --done-status TEXT
 
 focal pm init <owner/repo>           — bootstrap repo with Focal PM structure
 focal pm adopt <owner/repo>          — bootstrap state from existing issues (onboarding)

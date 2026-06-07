@@ -241,12 +241,64 @@ def board_status():
 
 
 @board_app.command("setup")
-def board_setup():
-    """Interactive wizard — configure Focal for the first time."""
+def board_setup(
+    owner: Optional[str] = typer.Option(
+        None, "--owner", help="GitHub username or org (skips prompt)."
+    ),
+    board_title: str = typer.Option(
+        "My Board", "--board-title", help="Title for a newly-created board."
+    ),
+    create_board: Optional[bool] = typer.Option(
+        None,
+        "--create-board/--use-board",
+        help="Create a new board (default) or attach to an existing one.",
+    ),
+    board_number: Optional[int] = typer.Option(
+        None,
+        "--use-board-number",
+        help="Existing board number to attach to (requires --use-board).",
+    ),
+    repos: Optional[str] = typer.Option(
+        None,
+        "--repos",
+        help="Comma-separated repos to watch, e.g. owner/repo1,owner/repo2 (skips prompt).",
+    ),
+    assignee: Optional[str] = typer.Option(
+        None,
+        "--assignee",
+        help="GitHub username for issue assignment filter (defaults to --owner).",
+    ),
+    done_status: str = typer.Option(
+        "✅ Done",
+        "--done-status",
+        help="Exact name of the Done status column on your board.",
+    ),
+):
+    """Interactive wizard — configure Focal for the first time.
+
+    When --owner, --repos, and either --create-board or --use-board-number are
+    supplied, runs non-interactively (no prompts).
+    """
     from focal.wizard import run
 
     _migrate_legacy_config()
-    run(FOCAL_HOME)
+
+    repos_list: list[str] | None = (
+        [r.strip() for r in repos.split(",") if r.strip()] if repos else None
+    )
+    effective_assignee = assignee or owner
+    effective_create = True if create_board is None else create_board
+
+    run(
+        FOCAL_HOME,
+        owner=owner,
+        assignee=effective_assignee,
+        repos=repos_list,
+        create_board=effective_create,
+        board_number=board_number,
+        board_title=board_title,
+        done_status=done_status,
+    )
 
 
 # ── focal reset ───────────────────────────────────────────────────────────────

@@ -20,5 +20,6 @@ test
 
 | Story | GitHub | SP |
 |---|---|---|
+| **1.3** — focal pm status --no-plan: solo/lightweight mode using build-log.md as tracker | [#146](https://github.com/leninmehedy/focal/issues/146) | 5 |
 | **1.2** — story 1.2 | [#99](https://github.com/leninmehedy/focal/issues/99) | 1 |
 | **1.1** — Story 1.1 | [#98](https://github.com/leninmehedy/focal/issues/98) | 1 |

@@ -27,9 +27,10 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 
 ## Current state (as of 2026-06-07)
 
-**Last action:** Rebased `feat/134-general-maintenance-epic` on main (resolved conflict in `focal/pm/init_cmd.py` — missing `import re`). Added `docs/build-log.md` and `CLAUDE.md` to the branch.
+**Last action:** PR #136 merged. Issues #137 and #138 created from bug reports.
+Build-log updated to reflect new state. `docs/update-build-log` branch open for this commit.
 
-**Immediate next step:** Push `feat/134-general-maintenance-epic` and force-push PR #136, then wait for merge before starting #135.
+**Immediate next step:** Merge this build-log PR, then start on #138 (quick 2 SP fix first, then #137, then #135).
 
 ---
 
@@ -37,19 +38,62 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 
 | PR | Issue | Branch | What | State |
 |---|---|---|---|---|
-| #136 | #134 | `feat/134-general-maintenance-epic` | **E0 General Maintenance epic** — `focal pm init` auto-creates E0; user epics start at E1; AGENTS.md critical warning; CLAUDE.md agent self-write instruction; `docs/build-log.md` + `CLAUDE.md` added | 🔄 Needs push after rebase, then merge |
+| (this) | — | `docs/update-build-log` | Build-log refresh after PR #136 merge + bug triage | 🔄 |
 
 ---
 
-## Up next (after PR #136 merges)
+## Up next — priority order
 
-| Issue | Branch (to create) | What |
-|---|---|---|
-| #135 | `feat/135-pm-triage` | **`focal pm triage owner/repo`** — list open GitHub issues not linked to any epic in local state cache |
+| # | Issue | Branch (to create) | SP | What |
+|---|---|---|---|---|
+| 1 | #138 | `fix/138-init-missing-board-setup-hint` | 2 | **`focal pm init` next-steps missing `focal board setup`** — when no config exists, prepend step 0 pointing to `focal board setup` |
+| 2 | #137 | `feat/137-board-setup-cli-flags` | 5 | **`focal board setup` non-interactive flags** — add `--owner`, `--board-title`, `--create-board`, `--use-board-number`, `--repos`, `--assignee` |
+| 3 | #135 | `feat/135-pm-triage` | 3 | **`focal pm triage owner/repo`** — list open GitHub issues not linked to any epic in local state cache |
 
-### Issue #135 — `focal pm triage` — full implementation notes
+> **Bug 1 (templates `FileNotFoundError`) = already fixed** by PR #132 (merged 2026-06-07).
+> Users on the broken version just need `pipx upgrade focal-cli`.
 
-Command: `focal pm triage owner/repo`
+---
+
+## Implementation notes
+
+### Issue #138 — `focal pm init` next-steps missing `focal board setup` (2 SP)
+
+File: `focal/pm/init_cmd.py` → `run()` function, near the bottom where next-steps are printed.
+
+Change: check `if config is None` (no `~/.focal/config.json`) and prepend step 0:
+```python
+if config is None:
+    console.print(
+        "  0. Create your project board first:  "
+        "[bold]focal board setup[/bold]"
+    )
+```
+Also consider promoting the "no board config" warning to a more prominent banner at the top of init output.
+
+Docs to update: `docs/testing-guide.md` (add PI-x test case).
+
+---
+
+### Issue #137 — `focal board setup` non-interactive flags (5 SP)
+
+File: `focal/wizard.py` (or wherever `board setup` is wired) — add a non-interactive path when all required flags are provided.
+
+New flags:
+- `--owner TEXT` — GitHub username / org
+- `--board-title TEXT` — name for the new board (implies `--create-board`)
+- `--create-board` / `--use-board-number N` — mutually exclusive
+- `--repos TEXT` — comma-separated repos to watch
+- `--assignee TEXT` — default assignee
+
+When all required flags are present → skip all prompts, run directly.
+When some flags are missing → fall through to interactive mode for missing values only.
+
+Docs to update: `AGENTS.md` command surface table, `docs/user-guide.md` setup section, `docs/testing-guide.md`.
+
+---
+
+### Issue #135 — `focal pm triage owner/repo` (3 SP)
 
 Flags:
 - `--label TEXT` — filter by GitHub label
@@ -58,21 +102,14 @@ Flags:
 - `--json` — output as JSON instead of table
 
 Behaviour:
-1. Load `focal-state.json` — collect all issue numbers already tracked (epics + stories).
-2. Call `gh issue list --repo owner/repo --state open --json number,title,labels,assignees,createdAt --limit 200`.
-3. Subtract tracked issues → untracked remainder.
-4. Apply `--label`, `--unassigned`, `--days` filters.
-5. Render a rich table: `#` · title · labels · assignee · age.
+1. Load `focal-state.json` — collect all tracked issue numbers (epics + stories).
+2. `gh issue list --repo owner/repo --state open --json number,title,labels,assignees,createdAt --limit 200`
+3. Subtract tracked → untracked remainder.
+4. Apply filters.
+5. Render rich table: `#` · title · labels · assignee · age.
 6. Print hint: `Run focal pm story-create owner/repo --epic E0 --title "..." to track any of these.`
 
-Files to create/edit:
-- `focal/pm/triage_cmd.py` — new file (main logic)
-- `focal/cli.py` (or `focal/pm/__init__.py`) — wire `triage` subcommand
-- `docs/pm-guide.md` — add `focal pm triage` section
-- `docs/user-guide.md` — mention triage in "keep cache fresh" section
-- `docs/testing-guide.md` — TR1–TR5 test cases
-- `AGENTS.md` — add `focal pm triage` to command surface table
-- `docs/build-log.md` — move #135 to Shipped after merge
+Files: `focal/pm/triage_cmd.py` (new), wire subcommand, update `docs/pm-guide.md`, `docs/user-guide.md`, `docs/testing-guide.md` (TR1–TR5), `AGENTS.md`.
 
 ---
 
@@ -80,7 +117,8 @@ Files to create/edit:
 
 | PR | Issue | What |
 |---|---|---|
-| #132 | #133 | **Fix: templates not included in wheel** — moved `templates/` inside `focal/` package; use `importlib.resources` so `pipx install focal-cli` users get templates without cloning the repo |
+| #136 | #134 | **E0 General Maintenance epic** — `focal pm init` auto-creates E0; user epics start at E1; AGENTS.md critical warning + CLAUDE.md agent self-write instruction; `docs/build-log.md` + `CLAUDE.md` added |
+| #132 | #133 | **Fix: templates not included in wheel** — moved `templates/` inside `focal/` package; `importlib.resources` path resolution |
 | #131 | — | Fix gaps in user-guide, pm-guide, testing-guide |
 | #130 | — | Add "Why not just use an AI agent?" section to README |
 | #129 | — | README polish pass |

@@ -23,3 +23,10 @@ test
 | **1.3** — focal pm status --no-plan: solo/lightweight mode using build-log.md as tracker | [#146](https://github.com/leninmehedy/focal/issues/146) | 5 |
 | **1.2** — story 1.2 | [#99](https://github.com/leninmehedy/focal/issues/99) | 1 |
 | **1.1** — Story 1.1 | [#98](https://github.com/leninmehedy/focal/issues/98) | 1 |
+
+## E2 — focal pm adopt-plan: bootstrap a project from a plan doc (EPICS.md) · [#147](https://github.com/leninmehedy/focal/issues/147) · 22 SP
+
+Parse a human/agent-written EPICS.md plan file and materialize it as GitHub issues + focal state in one command
+
+| Story | GitHub | SP |
+|---|---|---|

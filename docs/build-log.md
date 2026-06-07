@@ -52,6 +52,21 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 
 ## Implementation notes
 
+### Epic E2 — adopt-plan (#147) · design doc: D004
+
+See `docs/focal/design/D004-adopt-plan.md` for full parser design, surgical writer spec, and acceptance criteria.
+
+Key decisions captured in design:
+- `docs/focal/epics.md` is renamed to `docs/focal/plan.md` — it is a human/agent plan document, not just an epics list
+- One file, two phases: human writes `plan.md`, `adopt-plan` materialises it as GitHub issues and writes links back into the same file
+- Surgical writer: focal only patches issue-link tokens; never rewrites prose, dependency graph, or release ladder rows
+- `focal pm init` template upgraded to include Release ladder + Dependency graph sections (story #148)
+- `adopt-plan` defaults to reading `docs/focal/plan.md`; `--from-plan PATH` overrides for non-standard locations
+
+Story order: #148 → #149 → #150 → #151 → #152 → #153
+
+---
+
 ### Issue #135 — `focal pm triage owner/repo` (3 SP)
 
 Flags:

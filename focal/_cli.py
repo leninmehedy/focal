@@ -521,6 +521,36 @@ def pm_adopt_plan(
     )
 
 
+@pm_app.command("triage")
+def pm_triage(
+    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
+    repo_root: Path = typer.Option(
+        Path("."), "--repo-root", help="Local path to the repo root"
+    ),
+    label: str = typer.Option(None, "--label", help="Filter by GitHub label"),
+    unassigned: bool = typer.Option(
+        False, "--unassigned", is_flag=True, help="Only show unassigned issues"
+    ),
+    days: int = typer.Option(
+        None, "--days", help="Only show issues opened in the last N days"
+    ),
+    as_json: bool = typer.Option(
+        False, "--json", is_flag=True, help="Output as JSON instead of table"
+    ),
+):
+    """List open issues not linked to any epic in local state."""
+    from focal.pm.triage_cmd import run
+
+    run(
+        repo,
+        repo_root.resolve(),
+        label=label,
+        unassigned=unassigned,
+        days=days,
+        as_json=as_json,
+    )
+
+
 @pm_app.command("plan")
 def pm_plan(
     repo: str = typer.Argument(..., help="Target repo in owner/repo format"),

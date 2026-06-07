@@ -593,6 +593,44 @@ focal cache refresh-all --force   # refreshes all repos regardless of limits
 
 ---
 
+### `focal pm triage`
+
+Surface open GitHub issues that are not linked to any epic in the local state cache. Useful for catching unplanned work, community-filed bugs, and manually created issues that haven't been categorised yet.
+
+```bash
+focal pm triage <owner/repo> [--repo-root PATH]
+                [--label TEXT] [--unassigned] [--days N] [--json]
+```
+
+**Flags:**
+
+| Flag | Description |
+|---|---|
+| `--label TEXT` | Only show issues with this GitHub label |
+| `--unassigned` | Only show issues with no assignee |
+| `--days N` | Only show issues opened in the last N days |
+| `--json` | Output as JSON array instead of a rich table |
+
+**Output:**
+
+```
+  ◎  Focal — triage (leninmehedy/focal)
+
+  3 untracked issues (not linked to any epic)
+
+  #   Title                         Labels       Assignee  Age
+  ───────────────────────────────────────────────────────────────
+  45  Fix login crash on mobile     bug          —         3d
+  51  Add dark mode support         enhancement  alice     1d
+  58  Docs: update install guide    docs         —         5h
+
+  Next step: run focal pm story-create leninmehedy/focal --epic E0 --title "..." to track any of these.
+```
+
+Route unplanned items to E0 (General Maintenance) unless they belong to an active epic.
+
+---
+
 ### `focal pm adopt`
 
 Bootstrap the local state cache from existing GitHub issues in a repo that already has epics and stories. Useful when Focal is introduced into a repo that pre-dates Focal, or after a migration.

@@ -718,6 +718,41 @@ _SP_FIELD_CANDIDATES = [
 ]
 
 
+def open_issues(repo: str, limit: int = 200) -> list[dict]:
+    """Return open issues for *repo* (excludes pull requests).
+
+    Each item: {number, title, labels, assignees, created_at}.
+    """
+    owner, name = repo.split("/", 1)
+    query = f"""
+      query {{
+        repository(owner: "{owner}", name: "{name}") {{
+          issues(first: {min(limit, 100)}, states: [OPEN], orderBy: {{field: CREATED_AT, direction: DESC}}) {{
+            nodes {{
+              number title createdAt
+              labels(first: 10) {{ nodes {{ name }} }}
+              assignees(first: 5) {{ nodes {{ login }} }}
+            }}
+          }}
+        }}
+      }}
+    """
+    data = _graphql(query)
+    nodes = (
+        data.get("data", {}).get("repository", {}).get("issues", {}).get("nodes", [])
+    )
+    return [
+        {
+            "number": n["number"],
+            "title": n["title"],
+            "labels": [lb["name"] for lb in n["labels"]["nodes"]],
+            "assignees": [a["login"] for a in n["assignees"]["nodes"]],
+            "created_at": n["createdAt"],
+        }
+        for n in nodes
+    ]
+
+
 def project_field_value_auto(repo: str, issue_number: int) -> Optional[int]:
     """Like project_field_value but tries common SP field names automatically."""
     for name in _SP_FIELD_CANDIDATES:

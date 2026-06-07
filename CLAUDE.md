@@ -1,0 +1,75 @@
+# CLAUDE.md — Focal project context
+
+## ▶ Resume command (copy-paste this to start any session)
+
+```
+Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — then tell me what to work on next.
+```
+
+---
+
+## Where we are right now
+
+→ See **[`docs/build-log.md`](docs/build-log.md)** for the full picture:
+- What's merged
+- What PRs are open and waiting for merge
+- What's next (issue #135 — `focal pm triage`)
+- Implementation notes for the next task
+
+---
+
+## Project management
+
+This project uses [Focal](https://github.com/leninmehedy/focal) for issue tracking
+and delivery management.
+
+**Always use `focal` commands to create or update GitHub issues — never use `gh`
+directly for issue or project management.**
+
+| Task | Command |
+|---|---|
+| Create epic | `focal pm epic-create owner/repo --title "..." --sp N` |
+| Create story or bug | `focal pm story-create owner/repo --epic EX --title "..."` |
+| Unplanned work / bugs | `focal pm story-create owner/repo --epic E0 --title "..."` |
+| Check iteration status | `focal pm status owner/repo` |
+| Sync board | `focal board sync` |
+| Refresh issue cache | `focal cache refresh owner/repo` |
+
+E0 is the General Maintenance epic — always route bugs and unplanned work there.
+Every task needs a GitHub issue before work begins.
+
+---
+
+## Critical rules
+
+1. **Issue-first** — create a GitHub issue before writing any code. No exceptions.
+2. **Focal commands only** — never call `gh issue create`, `gh issue edit`, or `gh project` directly.
+3. **Do not read or run Focal source code** — `AGENTS.md` is the complete reference.
+4. **PR description style** — short benefit-led bullets; technical detail in the review guide body.
+5. **Focal issue format** — title is plain description only; SP in `| SP | N |` body table.
+6. **testing-guide.md** — every PR that adds or changes a command must add test cases.
+
+---
+
+## How to start a new task
+
+1. Check `docs/build-log.md` → "Up next" section.
+2. Verify the prerequisite PR is merged: `gh pr view <N> --json state`.
+3. Create a new branch: `git checkout -b feat/<issue>-<slug>`.
+4. Implement, then run linters: `python3 -m ruff check focal/ && python3 -m ruff format --check focal/`.
+5. Commit and push, then create PR with `gh pr create`.
+6. Update `docs/build-log.md` — move the item from "Up next" to "In flight".
+
+---
+
+## Repo layout (focal-specific)
+
+```
+focal/pm/           PM command modules
+focal/templates/    Markdown templates bundled inside the package
+docs/focal/         Per-project PM docs (created by focal pm init in target repos)
+docs/build-log.md   ← Start here for session state
+docs/pm-guide.md    Full PM workflow guide
+docs/testing-guide.md  Test cases for every command
+AGENTS.md           Full command reference for AI agents
+```

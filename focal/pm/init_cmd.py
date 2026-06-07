@@ -1,5 +1,6 @@
 """focal init — bootstrap a repo with Focal project management structure."""
 
+import importlib.resources
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -11,9 +12,9 @@ if TYPE_CHECKING:
 
 console = Console()
 
-# Templates live in <focal_root>/templates/ so users can customise them
-FOCAL_ROOT = Path(__file__).parent.parent.parent
-TEMPLATES_DIR = FOCAL_ROOT / "templates"
+# Resolve templates from inside the installed package (works with pip/pipx and local dev)
+_pkg_templates = importlib.resources.files("focal") / "templates"
+TEMPLATES_DIR = Path(str(_pkg_templates))
 
 LABELS = [
     ("epic", "5319E7", "Large feature — parent of stories"),

@@ -209,7 +209,23 @@ $ focal pm init leninmehedy/my-project
   ✔ docs/focal/iteration-planning.md
   ✔ docs/focal/retro-log.md
   ✔ docs/focal/design/
+  ✔ E0 General Maintenance created (#5)
 ```
+
+**The General Maintenance epic (E0)**
+
+`focal pm init` automatically creates a standing **E0 General Maintenance** epic on GitHub. This is the permanent home for all unplanned work — bug fixes, security patches, dependency updates, hotfixes, and any task that arrives outside of iteration planning.
+
+| Use E0 when… | Don't use E0 when… |
+|---|---|
+| A bug is filed against a live release | Work belongs to a defined feature epic |
+| An urgent dependency patch is needed | Work was planned in the current iteration |
+| CI or tooling breaks mid-sprint | The task has a clear product owner and planned epic |
+| Work arrives with no clear epic owner | — |
+
+**Rule: every task needs an issue.** If work doesn't belong to a planned epic, create a story under E0 rather than working without a ticket. E0 is intentionally permanent and never closed — ongoing maintenance always has a home.
+
+User epics start at E1. E0 is reserved exclusively for General Maintenance and is never reassigned.
 
 ---
 

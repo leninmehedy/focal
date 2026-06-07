@@ -209,7 +209,10 @@ def _render_report(
             console.print(f"  PTO  @{p['handle']}  {p['from']} – {p['to']}")
     if scenario.get("inject"):
         for inj in scenario["inject"]:
-            console.print(f"  Inject  '{inj['title']}'  {inj['sp']} SP")
+            console.print(
+                f"  Inject  '{inj['title']}'  {inj['sp']} SP"
+                "  [dim](track under E0 General Maintenance)[/dim]"
+            )
     if scenario.get("reestimate"):
         for re in scenario["reestimate"]:
             orig_sp = story_map.get(re["story_id"], {}).get("sp", "?")

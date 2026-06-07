@@ -153,9 +153,12 @@ Bootstraps a repo with Focal PM structure.
 |---|------|-----------|-----------------|
 | PI1 | Basic init | `focal pm init owner/repo --repo-root /path/to/repo` | Creates `.github/ISSUE_TEMPLATE/epic.md`, `.github/ISSUE_TEMPLATE/story.md`, `docs/focal/epics.md`, `docs/focal/iteration-planning.md`, `docs/focal/retro-log.md`, `docs/focal/design/`. Labels `epic` and `story` created on GitHub ✅ |
 | PI2 | Auto-registers repo | After PI1, `cat ~/.focal/config.json` | `pm_repos` array contains `{"repo": "owner/repo", "repo_root": "/path/to/repo"}` ✅ |
-| PI3 | Safe to re-run | Run init again on same repo | Existing files are not overwritten. Re-run exits cleanly ✅ |
-| PI4 | No board setup | Run without `~/.focal/config.json` | Clear error asking to run `focal board setup` first ❌ |
-| PI5 | Wrong repo | `focal pm init nonexistent/repo` | `gh` error surfaced clearly — no traceback ❌ |
+| PI3 | General Maintenance epic created | After PI1, `gh issue list --repo owner/repo --label epic` | Issue titled "General Maintenance" exists with label `epic`. `docs/focal/epics.md` contains `## E0 — General Maintenance` ✅ |
+| PI4 | E0 is idempotent | Run `focal pm init owner/repo` again on same repo | No second E0 issue created; output shows `E0 General Maintenance already exists — skipping` ✅ |
+| PI5 | User epics start at E1 | After PI3, run `focal pm epic-create owner/repo --title "My Epic" --sp 5` | New epic gets ID E1 (not E0) ✅ |
+| PI6 | Safe to re-run (files) | Run init again on same repo | Existing files not overwritten; re-run exits cleanly ✅ |
+| PI7 | No board setup | Run without `~/.focal/config.json` | Clear error asking to run `focal board setup` first ❌ |
+| PI8 | Wrong repo | `focal pm init nonexistent/repo` | `gh` error surfaced clearly — no traceback ❌ |
 
 ### `focal pm epic-create`
 
@@ -179,11 +182,12 @@ Creates a story issue linked to an epic.
 
 | # | Test | How to run | Expected result |
 |---|------|-----------|-----------------|
-| SC1 | Interactive | `focal pm story-create owner/repo` | Prompts for epic (shows list), title, description, SP ✅ |
+| SC1 | Interactive | `focal pm story-create owner/repo` | Prompts for epic (shows list), title, description, SP. E0 General Maintenance is listed with a `(bugs & unplanned work)` tag. Hint printed: "No matching epic? Use E0 General Maintenance for bugs and unplanned work." ✅ |
 | SC2 | Non-interactive | `focal pm story-create owner/repo --epic E1 --title "My Story" --description "Desc" --sp 5` | Creates issue with label `story`, linked as sub-issue of the epic. Story ID is `1.1`, `1.2`, etc. ✅ |
-| SC3 | Sub-issue link | After SC2, open epic on GitHub | Story appears in the sub-issues list of the epic ✅ |
-| SC4 | SP on board | After SC2, open personal board | Story card has SP value set in the Estimate/SP field ✅ |
-| SC5 | Wrong epic ID | `--epic E99` on a repo with no E99 | Clear error: epic not found — no traceback ❌ |
+| SC3 | Create story under E0 | `focal pm story-create owner/repo --epic E0 --title "Fix login crash" --sp 3` | Creates story under General Maintenance epic. Story ID is `0.1`, linked as sub-issue of E0 issue ✅ |
+| SC4 | Sub-issue link | After SC2, open epic on GitHub | Story appears in the sub-issues list of the epic ✅ |
+| SC5 | SP on board | After SC2, open personal board | Story card has SP value set in the Estimate/SP field ✅ |
+| SC6 | Wrong epic ID | `--epic E99` on a repo with no E99 | Clear error: epic not found — no traceback ❌ |
 
 ### `focal pm plan`
 

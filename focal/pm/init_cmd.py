@@ -248,7 +248,7 @@ def run(
 
     # ── Docs scaffold ─────────────────────────────────────────────────────────
     console.rule("[bold]Step 3: Docs scaffold[/bold]")
-    for tmpl in ("epics.md", "iteration-planning.md", "retro-log.md"):
+    for tmpl in ("epics.md", "plan.md", "iteration-planning.md", "retro-log.md"):
         _copy_template(TEMPLATES_DIR / tmpl, repo_root / "docs" / "focal" / tmpl, repo)
 
     design_dir = repo_root / "docs" / "focal" / "design"
@@ -289,16 +289,16 @@ def run(
     if no_board:
         console.print("  0. Create your project board:  [bold]focal board setup[/bold]")
     console.print(
-        f"  {step}. Write a design doc:   [bold]cp docs/focal/design/design-template.md "
-        f"docs/focal/design/D001-my-feature.md[/bold]"
+        f"  {step}. Write your plan:        [bold]edit docs/focal/plan.md[/bold]"
     )
     step += 1
     console.print(
-        f"  {step}. Create your first epic:  [bold]focal pm epic-create {repo}[/bold]"
+        f"  {step}. Adopt the plan:         [bold]focal pm adopt-plan {repo}[/bold]"
+        "  (dry-run first, then --apply)"
     )
     step += 1
     console.print(
-        f"  {step}. Commit the scaffold:  [bold]git add docs/focal/ .github/ISSUE_TEMPLATE/ && "
+        f"  {step}. Commit the scaffold:    [bold]git add docs/focal/ .github/ISSUE_TEMPLATE/ && "
         "git commit -m 'chore: focal init'[/bold]"
     )
     console.print("\nCanonical Status columns for your GitHub Projects board:")

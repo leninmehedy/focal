@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.prompt import Confirm, Prompt
 
 from .. import gh
-from . import pm_state
+from . import epics_renderer, pm_state
 
 console = Console()
 
@@ -141,10 +141,6 @@ def run(
         except RuntimeError as e:
             console.print(f"  [yellow]⚠[/yellow]  Board update failed: {e}")
 
-    # Update docs/focal/epics.md
-    _append_epic(epics_path, epic_id, title, description, issue_number, repo, sp)
-    console.print(f"  [green]✔[/green] docs/focal/epics.md updated ({epic_id})")
-
     # Update local state cache
     state = pm_state.load(repo_root)
     state["repo"] = repo
@@ -162,6 +158,10 @@ def run(
     )
     pm_state.save(repo_root, state)
     console.print("  [green]✔[/green] Local state updated")
+
+    # Re-render epics.md from state
+    epics_renderer.render(repo_root, state)
+    console.print(f"  [green]✔[/green] docs/focal/epics.md updated ({epic_id})")
 
     # Commit
     _git_commit(repo_root, f"chore: add {epic_id} — {title} to epics.md")
@@ -280,16 +280,6 @@ def run_from_design(
         except RuntimeError as e:
             console.print(f"  [yellow]⚠[/yellow]  Board update failed: {e}")
 
-    _append_epic(
-        epics_path,
-        epic_id,
-        breakdown["epic_title"],
-        fm.get("title", ""),
-        epic_number,
-        repo,
-        breakdown["epic_sp"],
-    )
-
     state = pm_state.load(repo_root)
     state["repo"] = repo
     pm_state.upsert_epic(
@@ -352,13 +342,10 @@ def run_from_design(
             except RuntimeError as e:
                 console.print(f"  [yellow]⚠[/yellow]  Board update failed: {e}")
 
-        # Append story row to epics.md
-        from .story_cmd import _append_story_row, _next_story_id
+        # Derive story ID from state
+        from .story_cmd import _next_story_id_from_state
 
-        story_id = _next_story_id(epics_path, epic_id)
-        _append_story_row(
-            epics_path, epic_id, story_id, story["title"], s_number, repo, story["sp"]
-        )
+        story_id = _next_story_id_from_state(state, epic_id)
 
         # Update state
         state = pm_state.load(repo_root)
@@ -378,6 +365,11 @@ def run_from_design(
             },
         )
         pm_state.save(repo_root, state)
+
+    # Re-render epics.md from final state
+    final_state = pm_state.load(repo_root)
+    epics_renderer.render(repo_root, final_state)
+    console.print("  [green]✔[/green] docs/focal/epics.md updated")
 
     # Update design doc frontmatter
     console.rule("Updating design doc")

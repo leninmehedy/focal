@@ -27,9 +27,9 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 
 ## Current state (as of 2026-06-08)
 
-**Last action:** PR #145 open — CLAUDE.md build-log rule + user-guide full workflow section + issue #146 (`--no-plan` solo mode).
+**Last action:** PR open on `feat/147-adopt-plan` — full adopt-plan implementation (D004 redesign, plan_doc_parser, epics_renderer, adopt_plan_cmd, CLI wiring, docs).
 
-**Immediate next step:** Merge #145, then start #135 — `focal pm triage owner/repo`.
+**Immediate next step:** Review and merge the adopt-plan PR, then #135 (`focal pm triage`).
 
 ---
 
@@ -37,7 +37,7 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 
 | PR | Issue | Branch | What | State |
 |---|---|---|---|---|
-| #145 | — | `docs/claude-md-build-log-rule` | CLAUDE.md build-log rule + user-guide workflow section | 🔄 |
+| — | #147–#153 | `feat/147-adopt-plan` | `focal pm adopt-plan` full implementation | 🔄 |
 
 ---
 

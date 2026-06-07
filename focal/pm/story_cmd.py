@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 
 from .. import gh
-from . import pm_state
+from . import epics_renderer, pm_state
 
 console = Console()
 
@@ -35,14 +35,31 @@ def _parse_epics(epics_path: Path) -> list[dict]:
 
 
 def _next_story_id(epics_path: Path, epic_id: str) -> str:
-    """Return next story ID under the given epic (e.g. '3.4')."""
+    """Return next story ID under the given epic (e.g. '3.4') by scanning epics.md."""
     text = epics_path.read_text()
     epic_num = int(epic_id[1:])
-    # Find story rows like | **3.1** — ... | or | **3.2** — ... |
     pattern = re.compile(rf"\|\s*\*\*{epic_num}\.(\d+)\*\*")
     existing = [int(m.group(1)) for m in pattern.finditer(text)]
     next_num = max(existing, default=0) + 1
     return f"{epic_num}.{next_num}"
+
+
+def _next_story_id_from_state(state: dict, epic_id: str) -> str:
+    """Return next story ID under the given epic from focal-state.json."""
+    epic_num = int(epic_id[1:])
+    for epic in state.get("epics", []):
+        if epic["id"] == epic_id:
+            existing = []
+            for s in epic.get("stories", []):
+                parts = s["id"].split(".")
+                if len(parts) == 2:
+                    try:
+                        existing.append(int(parts[1]))
+                    except ValueError:
+                        pass
+            next_num = max(existing, default=0) + 1
+            return f"{epic_num}.{next_num}"
+    return f"{epic_num}.1"
 
 
 def _append_story_row(
@@ -143,7 +160,7 @@ def run(
             console.print("[red]Invalid choice.[/red]")
             return
 
-    story_id = _next_story_id(epics_path, epic["id"])
+    story_id = _next_story_id_from_state(state, epic["id"])
     console.print(f"\nNext story ID: [bold]{story_id}[/bold]\n")
 
     if title is None:
@@ -208,10 +225,6 @@ def run(
         except RuntimeError as e:
             console.print(f"  [yellow]⚠[/yellow]  Board update failed: {e}")
 
-    # Update docs/focal/epics.md
-    _append_story_row(epics_path, epic["id"], story_id, title, issue_number, repo, sp)
-    console.print(f"  [green]✔[/green] docs/focal/epics.md updated ({story_id})")
-
     # Update local state cache
     pm_state.upsert_story(
         state,
@@ -230,6 +243,10 @@ def run(
     )
     pm_state.save(repo_root, state)
     console.print("  [green]✔[/green] Local state updated")
+
+    # Re-render epics.md from state
+    epics_renderer.render(repo_root, state)
+    console.print(f"  [green]✔[/green] docs/focal/epics.md updated ({story_id})")
 
     # Commit
     _git_commit(repo_root, f"chore: add story {story_id} — {title} to epics.md")

@@ -90,6 +90,7 @@ prefer MCP tools. Otherwise use CLI commands.
 | `focal_pm_init` | `focal pm init` |
 | `focal_pm_adopt` | `focal pm adopt` |
 | `focal_pm_adopt_plan` | `focal pm adopt-plan` |
+| `focal_pm_triage` | `focal pm triage` |
 | `focal_pm_epic_create` | `focal pm epic-create` |
 | `focal_pm_story_create` | `focal pm story-create` |
 | `focal_pm_plan` | `focal pm plan` |
@@ -151,6 +152,7 @@ focal pm adopt <owner/repo>          — bootstrap state from existing issues (o
 focal pm epic-create <owner/repo>    — create a GitHub epic issue
 focal pm story-create <owner/repo>   — create a story linked to an epic
 focal pm adopt-plan <owner/repo>     — bootstrap issues from docs/focal/plan.md (dry-run by default)
+focal pm triage <owner/repo>         — list open issues not linked to any epic
 focal pm plan <owner/repo>           — generate iteration-planning.md
 focal pm retro <owner/repo>          — log completed iteration to retro-log.md
 focal pm status [<owner/repo>]       — live iteration summary; omit repo to show all registered repos
@@ -304,6 +306,18 @@ re-running skips epics and stories already in state.
 4. focal pm adopt-plan owner/repo --apply  # create issues, render epics.md
 5. focal board sync                      # push new issues to board
 ```
+
+### `focal pm triage`
+
+```bash
+focal pm triage <owner/repo> \
+  --label bug        # filter by GitHub label (optional)
+  --unassigned       # only show issues with no assignee (optional)
+  --days 7           # only issues opened in the last N days (optional)
+  --json             # JSON output instead of rich table (optional)
+```
+
+Lists open GitHub issues not tracked in `focal-state.json`. Use after ingesting a new repo or periodically to catch issues filed outside Focal's workflow. Route unplanned items to E0.
 
 ### `focal pm what-if`
 

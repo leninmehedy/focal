@@ -118,6 +118,12 @@ focal pm plan myorg/my-project --weeks 2 --start 2026-06-02 --team "alice:8,bob:
 ```bash
 focal pm status myorg/my-project   # live dashboard: SP delivered vs planned
 focal pm triage myorg/my-project   # find issues not yet linked to any epic
+
+# Optional filters
+focal pm triage myorg/my-project --label bug        # only bug-labelled issues
+focal pm triage myorg/my-project --unassigned       # only unassigned
+focal pm triage myorg/my-project --days 7           # opened in the last 7 days
+focal pm triage myorg/my-project --json             # JSON output
 ```
 
 ### Step 5 — Retro

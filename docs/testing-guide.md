@@ -181,6 +181,18 @@ Bootstrap GitHub issues from `docs/focal/plan.md`. Dry-runs by default; pass `--
 | AP7 | epics.md re-rendered on epic-create | `focal pm epic-create owner/repo --title "New Epic" --sp 3` | `docs/focal/epics.md` regenerated from state; new epic appears; `<!-- focal-managed -->` header present ✅ |
 | AP8 | epics.md re-rendered on story-create | `focal pm story-create owner/repo --epic E1 --title "New Story" --sp 2` | `docs/focal/epics.md` regenerated; new story row appears under E1 ✅ |
 
+### `focal pm triage`
+
+List open issues not linked to any epic in local state.
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| TR1 | Basic output | `focal pm triage owner/repo` | Rich table of untracked open issues: number, title, labels, assignee, age; hint to run `focal pm story-create` ✅ |
+| TR2 | Nothing untracked | Run after all issues are linked | "✓ No untracked issues — everything is linked to an epic." ✅ |
+| TR3 | `--label` filter | `focal pm triage owner/repo --label bug` | Only issues with the `bug` label shown ✅ |
+| TR4 | `--unassigned` filter | `focal pm triage owner/repo --unassigned` | Only issues with no assignee shown ✅ |
+| TR5 | `--json` flag | `focal pm triage owner/repo --json` | Valid JSON array; each item has `number`, `title`, `labels`, `assignees`, `created_at` ✅ |
+
 ### `focal pm epic-create`
 
 Creates a GitHub epic issue.

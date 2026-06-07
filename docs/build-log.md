@@ -27,9 +27,9 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 
 ## Current state (as of 2026-06-08)
 
-**Last action:** PR open on `feat/147-adopt-plan` — full adopt-plan implementation (D004 redesign, plan_doc_parser, epics_renderer, adopt_plan_cmd, CLI wiring, docs).
+**Last action:** PR open on `feat/135-pm-triage` — `focal pm triage` implementation (gh.open_issues, triage_cmd.py, CLI wiring, docs).
 
-**Immediate next step:** Review and merge the adopt-plan PR, then #135 (`focal pm triage`).
+**Immediate next step:** Review and merge the triage PR, then #146 (`focal pm status --no-plan`).
 
 ---
 
@@ -37,7 +37,7 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 
 | PR | Issue | Branch | What | State |
 |---|---|---|---|---|
-| — | #147–#153 | `feat/147-adopt-plan` | `focal pm adopt-plan` full implementation | 🔄 |
+| — | #135 | `feat/135-pm-triage` | `focal pm triage` — surface untracked open issues | 🔄 |
 
 ---
 
@@ -45,7 +45,7 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 
 | # | Issue | Branch (to create) | SP | What |
 |---|---|---|---|---|
-| 1 | #135 | `feat/135-pm-triage` | 3 | **`focal pm triage owner/repo`** — list open GitHub issues not linked to any epic in local state cache |
+| 1 | #155 | `feat/155-mcp-triage-adopt-plan` | 2 | **MCP server**: add `focal_pm_triage` and `focal_pm_adopt_plan` tools to `focal/mcp_server.py` |
 | 2 | #146 | `feat/146-no-plan-mode` | 5 | **`focal pm status --no-plan`** — solo/lightweight mode using build-log.md as tracker |
 
 ---

@@ -130,7 +130,12 @@ def refresh_from_github(repo_root: Path, repo: str, config: dict) -> dict:
             items = gh.project_items(board_number, board_owner)
             for item in items:
                 num = (item.get("content") or {}).get("number")
-                status = (item.get("status") or {}).get("name", "")
+                raw_status = item.get("status") or ""
+                status = (
+                    raw_status
+                    if isinstance(raw_status, str)
+                    else raw_status.get("name", "")
+                )
                 if num:
                     project_status_map[int(num)] = status
         except RuntimeError:

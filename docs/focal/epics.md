@@ -30,4 +30,5 @@ Parse a human/agent-written EPICS.md plan file and materialize it as GitHub issu
 
 | Story | GitHub | SP |
 |---|---|---|
+| **2.2** — Implement plan_doc_parser.py — parse EPICS.md into structured epic/story data | [#149](https://github.com/leninmehedy/focal/issues/149) | 5 |
 | **2.1** — Define canonical EPICS.md plan-doc format and ship focal/templates/EPICS-template.md | [#148](https://github.com/leninmehedy/focal/issues/148) | 2 |

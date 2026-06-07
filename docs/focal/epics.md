@@ -30,3 +30,4 @@ Parse a human/agent-written EPICS.md plan file and materialize it as GitHub issu
 
 | Story | GitHub | SP |
 |---|---|---|
+| **2.1** — Define canonical EPICS.md plan-doc format and ship focal/templates/EPICS-template.md | [#148](https://github.com/leninmehedy/focal/issues/148) | 2 |

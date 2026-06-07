@@ -91,7 +91,19 @@ focal pm story-create myorg/my-project --epic E1 --title "Session management" --
 
 ### Why `docs/focal/epics.md`?
 
-`epics.md` is a human-readable summary index — every epic with its ID (E1, E2…), SP estimate, and story table. You can read it in your editor or on GitHub without navigating through dozens of issues. GitHub issues are authoritative; `epics.md` is the at-a-glance view that stays in the repo alongside the code.
+`epics.md` is a focal-owned summary index — every epic with its ID (E1, E2…), SP estimate, and story table, re-rendered from `focal-state.json` on every mutating command. You can read it in your editor or on GitHub without navigating through dozens of issues. GitHub issues are authoritative; `epics.md` is the at-a-glance view that stays in the repo alongside the code.
+
+### Issue descriptions and the design doc
+
+Focal creates GitHub issues with minimal bodies — a parent link and an SP estimate. It does **not** copy design doc content into issue descriptions, and it cannot update issue descriptions after creation.
+
+This is intentional: the **design doc is the source of truth**. Engineers read the design doc to understand the work — the issue is just a tracking ticket. Keeping them separate means the design doc stays current without needing to sync two places.
+
+If you want richer issue descriptions (e.g. acceptance criteria copied from the design doc), do it manually or ask your agent:
+
+> "Read `docs/focal/design/D001-user-auth.md` and update the GitHub issue descriptions for E1's stories using `gh issue edit`."
+
+The agent can use `gh issue edit --body "..."` to enrich individual issues from the design doc. Focal won't do this automatically — that decision belongs to the PM or the engineer, not the tool.
 
 ### Step 3 — Plan an iteration (team projects)
 

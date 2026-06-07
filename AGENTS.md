@@ -89,6 +89,7 @@ prefer MCP tools. Otherwise use CLI commands.
 | `focal_board_sync` | `focal board sync` |
 | `focal_pm_init` | `focal pm init` |
 | `focal_pm_adopt` | `focal pm adopt` |
+| `focal_pm_adopt_plan` | `focal pm adopt-plan` |
 | `focal_pm_epic_create` | `focal pm epic-create` |
 | `focal_pm_story_create` | `focal pm story-create` |
 | `focal_pm_plan` | `focal pm plan` |
@@ -122,6 +123,9 @@ focal skill install claude   # or: focal skill install cursor
 | `focal/pm/pm_state.py` | Local state cache manager |
 | `focal/pm/epic_cmd.py` | `focal pm epic-create` |
 | `focal/pm/story_cmd.py` | `focal pm story-create` |
+| `focal/pm/adopt_plan_cmd.py` | `focal pm adopt-plan` |
+| `focal/pm/plan_doc_parser.py` | Parser for `docs/focal/plan.md` |
+| `focal/pm/epics_renderer.py` | Re-renders `docs/focal/epics.md` from `focal-state.json` |
 | `focal/pm/plan_cmd.py` | `focal pm plan` |
 | `focal/pm/retro_cmd.py` | `focal pm retro` |
 | `focal/pm/status_cmd.py` | `focal pm status` |
@@ -146,6 +150,7 @@ focal pm init <owner/repo>           — bootstrap repo with Focal PM structure
 focal pm adopt <owner/repo>          — bootstrap state from existing issues (onboarding)
 focal pm epic-create <owner/repo>    — create a GitHub epic issue
 focal pm story-create <owner/repo>   — create a story linked to an epic
+focal pm adopt-plan <owner/repo>     — bootstrap issues from docs/focal/plan.md (dry-run by default)
 focal pm plan <owner/repo>           — generate iteration-planning.md
 focal pm retro <owner/repo>          — log completed iteration to retro-log.md
 focal pm status [<owner/repo>]       — live iteration summary; omit repo to show all registered repos
@@ -268,6 +273,37 @@ focal pm adopt <owner/repo> \
 
 **Always dry-run by default.** Pass `--apply` to write files. Use `--prompt-missing`
 only in interactive sessions — skip it when running as an agent.
+
+### `focal pm adopt-plan`
+
+```bash
+focal pm adopt-plan <owner/repo> \
+  --from-plan docs/focal/plan.md \  # optional; defaults to docs/focal/plan.md
+  --apply                           # create issues (default: dry-run)
+```
+
+Reads `docs/focal/plan.md` — a human/agent-authored file with epic headings and
+story tables — creates GitHub issues for every item not yet tracked in
+`focal-state.json`, links stories as sub-issues to their parent epics, and
+re-renders `docs/focal/epics.md` from the updated state.
+
+**Always dry-run by default.** Pass `--apply` to create issues. Idempotent —
+re-running skips epics and stories already in state.
+
+**Two-file model:**
+- `docs/focal/plan.md` — human/agent-authored; focal **never writes** to this file
+- `docs/focal/epics.md` — focal-owned; re-rendered from `focal-state.json` on every
+  mutating command (`adopt-plan`, `epic-create`, `story-create`)
+
+**Typical agent workflow:**
+
+```
+1. focal pm init owner/repo              # create scaffold including plan.md template
+2. [agent writes docs/focal/plan.md]     # author epics, stories, release ladder
+3. focal pm adopt-plan owner/repo        # dry-run — review what will be created
+4. focal pm adopt-plan owner/repo --apply  # create issues, render epics.md
+5. focal board sync                      # push new issues to board
+```
 
 ### `focal pm what-if`
 

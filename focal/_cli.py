@@ -490,6 +490,37 @@ def pm_story_create(
     )
 
 
+@pm_app.command("adopt-plan")
+def pm_adopt_plan(
+    repo: str = typer.Argument(..., help="Target repo in owner/repo format"),
+    repo_root: Path = typer.Option(
+        Path("."), "--repo-root", help="Local path to the repo root"
+    ),
+    from_plan: Path = typer.Option(
+        None, "--from-plan", help="Path to plan.md (default: docs/focal/plan.md)"
+    ),
+    apply: bool = typer.Option(
+        False, "--apply", help="Create issues and update epics.md (default: dry-run)"
+    ),
+):
+    """Bootstrap GitHub issues from docs/focal/plan.md.
+
+    Reads plan.md, shows what would be created (dry-run by default).
+    Pass --apply to create issues and re-render docs/focal/epics.md.
+    Idempotent — re-running skips already-tracked epics and stories.
+    """
+    from focal.pm.adopt_plan_cmd import run
+
+    config, _ = _load_config(require=True)
+    run(
+        repo,
+        repo_root.resolve(),
+        config,
+        plan_path=from_plan,
+        apply=apply,
+    )
+
+
 @pm_app.command("plan")
 def pm_plan(
     repo: str = typer.Argument(..., help="Target repo in owner/repo format"),

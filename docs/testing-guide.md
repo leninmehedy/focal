@@ -166,6 +166,21 @@ Bootstraps a repo with Focal PM structure.
 | PI9 | Board configured — no banner | Run `focal pm init owner/repo` with `~/.focal/config.json` present | No step-0 or warning banner in output; steps start at 1 ✅ |
 | PI10 | Wrong repo | `focal pm init nonexistent/repo` | `gh` error surfaced clearly — no traceback ❌ |
 
+### `focal pm adopt-plan`
+
+Bootstrap GitHub issues from `docs/focal/plan.md`. Dry-runs by default; pass `--apply` to create issues.
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| AP1 | Dry-run output | `focal pm adopt-plan owner/repo` (after `focal pm init`) | Prints table of epics and stories to create; no GitHub issues created; `epics.md` unchanged ✅ |
+| AP2 | Apply creates epics | `focal pm adopt-plan owner/repo --apply` | GitHub issues created for every epic in `plan.md` not already in `focal-state.json`; `docs/focal/epics.md` re-rendered ✅ |
+| AP3 | Apply creates stories | After AP2, `gh issue list --repo owner/repo --label story` | Story issues created, linked as sub-issues to their parent epic ✅ |
+| AP4 | Idempotent | Run `focal pm adopt-plan owner/repo --apply` a second time | "Nothing to create" message; no new issues; `epics.md` unchanged ✅ |
+| AP5 | Custom plan path | `focal pm adopt-plan owner/repo --from-plan /tmp/my-plan.md --apply` | Uses the specified file instead of `docs/focal/plan.md` ✅ |
+| AP6 | Missing plan.md | `focal pm adopt-plan owner/repo --apply` (no `plan.md`) | Clear error: "Plan doc not found. Run focal pm init first…" ✅ |
+| AP7 | epics.md re-rendered on epic-create | `focal pm epic-create owner/repo --title "New Epic" --sp 3` | `docs/focal/epics.md` regenerated from state; new epic appears; `<!-- focal-managed -->` header present ✅ |
+| AP8 | epics.md re-rendered on story-create | `focal pm story-create owner/repo --epic E1 --title "New Story" --sp 2` | `docs/focal/epics.md` regenerated; new story row appears under E1 ✅ |
+
 ### `focal pm epic-create`
 
 Creates a GitHub epic issue.
@@ -400,8 +415,11 @@ Run these in sequence to validate the full workflow from scratch:
 2. `focal board sync` — verify issues appear on board (BS1, BS2)
 3. `focal board status` — confirm column counts (ST1)
 4. `focal pm init owner/repo` — bootstrap a test repo (PI1, PI2)
-5. `focal pm epic-create owner/repo --title "Test Epic" --sp 8` — create an epic (EC2)
-6. `focal pm story-create owner/repo --epic E1 --title "Test Story" --sp 3` — create a story (SC2)
+5. Edit `docs/focal/plan.md` — add an epic and two stories
+6. `focal pm adopt-plan owner/repo` — verify dry-run output (AP1)
+7. `focal pm adopt-plan owner/repo --apply` — create issues, check epics.md rendered (AP2, AP3)
+8. `focal pm epic-create owner/repo --title "Test Epic" --sp 8` — create an additional epic (EC2)
+9. `focal pm story-create owner/repo --epic E2 --title "Test Story" --sp 3` — create a story (SC2)
 7. `focal pm plan owner/repo --weeks 1 --start $(date +%Y-%m-%d) --team "YOU:8"` — plan iteration (PL1)
 8. `focal pm status owner/repo` — check dashboard (PS1)
 9. `focal cache refresh owner/repo` — verify cache is current (CR1)

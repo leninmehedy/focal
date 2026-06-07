@@ -30,6 +30,7 @@ Parse a human/agent-written EPICS.md plan file and materialize it as GitHub issu
 
 | Story | GitHub | SP |
 |---|---|---|
+| **2.6** — Update AGENTS.md and docs/user-guide.md with adopt-plan workflow | [#153](https://github.com/leninmehedy/focal/issues/153) | 2 |
 | **2.5** — Update focal pm init to drop EPICS-template.md and explain plan-doc onboarding path | [#152](https://github.com/leninmehedy/focal/issues/152) | 2 |
 | **2.4** — Wire focal pm adopt-plan CLI command — --from-plan, --dry-run, --apply flags | [#151](https://github.com/leninmehedy/focal/issues/151) | 3 |
 | **2.3** — Implement adopt_plan_cmd.py — create GitHub issues from parsed plan, link sub-issues, bootstrap state | [#150](https://github.com/leninmehedy/focal/issues/150) | 8 |

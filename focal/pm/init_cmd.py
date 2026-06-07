@@ -285,12 +285,9 @@ def run(
         )
 
     console.print("Next steps:")
-    step = 0
+    step = 1
     if no_board:
-        console.print(
-            f"  {step}. Create your project board:  [bold]focal board setup[/bold]"
-        )
-        step += 1
+        console.print("  0. Create your project board:  [bold]focal board setup[/bold]")
     console.print(
         f"  {step}. Write a design doc:   [bold]cp docs/focal/design/design-template.md "
         f"docs/focal/design/D001-my-feature.md[/bold]"

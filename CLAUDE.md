@@ -57,8 +57,10 @@ Every task needs a GitHub issue before work begins.
 2. Verify the prerequisite PR is merged: `gh pr view <N> --json state`.
 3. Create a new branch: `git checkout -b feat/<issue>-<slug>`.
 4. Implement, then run linters: `python3 -m ruff check focal/ && python3 -m ruff format --check focal/`.
-5. Commit and push, then create PR with `gh pr create`.
-6. Update `docs/build-log.md` — move the item from "Up next" to "In flight".
+5. **Update `docs/build-log.md`** — move "Up next" item to "In flight", add implementation notes if useful.
+6. Commit and push, then create PR with `gh pr create`.
+
+> Build-log is updated **before** the PR is created, as part of the same branch/commit. Never make a separate PR just to update it.
 
 ---
 

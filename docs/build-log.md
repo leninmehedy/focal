@@ -25,11 +25,11 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 
 ---
 
-## Current state (as of 2026-06-07)
+## Current state (as of 2026-06-08)
 
-**Last action:** PR open for combined fix of #137 + #138 on branch `fix/137-138-board-setup-flags-and-init-hint`.
+**Last action:** PR #145 open — CLAUDE.md build-log rule + user-guide full workflow section + issue #146 (`--no-plan` solo mode).
 
-**Immediate next step:** Merge the combined PR, then use `focal board setup --owner … --repos … --use-board --use-board-number 4` to set up focal for the focal repo itself. Next feature work: #135.
+**Immediate next step:** Merge #145, then start #135 — `focal pm triage owner/repo`.
 
 ---
 
@@ -37,7 +37,7 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 
 | PR | Issue | Branch | What | State |
 |---|---|---|---|---|
-| — | #137, #138 | `fix/137-138-board-setup-flags-and-init-hint` | `focal board setup` non-interactive flags + `focal pm init` step-0 board hint | 🔄 |
+| #145 | — | `docs/claude-md-build-log-rule` | CLAUDE.md build-log rule + user-guide workflow section | 🔄 |
 
 ---
 
@@ -46,13 +46,26 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 | # | Issue | Branch (to create) | SP | What |
 |---|---|---|---|---|
 | 1 | #135 | `feat/135-pm-triage` | 3 | **`focal pm triage owner/repo`** — list open GitHub issues not linked to any epic in local state cache |
-
-> **Bug 1 (templates `FileNotFoundError`) = already fixed** by PR #132 (merged 2026-06-07).
-> Users on the broken version just need `pipx upgrade focal-cli`.
+| 2 | #146 | `feat/146-no-plan-mode` | 5 | **`focal pm status --no-plan`** — solo/lightweight mode using build-log.md as tracker |
 
 ---
 
 ## Implementation notes
+
+### Epic E2 — adopt-plan (#147) · design doc: D004
+
+See `docs/focal/design/D004-adopt-plan.md` for full parser design, surgical writer spec, and acceptance criteria.
+
+Key decisions captured in design:
+- `docs/focal/epics.md` is renamed to `docs/focal/plan.md` — it is a human/agent plan document, not just an epics list
+- One file, two phases: human writes `plan.md`, `adopt-plan` materialises it as GitHub issues and writes links back into the same file
+- Surgical writer: focal only patches issue-link tokens; never rewrites prose, dependency graph, or release ladder rows
+- `focal pm init` template upgraded to include Release ladder + Dependency graph sections (story #148)
+- `adopt-plan` defaults to reading `docs/focal/plan.md`; `--from-plan PATH` overrides for non-standard locations
+
+Story order: #148 → #149 → #150 → #151 → #152 → #153
+
+---
 
 ### Issue #135 — `focal pm triage owner/repo` (3 SP)
 
@@ -78,6 +91,7 @@ Files: `focal/pm/triage_cmd.py` (new), wire subcommand, update `docs/pm-guide.md
 
 | PR | Issue | What |
 |---|---|---|
+| #140 | #137, #138 | **`focal board setup` non-interactive flags + `focal pm init` step-0 board hint** — `--owner`, `--repos`, `--create-board`/`--use-board-number`; step-0 warning when no config |
 | #136 | #134 | **E0 General Maintenance epic** — `focal pm init` auto-creates E0; user epics start at E1; AGENTS.md critical warning + CLAUDE.md agent self-write instruction; `docs/build-log.md` + `CLAUDE.md` added |
 | #132 | #133 | **Fix: templates not included in wheel** — moved `templates/` inside `focal/` package; `importlib.resources` path resolution |
 | #131 | — | Fix gaps in user-guide, pm-guide, testing-guide |

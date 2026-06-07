@@ -54,6 +54,100 @@ You can use board sync without ever touching the PM CLI, and vice versa.
 
 ---
 
+## Recommended workflow for a new feature
+
+This is the intended end-to-end flow from idea to shipped code. Each step feeds the next.
+
+```
+Design doc → Epic → Stories → Plan → Build → Retro
+```
+
+### Step 1 — Write a design doc
+
+Create a lightweight spec before touching any code or issues:
+
+```bash
+cp docs/focal/design/design-template.md docs/focal/design/D001-user-auth.md
+# Edit: problem statement, proposed solution, rough story breakdown
+```
+
+The design doc lives in your repo (versioned, reviewable) rather than in an external wiki. It captures the *why* and the rough *how* — not a formal spec, just enough to break the work into stories. See `docs/focal/design/design-template.md` for the format.
+
+### Step 2 — Create an epic and stories from the design doc
+
+```bash
+focal pm epic-create myorg/my-project --from-design docs/focal/design/D001-user-auth.md
+# Parses the ## Breakdown section → creates the epic + all stories in one shot
+# Links stories as sub-issues on GitHub, updates epics.md
+```
+
+Or create them manually if you prefer:
+
+```bash
+focal pm epic-create myorg/my-project --title "User authentication" --sp 21
+focal pm story-create myorg/my-project --epic E1 --title "GitHub OAuth flow" --sp 5
+focal pm story-create myorg/my-project --epic E1 --title "Session management" --sp 3
+```
+
+### Why `docs/focal/epics.md`?
+
+`epics.md` is a human-readable summary index — every epic with its ID (E1, E2…), SP estimate, and story table. You can read it in your editor or on GitHub without navigating through dozens of issues. GitHub issues are authoritative; `epics.md` is the at-a-glance view that stays in the repo alongside the code.
+
+### Step 3 — Plan an iteration (team projects)
+
+```bash
+focal pm plan myorg/my-project --weeks 2 --start 2026-06-02 --team "alice:8,bob:6"
+# Writes docs/focal/iteration-planning.md
+# Greedily assigns stories to iterations based on SP + capacity
+```
+
+### Step 4 — Build and track
+
+```bash
+focal pm status myorg/my-project   # live dashboard: SP delivered vs planned
+focal pm triage myorg/my-project   # find issues not yet linked to any epic
+```
+
+### Step 5 — Retro
+
+```bash
+focal pm retro myorg/my-project --iteration I1 --goal-met
+# Logs velocity + notes → docs/focal/retro-log.md
+```
+
+---
+
+### Solo projects and lightweight mode
+
+`focal pm plan` assumes a team with capacity. For a single engineer with no fixed sprint cadence, **`docs/build-log.md` is the lightweight alternative**:
+
+- A rolling "what shipped / what's in flight / what's next" file committed alongside the code
+- AI agents (Claude Code, Cursor, etc.) read it at the start of each session to orient
+- No capacity math, no iterations — just a clear queue and a record
+
+Current limitation: `focal pm status` reports "No iterations — run focal pm plan first" when no plan exists, which is unhelpful for solo projects. A `--no-plan` mode that reads from `build-log.md` instead is tracked in issue [#146](https://github.com/leninmehedy/focal/issues/146).
+
+**Recommended `docs/build-log.md` structure for solo projects:**
+
+```markdown
+## Current state
+Last action: ...   Next step: ...
+
+## In flight
+| PR | Issue | What | State |
+
+## Up next
+| # | Issue | SP | What |
+
+## Implementation notes
+(design decisions, gotchas, links to relevant code)
+
+## Shipped
+| PR | Issue | What |
+```
+
+---
+
 ## Part 1 — Board sync
 
 ### What you need first

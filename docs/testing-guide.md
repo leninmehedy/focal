@@ -87,6 +87,10 @@ The interactive wizard that creates `~/.focal/config.json`.
 | S6 | Re-run wizard — full reconfigure | Choose "Full reconfigure" in S5 | Overwrites config from scratch ✅ |
 | S7 | Cancel re-run | Choose "Cancel" when offered options | Exits cleanly with no changes ✅ |
 | S8 | Status map created | After setup with mismatched status columns | `~/.focal/status_map.json` is created with translation mappings ✅ |
+| S9 | Non-interactive — create board | `focal board setup --owner USER --repos owner/repo --create-board --board-title "My Board"` with no existing config | Runs without any prompts. Creates a new GitHub Projects board, writes `~/.focal/config.json` ✅ |
+| S10 | Non-interactive — attach existing board | `focal board setup --owner USER --repos owner/repo --use-board --use-board-number N` | Runs without prompts. Reads Status field from existing board, writes config ✅ |
+| S11 | Non-interactive — assignee default | `focal board setup --owner USER --repos owner/repo --create-board` (no `--assignee`) | `assignee` in config equals `owner` value ✅ |
+| S12 | Non-interactive — partial flags fall through | `focal board setup --owner USER` (repos not given) | Falls through to interactive mode for missing values ✅ |
 
 ---
 
@@ -157,8 +161,10 @@ Bootstraps a repo with Focal PM structure.
 | PI4 | E0 is idempotent | Run `focal pm init owner/repo` again on same repo | No second E0 issue created; output shows `E0 General Maintenance already exists — skipping` ✅ |
 | PI5 | User epics start at E1 | After PI3, run `focal pm epic-create owner/repo --title "My Epic" --sp 5` | New epic gets ID E1 (not E0) ✅ |
 | PI6 | Safe to re-run (files) | Run init again on same repo | Existing files not overwritten; re-run exits cleanly ✅ |
-| PI7 | No board setup | Run without `~/.focal/config.json` | Clear error asking to run `focal board setup` first ❌ |
-| PI8 | Wrong repo | `focal pm init nonexistent/repo` | `gh` error surfaced clearly — no traceback ❌ |
+| PI7 | No board setup — warning banner | Run `focal pm init owner/repo` without `~/.focal/config.json` | Command succeeds (no error). Output contains a yellow ⚠ banner: "No board configured yet. Run focal board setup …" ✅ |
+| PI8 | No board setup — step 0 in next-steps | Run `focal pm init owner/repo` without `~/.focal/config.json` | Next-steps section shows step 0 as `focal board setup`, other steps renumbered 1, 2, 3 ✅ |
+| PI9 | Board configured — no banner | Run `focal pm init owner/repo` with `~/.focal/config.json` present | No step-0 or warning banner in output; steps start at 1 ✅ |
+| PI10 | Wrong repo | `focal pm init nonexistent/repo` | `gh` error surfaced clearly — no traceback ❌ |
 
 ### `focal pm epic-create`
 

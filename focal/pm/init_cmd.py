@@ -275,16 +275,30 @@ def run(
     )
 
     console.print("\n[bold green]Init complete![/bold green]\n")
+
+    no_board = config is None
+    if no_board:
+        console.print(
+            "[bold yellow]⚠  No board configured yet.[/bold yellow]  "
+            "Run [bold]focal board setup[/bold] to connect a GitHub Projects board — "
+            "epics and stories won't appear on your board until you do.\n"
+        )
+
     console.print("Next steps:")
+    step = 1
+    if no_board:
+        console.print("  0. Create your project board:  [bold]focal board setup[/bold]")
     console.print(
-        "  1. Write a design doc:   [bold]cp docs/focal/design/design-template.md "
-        "docs/focal/design/D001-my-feature.md[/bold]"
+        f"  {step}. Write a design doc:   [bold]cp docs/focal/design/design-template.md "
+        f"docs/focal/design/D001-my-feature.md[/bold]"
     )
+    step += 1
     console.print(
-        f"  2. Create your first epic:  [bold]focal pm epic-create {repo}[/bold]"
+        f"  {step}. Create your first epic:  [bold]focal pm epic-create {repo}[/bold]"
     )
+    step += 1
     console.print(
-        "  3. Commit the scaffold:  [bold]git add docs/focal/ .github/ISSUE_TEMPLATE/ && "
+        f"  {step}. Commit the scaffold:  [bold]git add docs/focal/ .github/ISSUE_TEMPLATE/ && "
         "git commit -m 'chore: focal init'[/bold]"
     )
     console.print("\nCanonical Status columns for your GitHub Projects board:")

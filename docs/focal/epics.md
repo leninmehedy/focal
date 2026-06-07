@@ -1,5 +1,12 @@
 # Epics & Stories
 
+## E0 — General Maintenance · [#141](https://github.com/leninmehedy/focal/issues/141) · 0 SP
+
+Catch-all for bugs, hotfixes, and unplanned work. Every task needs an issue — use E0 when work doesn't belong to a planned epic.
+
+| Story | GitHub | SP |
+|---|---|---|
+
 Repository: `leninmehedy/focal` | Project: [leninmehedy/focal](https://github.com/leninmehedy/focal)
 
 ---

@@ -15,15 +15,20 @@ console = Console()
 
 
 def _next_epic_id(epics_path: Path) -> str:
-    """Return the next epic ID (E1, E2, …) based on existing entries in epics.md."""
+    """Return the next epic ID (E1, E2, …) based on existing entries in epics.md.
+
+    E0 is reserved for the General Maintenance epic created by `focal pm init`.
+    User epics always start at E1.
+    """
     if not epics_path.exists():
         return "E1"
     text = epics_path.read_text()
     ids = re.findall(r"^## (E\d+) —", text, re.MULTILINE)
-    if not ids:
+    # Exclude E0 — it's the reserved General Maintenance epic
+    user_ids = [int(e[1:]) for e in ids if e != "E0"]
+    if not user_ids:
         return "E1"
-    last = max(int(e[1:]) for e in ids)
-    return f"E{last + 1}"
+    return f"E{max(user_ids) + 1}"
 
 
 def _append_epic(

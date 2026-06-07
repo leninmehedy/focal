@@ -1,6 +1,7 @@
 """focal init — bootstrap a repo with Focal project management structure."""
 
 import importlib.resources
+import re
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -30,6 +31,32 @@ CANONICAL_STATUS_COLUMNS = [
     "👀 In review",
     "✅ Done",
 ]
+
+GENERAL_MAINTENANCE_BODY = """\
+## Purpose
+
+Catch-all epic for unplanned work: bug fixes, dependency updates, hotfixes, and
+any task that arrives outside of iteration planning.
+
+**Every task needs a GitHub issue.** If a bug or urgent work doesn't belong to a
+planned epic, create a story under this epic rather than working without a ticket.
+
+## When to use E0
+
+- Bug reports raised by users or CI
+- Security patches and dependency upgrades
+- Housekeeping tasks (CI config, docs, tooling)
+- Any work injected mid-iteration that doesn't fit a planned epic
+
+## Stories
+
+<!-- Stories will be added here as sub-issues -->
+
+## Notes
+
+E0 is permanent and intentionally open. It is never completed — ongoing
+maintenance work always has a home here.
+"""
 
 
 def _gh(*args: str) -> tuple[int, str, str]:
@@ -110,6 +137,94 @@ def _validate_repo_root(repo: str, repo_root: Path) -> None:
         )
 
 
+def _ensure_general_maintenance_epic(repo: str, repo_root: Path, config: dict) -> None:
+    """Create the E0 General Maintenance epic if it doesn't already exist (idempotent)."""
+    from . import pm_state
+
+    epics_path = repo_root / "docs" / "focal" / "epics.md"
+    if not epics_path.exists():
+        console.print("  [dim]epics.md not found — skipping E0 creation[/dim]")
+        return
+
+    # Idempotent — skip if E0 already present
+    text = epics_path.read_text()
+    if re.search(r"^## E0 —", text, re.MULTILINE):
+        console.print("  [dim]E0 General Maintenance already exists — skipping[/dim]")
+        return
+
+    console.print("Creating E0 General Maintenance epic on GitHub...")
+    try:
+        from .. import gh
+
+        issue = gh.create_issue(
+            repo=repo,
+            title="General Maintenance",
+            body=GENERAL_MAINTENANCE_BODY,
+            labels=["epic"],
+            assignee="",
+        )
+    except RuntimeError as e:
+        console.print(f"  [yellow]⚠[/yellow]  Could not create E0 epic: {e}")
+        return
+
+    issue_number = issue["number"]
+    issue_url = issue["url"]
+
+    # Prepend E0 entry at the top of epics.md so it always appears first
+    entry = (
+        f"\n## E0 — General Maintenance · "
+        f"[#{issue_number}](https://github.com/{repo}/issues/{issue_number}) · 0 SP\n"
+        "\nCatch-all for bugs, hotfixes, and unplanned work. "
+        "Every task needs an issue — use E0 when work doesn't belong to a planned epic.\n"
+        "\n| Story | GitHub | SP |\n"
+        "|---|---|---|\n"
+    )
+    lines = text.splitlines(keepends=True)
+    # Insert after the first heading line
+    insert_at = 0
+    for i, line in enumerate(lines):
+        if line.startswith("# "):
+            insert_at = i + 1
+            break
+    lines.insert(insert_at, entry)
+    epics_path.write_text("".join(lines))
+
+    console.print(
+        f"  [green]✔[/green] E0 General Maintenance created (#{issue_number})"
+    )
+
+    # Update state cache
+    state = pm_state.load(repo_root)
+    state["repo"] = repo
+    pm_state.upsert_epic(
+        state,
+        {
+            "id": "E0",
+            "title": "General Maintenance",
+            "issue_number": issue_number,
+            "issue_url": issue_url,
+            "issue_db_id": issue["id"],
+            "sp": 0,
+            "status": "open",
+            "stories": [],
+        },
+    )
+    pm_state.save(repo_root, state)
+    console.print("  [green]✔[/green] Local state updated")
+
+    # Add to board if configured
+    board_number = config.get("board_number")
+    board_owner = config.get("board_owner", "")
+    if board_number and board_owner:
+        try:
+            from .. import gh
+
+            gh.add_item_get_id(board_number, board_owner, issue_url)
+            console.print(f"  [green]✔[/green] Added to board #{board_number}")
+        except RuntimeError as e:
+            console.print(f"  [yellow]⚠[/yellow]  Board update skipped: {e}")
+
+
 def run(
     repo: str,
     repo_root: Path,
@@ -153,10 +268,16 @@ def run(
                 "  [green]✔[/green] Registered in config (focal cache refresh-all will include this repo)"
             )
 
+    # ── General Maintenance epic (E0) ─────────────────────────────────────────
+    console.rule("[bold]Step 4: General Maintenance epic (E0)[/bold]")
+    _ensure_general_maintenance_epic(
+        repo, repo_root, config.__dict__ if config is not None else {}
+    )
+
     console.print("\n[bold green]Init complete![/bold green]\n")
     console.print("Next steps:")
     console.print(
-        "  1. Write a design doc:   [bold]cp templates/design/design-template.md "
+        "  1. Write a design doc:   [bold]cp docs/focal/design/design-template.md "
         "docs/focal/design/D001-my-feature.md[/bold]"
     )
     console.print(

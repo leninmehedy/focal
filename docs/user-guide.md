@@ -196,10 +196,16 @@ docs/focal/retro-log.md
 docs/focal/design/
 ```
 
-It also creates `epic` and `story` labels on GitHub, and registers the repo in
-`~/.focal/config.json` so cache refresh includes it automatically.
+It also creates `epic` and `story` labels on GitHub, registers the repo in
+`~/.focal/config.json` so cache refresh includes it automatically, and creates
+a standing **E0 General Maintenance** epic on GitHub.
 
-Safe to re-run — existing files are never overwritten.
+**E0 General Maintenance** is the permanent home for unplanned work — bug fixes,
+hotfixes, dependency patches, and anything that arrives outside of iteration
+planning. Every task needs an issue; E0 ensures there is always a valid epic to
+put it under. User epics start at E1.
+
+Safe to re-run — existing files and epics are never overwritten or duplicated.
 
 ### Build your backlog
 
@@ -216,7 +222,14 @@ focal pm story-create myorg/my-project --epic E1 --title "Session management" --
 # → creates issues #43, #44 linked as sub-issues of #42, IDs 1.1 and 1.2
 ```
 
-Run interactively (no flags) to be prompted for each field.
+**For bugs and unplanned work — always use E0:**
+```bash
+focal pm story-create myorg/my-project --epic E0 --title "Fix login crash" --sp 3
+# → creates issue under General Maintenance, never blocks a planned epic
+```
+
+Run interactively (no flags) to be prompted for each field. The interactive
+picker labels E0 with `(bugs & unplanned work)` so it's easy to spot.
 
 ### Plan an iteration
 

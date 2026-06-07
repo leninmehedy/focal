@@ -127,9 +127,15 @@ def run(
     else:
         console.print("Select epic:\n")
         for i, e in enumerate(epics, 1):
+            tag = " [dim](bugs & unplanned work)[/dim]" if e["id"] == "E0" else ""
             console.print(
-                f"  [bold]{i}[/bold]  {e['id']} — {e['title']} (#{e['issue_number']}) · {e['sp']} SP"
+                f"  [bold]{i}[/bold]  {e['id']} — {e['title']}"
+                f" (#{e['issue_number']}) · {e['sp']} SP{tag}"
             )
+        console.print(
+            "\n[dim]💡 No matching epic? Use E0 General Maintenance for bugs and"
+            " unplanned work.[/dim]"
+        )
         choice = Prompt.ask("\nChoice", default="1")
         try:
             epic = epics[int(choice) - 1]

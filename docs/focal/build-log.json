@@ -1,8 +1,8 @@
 {
   "repo": "leninmehedy/focal",
   "current_state": {
-    "last_action": "Added focal pm solo next command; tag-based release correlation + real PR merge date via gh pr view",
-    "next_step": "Merge PR #158, then run focal pm solo ship #146 and focal pm solo sync to close out the release"
+    "last_action": "Closed 21 stale open issues across E2 (what-if #70-78), E3 (adopt #84-91), E4 (--from-design #111, #144), and their epics #142 #143 — all shipped in PRs #122, #100, #112 respectively; cache refreshed",
+    "next_step": "Merge PR #158 (focal pm solo, issue #146); then identify next backlog items from open issues"
   },
   "in_flight": [
     {
@@ -19,6 +19,13 @@
       "pr": "#157",
       "issue": "#155",
       "what": "MCP: add focal_pm_triage + focal_pm_adopt_plan tools",
+      "shipped_at": "2026-06-08",
+      "release": "v1.16.0"
+    },
+    {
+      "pr": "#154",
+      "issue": "#149, #150, #151, #152, #153",
+      "what": "focal pm adopt-plan — plan_doc_parser, adopt_plan_cmd, epics_renderer, CLI wiring, AGENTS.md + docs updates",
       "shipped_at": "2026-06-08",
       "release": "v1.16.0"
     },

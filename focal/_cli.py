@@ -527,6 +527,26 @@ def pm_adopt_plan(
     )
 
 
+@pm_app.command("epics-render")
+def pm_epics_render(
+    repo_root: Path = typer.Option(
+        Path("."), "--repo-root", help="Local path to the repo root"
+    ),
+):
+    """Re-render docs/focal/epics.md from focal-state.json (idempotent).
+
+    Use after bulk-closing issues or any change made outside of focal commands.
+    """
+    from rich.console import Console
+
+    from focal.pm import epics_renderer, pm_state
+
+    rr = repo_root.resolve()
+    state = pm_state.load(rr)
+    epics_renderer.render(rr, state)
+    Console().print("  [green]✔[/green] docs/focal/epics.md rendered")
+
+
 @pm_app.command("triage")
 def pm_triage(
     repo: str = typer.Argument(..., help="Target repo in owner/repo format"),

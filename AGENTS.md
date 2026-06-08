@@ -108,6 +108,7 @@ prefer MCP tools. Otherwise use CLI commands.
 | `focal_pm_solo_ship` | `focal pm solo ship` |
 | `focal_pm_solo_note` | `focal pm solo note` |
 | `focal_pm_solo_sync` | `focal pm solo sync` |
+| `focal_pm_epics_render` | `focal pm epics-render` |
 
 **Installing the MCP skill** (do this once during onboarding if the user wants it):
 
@@ -161,6 +162,7 @@ focal pm epic-create <owner/repo>    — create a GitHub epic issue
 focal pm story-create <owner/repo>   — create a story linked to an epic
 focal pm adopt-plan <owner/repo>     — bootstrap issues from docs/focal/plan.md (dry-run by default)
 focal pm triage <owner/repo>         — list open issues not linked to any epic
+focal pm epics-render                — re-render docs/focal/epics.md from focal-state.json (idempotent)
 focal pm plan <owner/repo>           — generate iteration-planning.md
 focal pm retro <owner/repo>          — log completed iteration to retro-log.md
 focal pm status [<owner/repo>]       — live iteration summary; omit repo to show all registered repos
@@ -359,6 +361,19 @@ Use solo mode for repos where you want lightweight tracking without full iterati
 State lives in `docs/focal/build-log.json` (source of truth); `docs/build-log.md` is
 rendered from it and is **focal-managed** — do not hand-edit it.
 
+**Detecting solo mode at session start:**
+
+Check `docs/focal/build-log.json` — if it exists and contains `"mode": "solo"`, the repo
+uses solo mode. Use `focal pm solo` commands for all task tracking; do not use
+`focal pm plan`, `focal pm retro`, or `focal pm status` for iteration management.
+
+```bash
+# Recommended session-start sequence for a solo-mode repo:
+focal pm solo status owner/repo      # see current state, in-flight, and up-next
+focal pm solo render                 # ensure build-log.md is up to date
+focal pm epics-render                # ensure epics.md reflects latest GitHub state
+```
+
 **Agent workflow for a task:**
 ```
 focal pm solo queue #146 feat/146-no-plan-mode --sp 5 --what "focal pm solo commands"
@@ -370,6 +385,21 @@ focal pm solo note "Merged #158 — focal pm solo shipped"
 ```
 
 `focal pm solo status` reads `build-log.json` directly — no GitHub calls, works offline.
+
+**After a PR merges or issues are bulk-closed, always run these three commands:**
+```
+focal pm solo ship ISSUE PR          # move In flight → Shipped; updates build-log.json
+focal pm solo render                 # re-render docs/build-log.md from build-log.json
+focal pm epics-render                # re-render docs/focal/epics.md from focal-state.json
+```
+
+If issues were closed outside of focal (e.g. `gh issue close` directly), skip `solo ship`
+and run just the two render commands plus `focal cache refresh` to pull fresh GitHub state first:
+```
+focal cache refresh owner/repo
+focal pm solo render
+focal pm epics-render
+```
 
 ### `focal cache refresh` / `refresh-all` / `status`
 

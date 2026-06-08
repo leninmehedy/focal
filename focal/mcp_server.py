@@ -254,6 +254,82 @@ def focal_pm_story_create(
     return {"ok": False, "error": "Story creation failed — check output above"}
 
 
+@mcp.tool()
+def focal_pm_triage(
+    repo: str,
+    repo_root: str = ".",
+    label: str | None = None,
+    unassigned: bool = False,
+    days: int | None = None,
+    as_json: bool = False,
+) -> dict:
+    """Surface open GitHub issues not tracked in any epic or story.
+
+    Useful for finding orphaned issues that should be linked to E0 or a real epic.
+
+    label:      only return issues with this GitHub label
+    unassigned: only return issues with no assignee
+    days:       only return issues opened in the last N days
+    as_json:    return the raw issue list instead of a rendered table summary
+    """
+    from datetime import datetime, timezone
+
+    from focal import gh
+    from focal.pm import pm_state
+    from focal.pm.triage_cmd import _age
+
+    root = Path(repo_root).resolve()
+    state = pm_state.load(root)
+
+    tracked: set[int] = set()
+    for epic in state.get("epics", []):
+        if epic.get("issue_number"):
+            tracked.add(epic["issue_number"])
+        for story in epic.get("stories", []):
+            if story.get("issue_number"):
+                tracked.add(story["issue_number"])
+
+    try:
+        issues = gh.open_issues(repo)
+    except RuntimeError as e:
+        return {"ok": False, "error": str(e)}
+
+    untracked = [i for i in issues if i["number"] not in tracked]
+
+    if label:
+        untracked = [i for i in untracked if label in i["labels"]]
+    if unassigned:
+        untracked = [i for i in untracked if not i["assignees"]]
+    if days is not None:
+        cutoff = datetime.now(timezone.utc).timestamp() - days * 86400
+        untracked = [
+            i
+            for i in untracked
+            if datetime.fromisoformat(
+                i["created_at"].replace("Z", "+00:00")
+            ).timestamp()
+            >= cutoff
+        ]
+
+    result = [
+        {
+            "number": i["number"],
+            "title": i["title"],
+            "labels": i["labels"],
+            "assignees": i["assignees"],
+            "age": _age(i["created_at"]),
+            "created_at": i["created_at"],
+        }
+        for i in untracked
+    ]
+    return {
+        "ok": True,
+        "untracked_count": len(result),
+        "issues": result,
+        "hint": f'Run focal pm story-create {repo} --epic E0 --title "..." to track any of these.',
+    }
+
+
 # ── PM — planning ─────────────────────────────────────────────────────────────
 
 
@@ -413,6 +489,49 @@ def focal_pm_whatif(
             "total_added": total_added,
             "changed_iterations": sum(1 for d in diffs if d["changed"]),
         },
+    }
+
+
+@mcp.tool()
+def focal_pm_adopt_plan(
+    repo: str,
+    repo_root: str = ".",
+    from_plan: str | None = None,
+    apply: bool = False,
+) -> dict:
+    """Bootstrap GitHub issues from docs/focal/plan.md (or a custom path).
+
+    Reads the human-written plan doc, creates any epics and stories that don't
+    yet have GitHub issues, and writes issue links back into the plan file.
+
+    apply=False (default) performs a dry-run — shows what would be created
+    without writing anything. Pass apply=True to materialise the issues.
+
+    from_plan: path to plan doc (default: docs/focal/plan.md)
+    """
+    from focal.pm import adopt_plan_cmd, pm_state
+
+    root = Path(repo_root).resolve()
+    config_path = _FOCAL_HOME / "config.json"
+    config = _cfg_dict(config_path)
+    plan_path = Path(from_plan).resolve() if from_plan else None
+
+    adopt_plan_cmd.run(
+        repo=repo,
+        repo_root=root,
+        config=config,
+        plan_path=plan_path,
+        apply=apply,
+    )
+
+    state = pm_state.load(root)
+    epics = state.get("epics", [])
+    stories = [s for e in epics for s in e.get("stories", [])]
+    return {
+        "ok": True,
+        "dry_run": not apply,
+        "epics_in_state": len(epics),
+        "stories_in_state": len(stories),
     }
 
 

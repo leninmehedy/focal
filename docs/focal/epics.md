@@ -14,6 +14,7 @@ _Last updated: 2026-06-08_
 | **0.2** — focal pm triage — list open issues not linked to any epic | [#135](https://github.com/leninmehedy/focal/issues/135) | 3 | ✅ |
 | **0.3** — MCP server: add focal_pm_triage and focal_pm_adopt_plan tools | [#155](https://github.com/leninmehedy/focal/issues/155) | 2 | ✅ |
 | **0.4** — Add focal pm epics render command — idempotent re-render of epics.md from focal-state.json | [#159](https://github.com/leninmehedy/focal/issues/159) | 1 | 🔄 |
+| **0.5** — Board sync: incremental sync falsely marks open+assigned issues as stale | [#161](https://github.com/leninmehedy/focal/issues/161) | 5 | 🔄 |
 
 ---
 

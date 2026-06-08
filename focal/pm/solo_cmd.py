@@ -373,7 +373,16 @@ def note(repo_root: Path, text: str) -> None:
     state.setdefault("current_state", {})["last_action"] = text
     save(repo_root, state)
     render(repo_root)
-    console.print("  [green]✔[/green] Note updated")
+    console.print("  [green]✔[/green] Last action updated")
+
+
+def next_step(repo_root: Path, text: str) -> None:
+    """Update the Next step line in Current state."""
+    state = load(repo_root)
+    state.setdefault("current_state", {})["next_step"] = text
+    save(repo_root, state)
+    render(repo_root)
+    console.print("  [green]✔[/green] Next step updated")
 
 
 def sync(repo: str, repo_root: Path, limit: int = 10) -> dict:

@@ -899,6 +899,20 @@ def focal_pm_solo_note(text: str, repo_root: str = ".") -> dict:
 
 
 @mcp.tool()
+def focal_pm_solo_next(text: str, repo_root: str = ".") -> dict:
+    """Update the Next step line in build-log.json and re-render build-log.md.
+
+    Call this to record what should happen next — useful at the end of a session
+    so the next agent invocation knows exactly where to resume.
+    """
+    from focal.pm.solo_cmd import next_step
+
+    root = Path(repo_root).resolve()
+    next_step(root, text)
+    return {"ok": True, "next_step": text}
+
+
+@mcp.tool()
 def focal_pm_solo_sync(repo: str, repo_root: str = ".", limit: int = 10) -> dict:
     """Sync GitHub releases/tags into build-log.json and re-render build-log.md.
 

@@ -1330,6 +1330,17 @@ def solo_note(
     note(repo_root.resolve(), text)
 
 
+@solo_app.command("next")
+def solo_next(
+    text: str = typer.Argument(..., help="Next step text."),
+    repo_root: Path = typer.Option(Path("."), "--repo-root"),
+):
+    """Update the Next step line in build-log.json."""
+    from focal.pm.solo_cmd import next_step
+
+    next_step(repo_root.resolve(), text)
+
+
 @solo_app.command("render")
 def solo_render(
     repo_root: Path = typer.Option(Path("."), "--repo-root"),

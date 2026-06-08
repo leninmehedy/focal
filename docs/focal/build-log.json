@@ -1,12 +1,12 @@
 {
   "repo": "leninmehedy/focal",
   "current_state": {
-    "last_action": "Added release sync (#146 branch) — focal pm solo sync now fetches GitHub releases into build-log.json",
-    "next_step": "Finish #146 PR, merge, then create new story for focal_pm_solo MCP tools"
+    "last_action": "Added focal pm solo next command; tag-based release correlation + real PR merge date via gh pr view",
+    "next_step": "Merge PR #158, then run focal pm solo ship #146 and focal pm solo sync to close out the release"
   },
   "in_flight": [
     {
-      "pr": "—",
+      "pr": "#158",
       "issue": "#146",
       "branch": "feat/146-no-plan-mode",
       "what": "focal pm solo — solo-mode PM via build-log.json",

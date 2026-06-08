@@ -16,6 +16,7 @@ _Last updated: 2026-06-08_
 | **0.4** — Add focal pm epics render command — idempotent re-render of epics.md from focal-state.json | [#159](https://github.com/leninmehedy/focal/issues/159) | 1 | 🔄 |
 | **0.5** — Board sync: incremental sync falsely marks open+assigned issues as stale | [#161](https://github.com/leninmehedy/focal/issues/161) | 5 | 🔄 |
 | **0.6** — Board setup: --use-board writes wrong done_status when board uses 'Done' not '✅ Done' | [#162](https://github.com/leninmehedy/focal/issues/162) | 3 | 🔄 |
+| **0.7** — pm init: silently succeeds (exit 0) when target repo does not exist | [#163](https://github.com/leninmehedy/focal/issues/163) | 2 | 🔄 |
 
 ---
 

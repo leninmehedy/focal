@@ -19,6 +19,7 @@ _Last updated: 2026-06-08_
 | **0.7** — pm init: silently succeeds (exit 0) when target repo does not exist | [#163](https://github.com/leninmehedy/focal/issues/163) | 2 | 🔄 |
 | **0.8** — adopt-plan: stories not created on first --apply; second run creates them (not idempotent) | [#164](https://github.com/leninmehedy/focal/issues/164) | 5 | 🔄 |
 | **0.9** — pm plan: --goals flag accepted but goal text not written to iteration-planning.md | [#165](https://github.com/leninmehedy/focal/issues/165) | 2 | 🔄 |
+| **0.10** — pm velocity: parser returns all zeros and reads commented-out template block as real data | [#166](https://github.com/leninmehedy/focal/issues/166) | 3 | 🔄 |
 
 ---
 

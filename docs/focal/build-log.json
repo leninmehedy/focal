@@ -2,20 +2,21 @@
   "repo": "leninmehedy/focal",
   "mode": "solo",
   "current_state": {
-    "last_action": "Closed 21 stale open issues across E2 (what-if #70-78), E3 (adopt #84-91), E4 (--from-design #111, #144), and their epics #142 #143 — all shipped in PRs #122, #100, #112 respectively; cache refreshed",
+    "last_action": "Working on #165 — fix --goals flag not written to iteration-planning.md; PR pending",
     "next_step": "Merge PR #158 (focal pm solo, issue #146); then identify next backlog items from open issues"
   },
-  "in_flight": [],
+  "in_flight": [
+    {
+      "pr": "—",
+      "issue": "#165",
+      "branch": "feat/165-pm-plan-goals-flag",
+      "what": "pm plan: --goals flag not written to iteration-planning.md",
+      "state": "🔄"
+    }
+  ],
   "up_next": [
     {
       "rank": 1,
-      "issue": "#165",
-      "branch": "feat/165-pm-plan-goals-flag",
-      "sp": 2,
-      "what": "pm plan: --goals flag not written to iteration-planning.md"
-    },
-    {
-      "rank": 2,
       "issue": "#167",
       "branch": "feat/167-board-setup-status-options",
       "sp": 3,

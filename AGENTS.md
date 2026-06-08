@@ -173,7 +173,7 @@ focal pm remove-repo <owner/repo>    — unregister a repo from PM tracking
 focal pm solo init <owner/repo>      — solo mode: scaffold docs/focal/build-log.json + render docs/build-log.md
 focal pm solo status [<owner/repo>]  — solo mode: terminal summary from build-log.json [--last N]
 focal pm solo queue ISSUE BRANCH     — add item to Up next [--sp N] [--what TEXT]
-focal pm solo start ISSUE            — move item Up next → In flight
+focal pm solo start ISSUE            — move item Up next → In flight  (ISSUE must include #, e.g. "#165")
 focal pm solo pr ISSUE PR            — set PR number on an In flight row
 focal pm solo ship ISSUE [PR]        — move item In flight → Shipped
 focal pm solo note TEXT              — update Last action in build-log.json
@@ -376,19 +376,33 @@ focal pm epics-render                # ensure epics.md reflects latest GitHub st
 
 **Agent workflow for a task:**
 ```
-focal pm solo queue #146 feat/146-no-plan-mode --sp 5 --what "focal pm solo commands"
-focal pm solo start #146
-focal pm solo note "PR open on feat/146-no-plan-mode"
-focal pm solo pr #146 158
-focal pm solo ship #146 158
-focal pm solo note "Merged #158 — focal pm solo shipped"
+# 1. Pick up work
+focal pm solo start "#146"           # move Up next → In flight
+focal pm solo note "Started #146 — working on feat/146-no-plan-mode"
+focal pm solo render                 # persist Current state to build-log.md
+
+# 2. During work — update Current state any time the situation changes
+focal pm solo note "PR #158 open for #146 — awaiting review"
+focal pm solo render
+focal pm solo pr "#146" 158          # record PR number on the In flight row
+
+# 3. After PR merges
+focal pm solo ship "#146" 158        # move In flight → Shipped
+focal pm solo note "Merged PR #158 — focal pm solo shipped; next: #147 adopt-plan"
+focal pm solo render
+focal pm epics-render
 ```
+
+**Key rule:** always call `focal pm solo note "<summary>"` followed by `focal pm solo render`
+whenever the Current state changes — starting work, opening a PR, merging, or hitting a blocker.
+Never hand-edit `docs/build-log.md`; it is fully managed by `focal pm solo render`.
 
 `focal pm solo status` reads `build-log.json` directly — no GitHub calls, works offline.
 
-**After a PR merges or issues are bulk-closed, always run these three commands:**
+**After a PR merges or issues are bulk-closed, always run these commands:**
 ```
-focal pm solo ship ISSUE PR          # move In flight → Shipped; updates build-log.json
+focal pm solo ship "#ISSUE" PR       # move In flight → Shipped; updates build-log.json
+focal pm solo note "<what shipped and what is next>"
 focal pm solo render                 # re-render docs/build-log.md from build-log.json
 focal pm epics-render                # re-render docs/focal/epics.md from focal-state.json
 ```
@@ -397,6 +411,7 @@ If issues were closed outside of focal (e.g. `gh issue close` directly), skip `s
 and run just the two render commands plus `focal cache refresh` to pull fresh GitHub state first:
 ```
 focal cache refresh owner/repo
+focal pm solo note "<summary of what closed>"
 focal pm solo render
 focal pm epics-render
 ```

@@ -21,6 +21,7 @@ _Last updated: 2026-06-08_
 | **0.9** — pm plan: --goals flag accepted but goal text not written to iteration-planning.md | [#165](https://github.com/leninmehedy/focal/issues/165) | 2 | 🔄 |
 | **0.10** — pm velocity: parser returns all zeros and reads commented-out template block as real data | [#166](https://github.com/leninmehedy/focal/issues/166) | 3 | 🔄 |
 | **0.11** — board setup --create-board never calls set_status_options; canonical columns not created | [#167](https://github.com/leninmehedy/focal/issues/167) | 3 | 🔄 |
+| **0.12** — focal board status: add --json flag for machine-readable board state verification | [#168](https://github.com/leninmehedy/focal/issues/168) | 5 | 🔄 |
 
 ---
 

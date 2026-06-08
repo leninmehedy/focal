@@ -758,6 +758,178 @@ def focal_cache_status() -> dict:
     return {"ok": True, "repos": result}
 
 
+# ── PM — solo mode ───────────────────────────────────────────────────────────
+
+
+@mcp.tool()
+def focal_pm_solo_init(repo: str, repo_root: str = ".") -> dict:
+    """Scaffold docs/focal/build-log.json and render docs/build-log.md for solo-mode PM.
+
+    Use this instead of focal_pm_init when you want lightweight tracking without
+    full iteration planning — no GitHub API calls, no labels, no E0 epic.
+    """
+    from focal.pm.solo_cmd import init
+
+    root = Path(repo_root).resolve()
+    init(repo, root)
+    return {"ok": True, "repo": repo, "repo_root": str(root)}
+
+
+@mcp.tool()
+def focal_pm_solo_status(repo: str = "", repo_root: str = ".", last: int = 5) -> dict:
+    """Return solo-mode build log state as structured data.
+
+    Reads docs/focal/build-log.json directly — no GitHub calls, works offline.
+    Returns in_flight, up_next, and the last N shipped items.
+    """
+    from focal.pm.solo_cmd import load
+
+    root = Path(repo_root).resolve()
+    state = load(root)
+    if (
+        not state.get("repo")
+        and not (root / "docs" / "focal" / "build-log.json").exists()
+    ):
+        return {
+            "ok": False,
+            "error": "build-log.json not found. Run focal_pm_solo_init first.",
+        }
+    return {
+        "ok": True,
+        "repo": state.get("repo", repo),
+        "current_state": state.get("current_state", {}),
+        "in_flight": state.get("in_flight", []),
+        "up_next": state.get("up_next", []),
+        "shipped": state.get("shipped", [])[:last],
+    }
+
+
+@mcp.tool()
+def focal_pm_solo_queue(
+    issue: str,
+    branch: str,
+    sp: int = 0,
+    what: str = "",
+    repo_root: str = ".",
+) -> dict:
+    """Add an item to Up next in build-log.json and re-render build-log.md.
+
+    Idempotent — calling again with the same issue updates the existing row.
+
+    issue: issue reference, e.g. "#146"
+    branch: branch name, e.g. "feat/146-no-plan-mode"
+    sp: story point estimate (0 if unknown)
+    what: short description of the work
+    """
+    from focal.pm.solo_cmd import queue
+
+    root = Path(repo_root).resolve()
+    queue(root, issue, branch, sp=sp, what=what)
+    return {"ok": True, "issue": issue, "queued": True}
+
+
+@mcp.tool()
+def focal_pm_solo_start(issue: str, repo_root: str = ".") -> dict:
+    """Move an item from Up next → In flight in build-log.json.
+
+    Sets PR to "—" and state to "🔄". Fails if the issue is not in Up next.
+    """
+    from focal.pm.solo_cmd import load, start
+
+    root = Path(repo_root).resolve()
+    state_before = load(root)
+    found = any(r.get("issue") == issue for r in state_before.get("up_next", []))
+    if not found:
+        return {"ok": False, "error": f"{issue} not found in Up next"}
+    start(root, issue)
+    return {"ok": True, "issue": issue, "moved_to": "in_flight"}
+
+
+@mcp.tool()
+def focal_pm_solo_pr(issue: str, pr: str, repo_root: str = ".") -> dict:
+    """Set the PR number on an In flight row in build-log.json.
+
+    issue: issue reference, e.g. "#146"
+    pr: PR number, e.g. "158" or "#158"
+    """
+    from focal.pm.solo_cmd import load, set_pr
+
+    root = Path(repo_root).resolve()
+    state_before = load(root)
+    found = any(r.get("issue") == issue for r in state_before.get("in_flight", []))
+    if not found:
+        return {"ok": False, "error": f"{issue} not found in In flight"}
+    set_pr(root, issue, pr)
+    pr_str = pr if pr.startswith("#") else f"#{pr}"
+    return {"ok": True, "issue": issue, "pr": pr_str}
+
+
+@mcp.tool()
+def focal_pm_solo_ship(issue: str, pr: str | None = None, repo_root: str = ".") -> dict:
+    """Move an item from In flight → Shipped in build-log.json.
+
+    Prepends to the Shipped list (most recent first). Fails if not in In flight.
+
+    issue: issue reference, e.g. "#146"
+    pr: optional PR override (uses existing PR value if omitted)
+    """
+    from focal.pm.solo_cmd import load, ship
+
+    root = Path(repo_root).resolve()
+    state_before = load(root)
+    found = any(r.get("issue") == issue for r in state_before.get("in_flight", []))
+    if not found:
+        return {"ok": False, "error": f"{issue} not found in In flight"}
+    ship(root, issue, pr)
+    return {"ok": True, "issue": issue, "moved_to": "shipped"}
+
+
+@mcp.tool()
+def focal_pm_solo_note(text: str, repo_root: str = ".") -> dict:
+    """Update the Last action line in build-log.json and re-render build-log.md.
+
+    Call this after every significant action so build-log.md stays current
+    as a human-readable session record.
+    """
+    from focal.pm.solo_cmd import note
+
+    root = Path(repo_root).resolve()
+    note(root, text)
+    return {"ok": True, "last_action": text}
+
+
+@mcp.tool()
+def focal_pm_solo_next(text: str, repo_root: str = ".") -> dict:
+    """Update the Next step line in build-log.json and re-render build-log.md.
+
+    Call this to record what should happen next — useful at the end of a session
+    so the next agent invocation knows exactly where to resume.
+    """
+    from focal.pm.solo_cmd import next_step
+
+    root = Path(repo_root).resolve()
+    next_step(root, text)
+    return {"ok": True, "next_step": text}
+
+
+@mcp.tool()
+def focal_pm_solo_sync(repo: str, repo_root: str = ".", limit: int = 10) -> dict:
+    """Sync GitHub releases/tags into build-log.json and re-render build-log.md.
+
+    Fetches the last N releases from GitHub (requires gh CLI auth) and stores them
+    in the releases section of build-log.json. Agents can then call
+    focal_pm_solo_status to see the latest release alongside in-flight work —
+    useful for understanding what's shipped vs what's been released.
+
+    repo: owner/repo, e.g. "leninmehedy/focal"
+    limit: number of releases to fetch (default 10)
+    """
+    from focal.pm.solo_cmd import sync
+
+    root = Path(repo_root).resolve()
+    return sync(repo, root, limit=limit)
+
+
 # ── Server entry point ────────────────────────────────────────────────────────
 
 

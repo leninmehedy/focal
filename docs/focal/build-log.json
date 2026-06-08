@@ -1,0 +1,174 @@
+{
+  "repo": "leninmehedy/focal",
+  "current_state": {
+    "last_action": "Closed 21 stale open issues across E2 (what-if #70-78), E3 (adopt #84-91), E4 (--from-design #111, #144), and their epics #142 #143 — all shipped in PRs #122, #100, #112 respectively; cache refreshed",
+    "next_step": "Merge PR #158 (focal pm solo, issue #146); then identify next backlog items from open issues"
+  },
+  "in_flight": [
+    {
+      "pr": "#158",
+      "issue": "#146",
+      "branch": "feat/146-no-plan-mode",
+      "what": "focal pm solo — solo-mode PM via build-log.json",
+      "state": "🔄"
+    }
+  ],
+  "up_next": [],
+  "shipped": [
+    {
+      "pr": "#157",
+      "issue": "#155",
+      "what": "MCP: add focal_pm_triage + focal_pm_adopt_plan tools",
+      "shipped_at": "2026-06-08",
+      "release": "v1.16.0"
+    },
+    {
+      "pr": "#154",
+      "issue": "#149, #150, #151, #152, #153",
+      "what": "focal pm adopt-plan — plan_doc_parser, adopt_plan_cmd, epics_renderer, CLI wiring, AGENTS.md + docs updates",
+      "shipped_at": "2026-06-08",
+      "release": "v1.16.0"
+    },
+    {
+      "pr": "#156",
+      "issue": "#135",
+      "what": "focal pm triage — surface untracked open issues",
+      "shipped_at": "2026-06-07",
+      "release": "v1.16.0"
+    },
+    {
+      "pr": "#154",
+      "issue": "#147",
+      "what": "focal pm adopt-plan — bootstrap issues from plan.md",
+      "shipped_at": "2026-06-07",
+      "release": "v1.16.0"
+    },
+    {
+      "pr": "#140",
+      "issue": "#137, #138",
+      "what": "focal board setup non-interactive flags + pm init step-0 board hint",
+      "shipped_at": "2026-06-07",
+      "release": "v1.16.0"
+    },
+    {
+      "pr": "#136",
+      "issue": "#134",
+      "what": "E0 General Maintenance epic — auto-created on focal pm init",
+      "shipped_at": "2026-06-07",
+      "release": "v1.16.0"
+    },
+    {
+      "pr": "#132",
+      "issue": "#133",
+      "what": "Fix: templates not included in wheel — importlib.resources path resolution",
+      "shipped_at": "2026-06-07",
+      "release": "v1.16.0"
+    },
+    {
+      "pr": "#131",
+      "issue": "—",
+      "what": "Fix gaps in user-guide, pm-guide, testing-guide",
+      "shipped_at": "2026-05-20",
+      "release": "v1.16.0"
+    },
+    {
+      "pr": "#127",
+      "issue": "—",
+      "what": "MCP server — 13 tools exposing all PM and board commands",
+      "shipped_at": "2026-05-20",
+      "release": "v1.16.0"
+    }
+  ],
+  "releases": [
+    {
+      "version": "v1.16.0",
+      "name": "v1.16.0",
+      "tag": "v1.16.0",
+      "published_at": "2026-06-08",
+      "url": "https://github.com/leninmehedy/focal/releases/tag/v1.16.0",
+      "prerelease": false,
+      "body": "v1.16.0"
+    },
+    {
+      "version": "v1.15.0",
+      "name": "v1.15.0",
+      "tag": "v1.15.0",
+      "published_at": "2026-05-20",
+      "url": "https://github.com/leninmehedy/focal/releases/tag/v1.15.0",
+      "prerelease": false,
+      "body": "v1.15.0"
+    },
+    {
+      "version": "v1.14.0",
+      "name": "v1.14.0",
+      "tag": "v1.14.0",
+      "published_at": "2026-05-20",
+      "url": "https://github.com/leninmehedy/focal/releases/tag/v1.14.0",
+      "prerelease": false,
+      "body": "v1.14.0"
+    },
+    {
+      "version": "v1.13.0",
+      "name": "v1.13.0",
+      "tag": "v1.13.0",
+      "published_at": "2026-05-19",
+      "url": "https://github.com/leninmehedy/focal/releases/tag/v1.13.0",
+      "prerelease": false,
+      "body": "v1.13.0"
+    },
+    {
+      "version": "v1.12.0",
+      "name": "v1.12.0",
+      "tag": "v1.12.0",
+      "published_at": "2026-05-19",
+      "url": "https://github.com/leninmehedy/focal/releases/tag/v1.12.0",
+      "prerelease": false,
+      "body": "v1.12.0"
+    },
+    {
+      "version": "v1.11.0",
+      "name": "v1.11.0",
+      "tag": "v1.11.0",
+      "published_at": "2026-05-19",
+      "url": "https://github.com/leninmehedy/focal/releases/tag/v1.11.0",
+      "prerelease": false,
+      "body": "v1.11.0"
+    },
+    {
+      "version": "v1.10.2",
+      "name": "v1.10.2",
+      "tag": "v1.10.2",
+      "published_at": "2026-05-19",
+      "url": "https://github.com/leninmehedy/focal/releases/tag/v1.10.2",
+      "prerelease": false,
+      "body": "v1.10.2"
+    },
+    {
+      "version": "v1.10.1",
+      "name": "v1.10.1",
+      "tag": "v1.10.1",
+      "published_at": "2026-05-19",
+      "url": "https://github.com/leninmehedy/focal/releases/tag/v1.10.1",
+      "prerelease": false,
+      "body": "v1.10.1"
+    },
+    {
+      "version": "v1.10.0",
+      "name": "v1.10.0",
+      "tag": "v1.10.0",
+      "published_at": "2026-05-19",
+      "url": "https://github.com/leninmehedy/focal/releases/tag/v1.10.0",
+      "prerelease": false,
+      "body": "v1.10.0"
+    },
+    {
+      "version": "v1.9.0",
+      "name": "v1.9.0",
+      "tag": "v1.9.0",
+      "published_at": "2026-05-19",
+      "url": "https://github.com/leninmehedy/focal/releases/tag/v1.9.0",
+      "prerelease": false,
+      "body": "v1.9.0"
+    }
+  ]
+}

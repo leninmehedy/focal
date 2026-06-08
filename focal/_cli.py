@@ -47,6 +47,12 @@ app.add_typer(board_app, name="board")
 pm_app = typer.Typer(help="Project management commands (epics, stories, planning).")
 app.add_typer(pm_app, name="pm")
 
+# focal pm solo — lightweight solo-mode PM via build-log.json
+solo_app = typer.Typer(
+    help="Solo-mode PM: lightweight tracking via build-log.json + build-log.md."
+)
+pm_app.add_typer(solo_app, name="solo")
+
 # focal cache — local state cache management
 cache_app = typer.Typer(help="Manage the local state cache (docs/focal/.cache/).")
 app.add_typer(cache_app, name="cache")
@@ -1234,6 +1240,130 @@ def skill_install(
     if installed:
         typer.echo("\nRestart your agent to pick up the new skill.")
         typer.echo('Test it by asking: "List my focal design docs"')
+
+
+# ── focal pm solo ─────────────────────────────────────────────────────────────
+
+
+@solo_app.command("init")
+def solo_init(
+    repo: str = typer.Argument(..., help="Target repo (owner/repo)."),
+    repo_root: Path = typer.Option(Path("."), "--repo-root", help="Local repo root."),
+):
+    """Scaffold build-log.json and render build-log.md for solo-mode PM."""
+    from focal.pm.solo_cmd import init
+
+    init(repo, repo_root.resolve())
+
+
+@solo_app.command("status")
+def solo_status(
+    repo: Optional[str] = typer.Argument(
+        None, help="Repo label for display (owner/repo)."
+    ),
+    repo_root: Path = typer.Option(Path("."), "--repo-root", help="Local repo root."),
+    last: int = typer.Option(5, "--last", help="Number of shipped items to show."),
+):
+    """Print a solo-mode status summary from build-log.json."""
+    from focal.pm.solo_cmd import status
+
+    status(repo_root.resolve(), repo or "", last=last)
+
+
+@solo_app.command("queue")
+def solo_queue(
+    issue: str = typer.Argument(..., help="Issue reference, e.g. #146."),
+    branch: str = typer.Argument(..., help="Branch name."),
+    sp: int = typer.Option(0, "--sp", help="Story point estimate."),
+    what: str = typer.Option("", "--what", help="Short description."),
+    repo_root: Path = typer.Option(Path("."), "--repo-root"),
+):
+    """Add an item to Up next in build-log.json."""
+    from focal.pm.solo_cmd import queue
+
+    queue(repo_root.resolve(), issue, branch, sp=sp, what=what)
+
+
+@solo_app.command("start")
+def solo_start(
+    issue: str = typer.Argument(..., help="Issue reference, e.g. #146."),
+    repo_root: Path = typer.Option(Path("."), "--repo-root"),
+):
+    """Move an item from Up next → In flight."""
+    from focal.pm.solo_cmd import start
+
+    start(repo_root.resolve(), issue)
+
+
+@solo_app.command("pr")
+def solo_pr(
+    issue: str = typer.Argument(..., help="Issue reference, e.g. #146."),
+    pr: str = typer.Argument(..., help="PR number, e.g. 157 or #157."),
+    repo_root: Path = typer.Option(Path("."), "--repo-root"),
+):
+    """Set the PR number on an In flight row."""
+    from focal.pm.solo_cmd import set_pr
+
+    set_pr(repo_root.resolve(), issue, pr)
+
+
+@solo_app.command("ship")
+def solo_ship(
+    issue: str = typer.Argument(..., help="Issue reference, e.g. #146."),
+    pr: Optional[str] = typer.Argument(None, help="PR number (optional override)."),
+    repo_root: Path = typer.Option(Path("."), "--repo-root"),
+):
+    """Move an item from In flight → Shipped."""
+    from focal.pm.solo_cmd import ship
+
+    ship(repo_root.resolve(), issue, pr)
+
+
+@solo_app.command("note")
+def solo_note(
+    text: str = typer.Argument(..., help="Last action note text."),
+    repo_root: Path = typer.Option(Path("."), "--repo-root"),
+):
+    """Update the Last action line in build-log.json."""
+    from focal.pm.solo_cmd import note
+
+    note(repo_root.resolve(), text)
+
+
+@solo_app.command("next")
+def solo_next(
+    text: str = typer.Argument(..., help="Next step text."),
+    repo_root: Path = typer.Option(Path("."), "--repo-root"),
+):
+    """Update the Next step line in build-log.json."""
+    from focal.pm.solo_cmd import next_step
+
+    next_step(repo_root.resolve(), text)
+
+
+@solo_app.command("render")
+def solo_render(
+    repo_root: Path = typer.Option(Path("."), "--repo-root"),
+):
+    """Re-render build-log.md from build-log.json (idempotent)."""
+    from rich.console import Console
+
+    from focal.pm.solo_cmd import render
+
+    render(repo_root.resolve())
+    Console().print("  [green]✔[/green] build-log.md rendered")
+
+
+@solo_app.command("sync")
+def solo_sync(
+    repo: str = typer.Argument(..., help="Target repo (owner/repo)."),
+    repo_root: Path = typer.Option(Path("."), "--repo-root"),
+    limit: int = typer.Option(10, "--limit", help="Number of releases to fetch."),
+):
+    """Sync GitHub releases/tags into build-log.json and re-render build-log.md."""
+    from focal.pm.solo_cmd import sync
+
+    sync(repo, repo_root.resolve(), limit=limit)
 
 
 def main() -> None:

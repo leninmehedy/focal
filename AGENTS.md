@@ -100,6 +100,13 @@ prefer MCP tools. Otherwise use CLI commands.
 | `focal_pm_design_list` | `focal pm design` |
 | `focal_cache_refresh` | `focal cache refresh` |
 | `focal_cache_status` | `focal cache status` |
+| `focal_pm_solo_init` | `focal pm solo init` |
+| `focal_pm_solo_status` | `focal pm solo status` |
+| `focal_pm_solo_queue` | `focal pm solo queue` |
+| `focal_pm_solo_start` | `focal pm solo start` |
+| `focal_pm_solo_pr` | `focal pm solo pr` |
+| `focal_pm_solo_ship` | `focal pm solo ship` |
+| `focal_pm_solo_note` | `focal pm solo note` |
 
 **Installing the MCP skill** (do this once during onboarding if the user wants it):
 
@@ -159,6 +166,15 @@ focal pm status [<owner/repo>]       — live iteration summary; omit repo to sh
 focal pm design [--repo-root PATH]   — list design docs with status and epic linkage
 focal pm what-if <owner/repo>        — dry-run simulation of plan under hypothetical scenarios
 focal pm remove-repo <owner/repo>    — unregister a repo from PM tracking
+
+focal pm solo init <owner/repo>      — solo mode: scaffold docs/focal/build-log.json + render docs/build-log.md
+focal pm solo status [<owner/repo>]  — solo mode: terminal summary from build-log.json [--last N]
+focal pm solo queue ISSUE BRANCH     — add item to Up next [--sp N] [--what TEXT]
+focal pm solo start ISSUE            — move item Up next → In flight
+focal pm solo pr ISSUE PR            — set PR number on an In flight row
+focal pm solo ship ISSUE [PR]        — move item In flight → Shipped
+focal pm solo note TEXT              — update Last action in build-log.json
+focal pm solo render                 — re-render docs/build-log.md from build-log.json (idempotent)
 
 focal cache refresh <owner/repo>     — re-fetch state for one repo from GitHub
 focal cache refresh-all [--force]    — re-fetch all registered PM repos in one shot
@@ -334,6 +350,24 @@ All scenario flags are repeatable. Combine them freely — e.g. `--pto` + `--inj
 ### `focal pm status`
 
 Already non-interactive (display only). Use `--refresh` to pull latest GitHub state first.
+
+### `focal pm solo` — solo mode
+
+Use solo mode for repos where you want lightweight tracking without full iteration planning.
+State lives in `docs/focal/build-log.json` (source of truth); `docs/build-log.md` is
+rendered from it and is **focal-managed** — do not hand-edit it.
+
+**Agent workflow for a task:**
+```
+focal pm solo queue #146 feat/146-no-plan-mode --sp 5 --what "focal pm solo commands"
+focal pm solo start #146
+focal pm solo note "PR open on feat/146-no-plan-mode"
+focal pm solo pr #146 158
+focal pm solo ship #146 158
+focal pm solo note "Merged #158 — focal pm solo shipped"
+```
+
+`focal pm solo status` reads `build-log.json` directly — no GitHub calls, works offline.
 
 ### `focal cache refresh` / `refresh-all` / `status`
 

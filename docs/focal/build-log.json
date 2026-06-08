@@ -1,0 +1,59 @@
+{
+  "repo": "leninmehedy/focal",
+  "current_state": {
+    "last_action": "Implementing #146 — focal pm solo + MCP tools + testing-guide; PR pending",
+    "next_step": "Finish #146 PR, merge, then create new story for focal_pm_solo MCP tools"
+  },
+  "in_flight": [
+    {
+      "pr": "—",
+      "issue": "#146",
+      "branch": "feat/146-no-plan-mode",
+      "what": "focal pm solo — solo-mode PM via build-log.json",
+      "state": "🔄"
+    }
+  ],
+  "up_next": [],
+  "shipped": [
+    {
+      "pr": "#157",
+      "issue": "#155",
+      "what": "MCP: add focal_pm_triage + focal_pm_adopt_plan tools"
+    },
+    {
+      "pr": "#156",
+      "issue": "#135",
+      "what": "focal pm triage — surface untracked open issues"
+    },
+    {
+      "pr": "#154",
+      "issue": "#147",
+      "what": "focal pm adopt-plan — bootstrap issues from plan.md"
+    },
+    {
+      "pr": "#140",
+      "issue": "#137, #138",
+      "what": "focal board setup non-interactive flags + pm init step-0 board hint"
+    },
+    {
+      "pr": "#136",
+      "issue": "#134",
+      "what": "E0 General Maintenance epic — auto-created on focal pm init"
+    },
+    {
+      "pr": "#132",
+      "issue": "#133",
+      "what": "Fix: templates not included in wheel — importlib.resources path resolution"
+    },
+    {
+      "pr": "#131",
+      "issue": "—",
+      "what": "Fix gaps in user-guide, pm-guide, testing-guide"
+    },
+    {
+      "pr": "#127",
+      "issue": "—",
+      "what": "MCP server — 13 tools exposing all PM and board commands"
+    }
+  ]
+}

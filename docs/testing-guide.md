@@ -370,6 +370,51 @@ Shows cache health across all registered repos.
 
 ---
 
+## Solo mode (`focal pm solo`)
+
+State lives in `docs/focal/build-log.json`. `docs/build-log.md` is rendered from it — never hand-edited.
+
+### `focal pm solo init`
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| S1 | Basic init | `focal pm solo init owner/repo --repo-root /path/to/repo` | Creates `docs/focal/build-log.json` with empty sections; renders `docs/build-log.md` ✅ |
+| S2 | Idempotent | Run init twice | Second run prints "already exists — skipping" for JSON; re-renders MD ✅ |
+
+### `focal pm solo queue / start / pr / ship`
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| S3 | Queue item | `focal pm solo queue "#10" feat/10-my-feature --sp 3 --what "my feature"` | Row appears in `up_next` in JSON; rendered in `## Up next` in MD ✅ |
+| S4 | Start item | `focal pm solo start "#10"` | Row moves from `up_next` → `in_flight`; PR shows `—`, State shows `🔄` ✅ |
+| S5 | Set PR | `focal pm solo pr "#10" 42` | `in_flight` row updated: `pr` becomes `#42` ✅ |
+| S6 | Ship item | `focal pm solo ship "#10"` | Row moves from `in_flight` → prepended to `shipped`; `## In flight` is empty ✅ |
+| S7 | Queue idempotent | Queue same issue twice with different SP | Second call updates existing row — no duplicate ✅ |
+| S8 | Start missing issue | `focal pm solo start "#999"` (not in up_next) | Error: "#999 not found in Up next" ✅ |
+
+### `focal pm solo note`
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| S9 | Update note | `focal pm solo note "PR #42 open on feat/10-my-feature"` | `current_state.last_action` updated in JSON; visible in `## Current state` in MD ✅ |
+
+### `focal pm solo status`
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| S10 | Basic status | `focal pm solo status owner/repo` | Renders in-flight, up-next, shipped (last 5) from JSON ✅ |
+| S11 | Custom last | `focal pm solo status --last 3` | Shipped section shows only 3 rows ✅ |
+| S12 | Empty sections | Run on freshly init'd repo | Shows "Nothing in flight", "Nothing up next", "Nothing shipped yet" ✅ |
+| S13 | Missing JSON | Run before init | Error with hint to run `focal pm solo init` ✅ |
+
+### `focal pm solo render`
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| S14 | Render | `focal pm solo render` | Re-generates `docs/build-log.md` from JSON; idempotent ✅ |
+
+---
+
 ## MCP server (`focal mcp serve` / `focal skill install`)
 
 ### `focal skill install`

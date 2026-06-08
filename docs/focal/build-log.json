@@ -2,28 +2,27 @@
   "repo": "leninmehedy/focal",
   "mode": "solo",
   "current_state": {
-    "last_action": "Working on #165 — fix --goals flag not written to iteration-planning.md; PR pending",
+    "last_action": "Implemented #167 — call set_status_options after create_project in both interactive and non-interactive board setup paths; added S13/S14 test cases",
     "next_step": "Merge PR #158 (focal pm solo, issue #146); then identify next backlog items from open issues"
   },
   "in_flight": [
     {
       "pr": "—",
-      "issue": "#165",
-      "branch": "feat/165-pm-plan-goals-flag",
-      "what": "pm plan: --goals flag not written to iteration-planning.md",
+      "issue": "#167",
+      "branch": "feat/167-board-setup-status-options",
+      "what": "board setup --create-board: set_status_options never called",
       "state": "🔄"
     }
   ],
-  "up_next": [
-    {
-      "rank": 1,
-      "issue": "#167",
-      "branch": "feat/167-board-setup-status-options",
-      "sp": 3,
-      "what": "board setup --create-board: set_status_options never called"
-    }
-  ],
+  "up_next": [],
   "shipped": [
+    {
+      "pr": "#172",
+      "issue": "#165",
+      "what": "pm plan: --goals flag not written to iteration-planning.md",
+      "shipped_at": "2026-06-08",
+      "release": ""
+    },
     {
       "pr": "#170",
       "issue": "#163",

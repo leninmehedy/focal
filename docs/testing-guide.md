@@ -91,6 +91,8 @@ The interactive wizard that creates `~/.focal/config.json`.
 | S10 | Non-interactive — attach existing board | `focal board setup --owner USER --repos owner/repo --use-board --use-board-number N` | Runs without prompts. Reads Status field from existing board, writes config ✅ |
 | S11 | Non-interactive — assignee default | `focal board setup --owner USER --repos owner/repo --create-board` (no `--assignee`) | `assignee` in config equals `owner` value ✅ |
 | S12 | Non-interactive — partial flags fall through | `focal board setup --owner USER` (repos not given) | Falls through to interactive mode for missing values ✅ |
+| S13 | Canonical columns created — interactive | Run S1 (create board, interactive) | After board creation, board has exactly 7 Status columns: 🆕 New, 📋 Backlog, 🔖 Ready, 🏗 In progress, ✋ Blocked, 👀 In review, ✅ Done — not GitHub defaults ✅ |
+| S14 | Canonical columns created — non-interactive | Run S9 (`--create-board`) | Same 7 canonical columns set on the new board; terminal prints `✔ Status columns set: 🆕 New, ...` ✅ |
 
 ---
 

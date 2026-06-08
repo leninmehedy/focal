@@ -68,12 +68,6 @@ gh api repos/leninmehedy/focal-test-YYYY-MM-DD/contents/README.md \
   --field content="$(echo '# focal-test\nAutomated test repo.' | base64)"
 ```
 
-### 4. Configure permissions
-
-The project `.claude/settings.json` already has the right allowlist scoped to this
-directory. If running a fresh session, restart Claude Code from the focal repo root
-so it picks up the settings file.
-
 ---
 
 ## Running the Tests

@@ -14,15 +14,37 @@
       "state": "🔄"
     },
     {
-      "pr": "#",
-      "issue": "159",
-      "branch": "feat/159-epics-render",
-      "what": "Add focal pm epics-render command — idempotent re-render of epics.md",
+      "pr": "—",
+      "issue": "#163",
+      "branch": "feat/163-pm-init-repo-validation",
+      "what": "pm init: exit non-zero when target repo does not exist",
       "state": "🔄"
     }
   ],
-  "up_next": [],
+  "up_next": [
+    {
+      "rank": 1,
+      "issue": "#165",
+      "branch": "feat/165-pm-plan-goals-flag",
+      "sp": 2,
+      "what": "pm plan: --goals flag not written to iteration-planning.md"
+    },
+    {
+      "rank": 2,
+      "issue": "#167",
+      "branch": "feat/167-board-setup-status-options",
+      "sp": 3,
+      "what": "board setup --create-board: set_status_options never called"
+    }
+  ],
   "shipped": [
+    {
+      "pr": "#160",
+      "issue": "159",
+      "what": "Add focal pm epics-render command — idempotent re-render of epics.md",
+      "shipped_at": "2026-06-08",
+      "release": ""
+    },
     {
       "pr": "#157",
       "issue": "#155",

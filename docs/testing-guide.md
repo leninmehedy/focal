@@ -413,6 +413,15 @@ State lives in `docs/focal/build-log.json`. `docs/build-log.md` is rendered from
 |---|------|-----------|-----------------|
 | S14 | Render | `focal pm solo render` | Re-generates `docs/build-log.md` from JSON; idempotent ✅ |
 
+### `focal pm epics-render`
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| ER1 | Basic render | `focal pm epics-render` | Re-generates `docs/focal/epics.md` from `focal-state.json`; prints `✔ docs/focal/epics.md rendered` ✅ |
+| ER2 | Idempotent | Run twice | Second run produces identical file; no error ✅ |
+| ER3 | Reflects closed issues | Close an issue via `gh issue close`, then run | Closed issue shows ✅ in `epics.md` ✅ |
+| ER4 | Custom repo-root | `focal pm epics-render --repo-root /path/to/repo` | Renders epics.md in the specified repo ✅ |
+
 ### `focal pm solo sync`
 
 | # | Test | How to run | Expected result |

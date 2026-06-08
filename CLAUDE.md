@@ -13,7 +13,7 @@ Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — the
 → See **[`docs/build-log.md`](docs/build-log.md)** for the full picture:
 - What's merged
 - What PRs are open and waiting for merge
-- What's next (issue #135 — `focal pm triage`)
+- What's next
 - Implementation notes for the next task
 
 ---
@@ -61,6 +61,26 @@ Every task needs a GitHub issue before work begins.
 6. Commit and push, then create PR with `gh pr create`.
 
 > Build-log is updated **before** the PR is created, as part of the same branch/commit. Never make a separate PR just to update it.
+
+---
+
+## After a PR merges / issues are closed
+
+Run all three commands every time a PR lands or issues are bulk-closed:
+
+```bash
+focal pm solo ship <ISSUE> <PR>       # move In flight → Shipped
+focal pm solo render                  # re-render docs/build-log.md
+focal pm epics-render                 # re-render docs/focal/epics.md
+```
+
+If issues were closed directly with `gh issue close`, run the two renders plus a cache refresh first:
+
+```bash
+focal cache refresh leninmehedy/focal
+focal pm solo render
+focal pm epics-render
+```
 
 ---
 

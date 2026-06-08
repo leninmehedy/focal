@@ -11,6 +11,13 @@
       "branch": "feat/146-no-plan-mode",
       "what": "focal pm solo — solo-mode PM via build-log.json",
       "state": "🔄"
+    },
+    {
+      "pr": "#",
+      "issue": "159",
+      "branch": "feat/159-epics-render",
+      "what": "Add focal pm epics-render command — idempotent re-render of epics.md",
+      "state": "🔄"
     }
   ],
   "up_next": [],

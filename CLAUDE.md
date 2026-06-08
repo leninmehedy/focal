@@ -3,7 +3,11 @@
 ## ▶ Resume command (copy-paste this to start any session)
 
 ```
-Read CLAUDE.md, then docs/build-log.md, then docs/focal/epics.md.
+Read CLAUDE.md and run 
+  focal cache refresh leninmehedy/focal
+  focal pm epics-render
+  
+then docs/build-log.md, then docs/focal/epics.md.
 
 For every PR listed as 🔄 in "In flight", run:
   gh pr view <N> --json state,title
@@ -11,7 +15,6 @@ For every PR listed as 🔄 in "In flight", run:
 For any that are MERGED, run the post-merge commands from CLAUDE.md:
   focal pm solo ship <ISSUE> <PR>
   focal pm solo render
-  focal pm epics-render
 
 Then re-read docs/build-log.md and tell me what to work on next.
 ```
@@ -70,7 +73,7 @@ Every task needs a GitHub issue before work begins.
 2. Verify the prerequisite PR is merged: `gh pr view <N> --json state`.
 3. Create a new branch: `git checkout -b feat/<issue>-<slug>`.
 4. Implement, then run linters: `python3 -m ruff check focal/ && python3 -m ruff format --check focal/`.
-5. **Update `docs/build-log.md`** — run `focal pm solo start <ISSUE>` (moves Up next → In flight), then `focal pm solo note "<summary>"` to update the Current state line, then `focal pm solo render`.
+5. **Update `docs/build-log.md`** — run `focal cache refresh leninmehedy/focal`, then `focal pm solo start <ISSUE>` (moves Up next → In flight), then `focal pm solo note "<summary>"` to update the Current state line, then `focal pm solo render && focal pm epics-render`.
 6. Commit and push, then create PR with `gh pr create`.
 
 > Build-log is updated **before** the PR is created, as part of the same branch/commit. Never make a separate PR just to update it.

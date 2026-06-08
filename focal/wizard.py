@@ -11,6 +11,7 @@ from rich.prompt import Confirm, Prompt
 
 from . import gh
 from .config import Config
+from .pm.init_cmd import CANONICAL_STATUS_COLUMNS
 
 console = Console()
 
@@ -189,6 +190,28 @@ def _apply_template_fields(project_id: str) -> None:
         )
     for name, err in failed:
         console.print(f"[yellow]⚠[/yellow]  Could not create field '{name}': {err}")
+
+
+def _set_canonical_status_options(project_id: str) -> None:
+    """Replace the board's Status options with the canonical 7-column set."""
+    try:
+        field = gh.get_status_field(project_id)
+    except RuntimeError as e:
+        console.print(f"[yellow]⚠[/yellow]  Could not fetch Status field: {e}")
+        return
+    if not field:
+        console.print(
+            "[yellow]⚠[/yellow]  No Status field found — skipping column setup"
+        )
+        return
+    try:
+        gh.set_status_options(project_id, field["id"], CANONICAL_STATUS_COLUMNS)
+        console.print(
+            "[green]✔[/green] Status columns set: "
+            + ", ".join(CANONICAL_STATUS_COLUMNS)
+        )
+    except RuntimeError as e:
+        console.print(f"[yellow]⚠[/yellow]  Could not set status options: {e}")
 
 
 # ── Status column inspection ──────────────────────────────────────────────────
@@ -405,6 +428,7 @@ def run(
             project_id = proj["id"]
             console.print(f"[green]✔[/green] Created: {proj['url']}")
             _apply_template_fields(project_id)
+            _set_canonical_status_options(project_id)
         else:
             if board_number is None:
                 console.print(
@@ -468,6 +492,7 @@ def run(
 
         # Apply template fields from hashgraph/projects/106
         _apply_template_fields(project_id)
+        _set_canonical_status_options(project_id)
 
         done_status = "✅ Done"
 

@@ -64,6 +64,19 @@ def _gh(*args: str) -> tuple[int, str, str]:
     return result.returncode, result.stdout.strip(), result.stderr.strip()
 
 
+def _validate_remote_repo(repo: str) -> None:
+    """Exit with a clear error if the GitHub repo does not exist or is inaccessible."""
+    import typer
+
+    rc, _, err = _gh("repo", "view", repo, "--json", "name")
+    if rc != 0:
+        console.print(
+            f"\n[red]Error:[/red] Repository [bold]{repo}[/bold] not found on GitHub.\n\n"
+            f"Check the repo name and that you have access, then try again.\n"
+        )
+        raise typer.Exit(1)
+
+
 def _ensure_label(repo: str, name: str, color: str, description: str) -> None:
     _, out, _ = _gh(
         "label",
@@ -235,6 +248,7 @@ def run(
     console.print(f"\n[bold cyan]  ◎  Focal Init — {repo}[/bold cyan]\n")
 
     _validate_repo_root(repo, repo_root)
+    _validate_remote_repo(repo)
 
     # ── Labels ────────────────────────────────────────────────────────────────
     console.rule("[bold]Step 1: GitHub labels[/bold]")

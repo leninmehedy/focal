@@ -164,7 +164,7 @@ Bootstraps a repo with Focal PM structure.
 | PI7 | No board setup — warning banner | Run `focal pm init owner/repo` without `~/.focal/config.json` | Command succeeds (no error). Output contains a yellow ⚠ banner: "No board configured yet. Run focal board setup …" ✅ |
 | PI8 | No board setup — step 0 in next-steps | Run `focal pm init owner/repo` without `~/.focal/config.json` | Next-steps section shows step 0 as `focal board setup`, other steps renumbered 1, 2, 3 ✅ |
 | PI9 | Board configured — no banner | Run `focal pm init owner/repo` with `~/.focal/config.json` present | No step-0 or warning banner in output; steps start at 1 ✅ |
-| PI10 | Wrong repo | `focal pm init nonexistent/repo` | `gh` error surfaced clearly — no traceback ❌ |
+| PI10 | Repo not found | `focal pm init nonexistent/repo` | Prints `Error: Repository nonexistent/repo not found on GitHub.` and exits non-zero; no local files created ✅ |
 
 ### `focal pm adopt-plan`
 

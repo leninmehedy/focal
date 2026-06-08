@@ -3,7 +3,17 @@
 ## ▶ Resume command (copy-paste this to start any session)
 
 ```
-Read CLAUDE.md, then docs/build-log.md — then tell me what to work on next.
+Read CLAUDE.md, then docs/build-log.md, then docs/focal/epics.md.
+
+For every PR listed as 🔄 in "In flight", run:
+  gh pr view <N> --json state,title
+
+For any that are MERGED, run the post-merge commands from CLAUDE.md:
+  focal pm solo ship <ISSUE> <PR>
+  focal pm solo render
+  focal pm epics-render
+
+Then re-read docs/build-log.md and tell me what to work on next.
 ```
 
 This repo uses **solo mode** (`"mode": "solo"` in `docs/focal/build-log.json`).

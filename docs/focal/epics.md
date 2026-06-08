@@ -14,6 +14,14 @@ _Last updated: 2026-06-08_
 | **0.2** — focal pm triage — list open issues not linked to any epic | [#135](https://github.com/leninmehedy/focal/issues/135) | 3 | ✅ |
 | **0.3** — MCP server: add focal_pm_triage and focal_pm_adopt_plan tools | [#155](https://github.com/leninmehedy/focal/issues/155) | 2 | ✅ |
 | **0.4** — Add focal pm epics render command — idempotent re-render of epics.md from focal-state.json | [#159](https://github.com/leninmehedy/focal/issues/159) | 1 | 🔄 |
+| **0.5** — Board sync: incremental sync falsely marks open+assigned issues as stale | [#161](https://github.com/leninmehedy/focal/issues/161) | 5 | 🔄 |
+| **0.6** — Board setup: --use-board writes wrong done_status when board uses 'Done' not '✅ Done' | [#162](https://github.com/leninmehedy/focal/issues/162) | 3 | 🔄 |
+| **0.7** — pm init: silently succeeds (exit 0) when target repo does not exist | [#163](https://github.com/leninmehedy/focal/issues/163) | 2 | 🔄 |
+| **0.8** — adopt-plan: stories not created on first --apply; second run creates them (not idempotent) | [#164](https://github.com/leninmehedy/focal/issues/164) | 5 | 🔄 |
+| **0.9** — pm plan: --goals flag accepted but goal text not written to iteration-planning.md | [#165](https://github.com/leninmehedy/focal/issues/165) | 2 | 🔄 |
+| **0.10** — pm velocity: parser returns all zeros and reads commented-out template block as real data | [#166](https://github.com/leninmehedy/focal/issues/166) | 3 | 🔄 |
+| **0.11** — board setup --create-board never calls set_status_options; canonical columns not created | [#167](https://github.com/leninmehedy/focal/issues/167) | 3 | 🔄 |
+| **0.12** — focal board status: add --json flag for machine-readable board state verification | [#168](https://github.com/leninmehedy/focal/issues/168) | 5 | 🔄 |
 
 ---
 

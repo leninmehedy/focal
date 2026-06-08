@@ -5,22 +5,7 @@
     "last_action": "Closed 21 stale open issues across E2 (what-if #70-78), E3 (adopt #84-91), E4 (--from-design #111, #144), and their epics #142 #143 — all shipped in PRs #122, #100, #112 respectively; cache refreshed",
     "next_step": "Merge PR #158 (focal pm solo, issue #146); then identify next backlog items from open issues"
   },
-  "in_flight": [
-    {
-      "pr": "#158",
-      "issue": "#146",
-      "branch": "feat/146-no-plan-mode",
-      "what": "focal pm solo — solo-mode PM via build-log.json",
-      "state": "🔄"
-    },
-    {
-      "pr": "—",
-      "issue": "#163",
-      "branch": "feat/163-pm-init-repo-validation",
-      "what": "pm init: exit non-zero when target repo does not exist",
-      "state": "🔄"
-    }
-  ],
+  "in_flight": [],
   "up_next": [
     {
       "rank": 1,
@@ -38,6 +23,20 @@
     }
   ],
   "shipped": [
+    {
+      "pr": "#170",
+      "issue": "#163",
+      "what": "pm init: exit non-zero when target repo does not exist",
+      "shipped_at": "2026-06-08",
+      "release": ""
+    },
+    {
+      "pr": "#158",
+      "issue": "#146",
+      "what": "focal pm solo — solo-mode PM via build-log.json",
+      "shipped_at": "2026-06-08",
+      "release": ""
+    },
     {
       "pr": "#160",
       "issue": "159",

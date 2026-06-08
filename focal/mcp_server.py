@@ -898,6 +898,24 @@ def focal_pm_solo_note(text: str, repo_root: str = ".") -> dict:
     return {"ok": True, "last_action": text}
 
 
+@mcp.tool()
+def focal_pm_solo_sync(repo: str, repo_root: str = ".", limit: int = 10) -> dict:
+    """Sync GitHub releases/tags into build-log.json and re-render build-log.md.
+
+    Fetches the last N releases from GitHub (requires gh CLI auth) and stores them
+    in the releases section of build-log.json. Agents can then call
+    focal_pm_solo_status to see the latest release alongside in-flight work —
+    useful for understanding what's shipped vs what's been released.
+
+    repo: owner/repo, e.g. "leninmehedy/focal"
+    limit: number of releases to fetch (default 10)
+    """
+    from focal.pm.solo_cmd import sync
+
+    root = Path(repo_root).resolve()
+    return sync(repo, root, limit=limit)
+
+
 # ── Server entry point ────────────────────────────────────────────────────────
 
 

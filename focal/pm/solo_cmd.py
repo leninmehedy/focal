@@ -13,6 +13,7 @@ focal pm solo ship   ISSUE [PR]           # in_flight → shipped
 focal pm solo note   TEXT                 # update current_state.last_action
 focal pm solo render                      # re-render build-log.md from JSON
 focal pm solo status [REPO] [--last N]    # terminal summary
+focal pm solo sync   REPO [--limit N]     # sync GitHub releases/tags → releases section
 """
 
 from __future__ import annotations
@@ -49,6 +50,7 @@ def _empty_state(repo: str) -> dict:
         "in_flight": [],
         "up_next": [],
         "shipped": [],
+        "releases": [],
     }
 
 
@@ -91,6 +93,7 @@ def render(repo_root: Path) -> None:
     in_flight = state.get("in_flight", [])
     up_next = state.get("up_next", [])
     shipped = state.get("shipped", [])
+    releases = state.get("releases", [])
 
     lines: list[str] = []
 
@@ -152,6 +155,27 @@ def render(repo_root: Path) -> None:
         lines.append(_md_table(["PR", "Issue", "What"], rows))
     else:
         lines.append("| PR | Issue | What |")
+        lines.append("|---|---|---|")
+    lines += ["", "---", ""]
+
+    # Releases
+    lines.append("## Releases")
+    lines.append("")
+    lines.append("_Synced from GitHub. Run `focal pm solo sync` to refresh._")
+    lines.append("")
+    if releases:
+        rows = []
+        for r in releases:
+            pre = " _(pre)_" if r.get("prerelease") else ""
+            version_cell = (
+                f"[{r['version']}]({r['url']})" if r.get("url") else r["version"]
+            )
+            rows.append(
+                [version_cell + pre, r.get("published_at", "—"), r.get("body", "—")]
+            )
+        lines.append(_md_table(["Version", "Date", "Notes"], rows))
+    else:
+        lines.append("| Version | Date | Notes |")
         lines.append("|---|---|---|")
     lines += ["", "---", ""]
 
@@ -299,6 +323,66 @@ def note(repo_root: Path, text: str) -> None:
     console.print("  [green]✔[/green] Note updated")
 
 
+def sync(repo: str, repo_root: Path, limit: int = 10) -> dict:
+    """Fetch GitHub releases for *repo* and update the releases section in build-log.json.
+
+    Uses ``gh release list`` — requires the gh CLI to be authenticated.
+    Returns a summary dict suitable for MCP tool responses.
+    """
+    import subprocess
+
+    result = subprocess.run(
+        [
+            "gh",
+            "release",
+            "list",
+            "--repo",
+            repo,
+            "--limit",
+            str(limit),
+            "--json",
+            "tagName,publishedAt,isPrerelease,name",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        msg = result.stderr.strip() or "gh release list failed"
+        console.print(f"  [red]✗[/red]  {msg}")
+        return {"ok": False, "error": msg}
+
+    raw: list[dict] = json.loads(result.stdout or "[]")
+
+    releases = []
+    for r in raw:
+        tag = r.get("tagName", "")
+        # Derive URL from repo + tag (gh release list doesn't expose url as a JSON field)
+        url = f"https://github.com/{repo}/releases/tag/{tag}" if tag else ""
+        # Use the release name as the notes column (it's the human-readable title)
+        notes = (r.get("name") or "").strip()
+        releases.append(
+            {
+                "version": tag,
+                "name": notes,
+                "tag": tag,
+                "published_at": (r.get("publishedAt", "") or "")[:10],  # date only
+                "url": url,
+                "prerelease": bool(r.get("isPrerelease")),
+                "body": notes,
+            }
+        )
+
+    state = load(repo_root)
+    state["releases"] = releases
+    save(repo_root, state)
+    render(repo_root)
+
+    count = len(releases)
+    latest = releases[0]["version"] if releases else "—"
+    console.print(f"  [green]✔[/green] Synced {count} release(s) — latest: {latest}")
+    return {"ok": True, "count": count, "latest": latest, "releases": releases}
+
+
 def status(repo_root: Path, repo: str = "", last: int = 5) -> None:
     """Print a terminal summary from build-log.json."""
     json_p = _json_path(repo_root)
@@ -389,3 +473,34 @@ def status(repo_root: Path, repo: str = "", last: int = 5) -> None:
     else:
         console.print("  [dim]Nothing shipped yet.[/dim]")
     console.print()
+
+    # Releases
+    releases = state.get("releases", [])
+    if releases:
+        latest = releases[0]
+        pre_tag = " [dim](pre)[/dim]" if latest.get("prerelease") else ""
+        console.print(f"[bold]Releases[/bold]  · {len(releases)} synced")
+        console.rule()
+        t = Table(show_header=True, header_style="bold", box=None, padding=(0, 1))
+        t.add_column("Version")
+        t.add_column("Date")
+        t.add_column("Notes")
+        for r in releases[:5]:
+            pre = " (pre)" if r.get("prerelease") else ""
+            t.add_row(
+                r["version"] + pre, r.get("published_at", "—"), r.get("body", "—")
+            )
+        console.print(t)
+        console.print(
+            f"\n  [dim]Latest:[/dim] {latest['version']}{pre_tag}  "
+            f"[dim]({latest.get('published_at', '—')})[/dim]"
+        )
+        console.print()
+    else:
+        console.print("[bold]Releases[/bold]")
+        console.rule()
+        console.print(
+            "  [dim]No releases synced yet. Run [bold]focal pm solo sync "
+            f"{repo or 'owner/repo'}[/bold] to fetch from GitHub.[/dim]"
+        )
+        console.print()

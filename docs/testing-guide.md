@@ -413,6 +413,16 @@ State lives in `docs/focal/build-log.json`. `docs/build-log.md` is rendered from
 |---|------|-----------|-----------------|
 | S14 | Render | `focal pm solo render` | Re-generates `docs/build-log.md` from JSON; idempotent ✅ |
 
+### `focal pm solo sync`
+
+| # | Test | How to run | Expected result |
+|---|------|-----------|-----------------|
+| SR1 | Basic sync | `focal pm solo sync owner/repo` | Fetches last 10 releases; `releases` array populated in `build-log.json`; `## Releases` section rendered in `build-log.md` ✅ |
+| SR2 | Custom limit | `focal pm solo sync owner/repo --limit 3` | Only 3 releases fetched ✅ |
+| SR3 | Status shows releases | `focal pm solo status owner/repo` after sync | Releases panel shows last 5 releases; latest version + date shown below table ✅ |
+| SR4 | No releases repo | Sync a repo with no GitHub releases | Releases section shows empty table; no error ✅ |
+| SR5 | Idempotent | Run sync twice | Second run overwrites with fresh data — no duplicates ✅ |
+
 ---
 
 ## MCP server (`focal mcp serve` / `focal skill install`)

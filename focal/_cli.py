@@ -1343,6 +1343,18 @@ def solo_render(
     Console().print("  [green]✔[/green] build-log.md rendered")
 
 
+@solo_app.command("sync")
+def solo_sync(
+    repo: str = typer.Argument(..., help="Target repo (owner/repo)."),
+    repo_root: Path = typer.Option(Path("."), "--repo-root"),
+    limit: int = typer.Option(10, "--limit", help="Number of releases to fetch."),
+):
+    """Sync GitHub releases/tags into build-log.json and re-render build-log.md."""
+    from focal.pm.solo_cmd import sync
+
+    sync(repo, repo_root.resolve(), limit=limit)
+
+
 def main() -> None:
     app()
 

@@ -107,6 +107,7 @@ prefer MCP tools. Otherwise use CLI commands.
 | `focal_pm_solo_pr` | `focal pm solo pr` |
 | `focal_pm_solo_ship` | `focal pm solo ship` |
 | `focal_pm_solo_note` | `focal pm solo note` |
+| `focal_pm_solo_sync` | `focal pm solo sync` |
 
 **Installing the MCP skill** (do this once during onboarding if the user wants it):
 
@@ -175,6 +176,7 @@ focal pm solo pr ISSUE PR            — set PR number on an In flight row
 focal pm solo ship ISSUE [PR]        — move item In flight → Shipped
 focal pm solo note TEXT              — update Last action in build-log.json
 focal pm solo render                 — re-render docs/build-log.md from build-log.json (idempotent)
+focal pm solo sync  <owner/repo>     — sync GitHub releases/tags into releases section [--limit N]
 
 focal cache refresh <owner/repo>     — re-fetch state for one repo from GitHub
 focal cache refresh-all [--force]    — re-fetch all registered PM repos in one shot

@@ -230,7 +230,9 @@ Generates `docs/focal/iteration-planning.md` from the local state cache.
 |---|------|-----------|-----------------|
 | PL1 | Basic plan | `focal pm plan owner/repo --weeks 2 --start 2026-06-02 --team "alice:8,bob:6"` | Creates `docs/focal/iteration-planning.md` with iteration schedule, capacity, SP allocation, risk section ✅ |
 | PL2 | PTO reduction | `--pto "alice:2026-06-09:2026-06-13"` | Alice's capacity reduced proportionally for that iteration ✅ |
-| PL3 | Goal labels | `--goals "I1:Ship auth,I2:Close E2"` | Each iteration in the doc has its goal label ✅ |
+| PL3 | Goal labels | `focal pm plan owner/repo --weeks 2 --start 2026-06-02 --team "alice:8" --goals "I1:Ship auth,I2:Close E2"` | Each iteration section in `iteration-planning.md` contains a `**Goal:** <text>` line immediately after the heading ✅ |
+| PL3b | Goals not provided | Run without `--goals` | Goal prompts appear interactively; blank answers produce no `**Goal:**` line in the doc ✅ |
+| PL3c | Partial goals | `--goals "I1:Ship auth"` with two iterations | I1 shows `**Goal:** Ship auth`; I2 has no Goal line ✅ |
 | PL4 | Interactive | Run without flags | Prompts for each input ✅ |
 | PL5 | With refresh | `--refresh` flag | Fetches latest state from GitHub before planning ✅ |
 | PL6 | Empty backlog | Run with no epics/stories in cache | Warns that backlog is empty, exits cleanly ✅ |

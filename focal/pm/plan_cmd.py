@@ -257,6 +257,9 @@ def _render(
         )
         lines.append(header)
         lines.append("")
+        if it.get("goal"):
+            lines.append(f"**Goal:** {it['goal']}")
+            lines.append("")
         if it["notes"]:
             for note in it["notes"]:
                 lines.append(f"> ⚠️ {note}")

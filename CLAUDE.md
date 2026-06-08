@@ -70,7 +70,7 @@ Every task needs a GitHub issue before work begins.
 2. Verify the prerequisite PR is merged: `gh pr view <N> --json state`.
 3. Create a new branch: `git checkout -b feat/<issue>-<slug>`.
 4. Implement, then run linters: `python3 -m ruff check focal/ && python3 -m ruff format --check focal/`.
-5. **Update `docs/build-log.md`** — move "Up next" item to "In flight", add implementation notes if useful.
+5. **Update `docs/build-log.md`** — run `focal pm solo start <ISSUE>` (moves Up next → In flight), then `focal pm solo note "<summary>"` to update the Current state line, then `focal pm solo render`.
 6. Commit and push, then create PR with `gh pr create`.
 
 > Build-log is updated **before** the PR is created, as part of the same branch/commit. Never make a separate PR just to update it.
@@ -85,6 +85,13 @@ Run all three commands every time a PR lands or issues are bulk-closed:
 focal pm solo ship <ISSUE> <PR>       # move In flight → Shipped
 focal pm solo render                  # re-render docs/build-log.md
 focal pm epics-render                 # re-render docs/focal/epics.md
+```
+
+After the renders complete, update the Current state line:
+
+```bash
+focal pm solo note "<what shipped and what is next>"
+focal pm solo render
 ```
 
 If issues were closed directly with `gh issue close`, run the two renders plus a cache refresh first:

@@ -19,6 +19,7 @@ focal pm solo sync   REPO [--limit N]     # sync GitHub releases/tags → releas
 from __future__ import annotations
 
 import json
+from datetime import date
 from pathlib import Path
 
 from rich.console import Console
@@ -151,11 +152,20 @@ def render(repo_root: Path) -> None:
     lines.append("## Shipped")
     lines.append("")
     if shipped:
-        rows = [[r["pr"], r["issue"], r["what"]] for r in shipped]
-        lines.append(_md_table(["PR", "Issue", "What"], rows))
+        rows = [
+            [
+                r["pr"],
+                r["issue"],
+                r.get("shipped_at", "—"),
+                r.get("release") or "—",
+                r["what"],
+            ]
+            for r in shipped
+        ]
+        lines.append(_md_table(["PR", "Issue", "Date", "Release", "What"], rows))
     else:
-        lines.append("| PR | Issue | What |")
-        lines.append("|---|---|---|")
+        lines.append("| PR | Issue | Date | Release | What |")
+        lines.append("|---|---|---|---|---|")
     lines += ["", "---", ""]
 
     # Releases
@@ -308,7 +318,16 @@ def ship(repo_root: Path, issue: str, pr: str | None = None) -> None:
     if pr:
         pr_str = pr if pr.startswith("#") else f"#{pr}"
 
-    shipped.insert(0, {"pr": pr_str, "issue": issue, "what": row.get("what", "")})
+    shipped.insert(
+        0,
+        {
+            "pr": pr_str,
+            "issue": issue,
+            "what": row.get("what", ""),
+            "shipped_at": date.today().isoformat(),
+            "release": "",
+        },
+    )
     save(repo_root, state)
     render(repo_root)
     console.print(f"  [green]✔[/green] {issue} shipped (PR {pr_str})")
@@ -374,12 +393,37 @@ def sync(repo: str, repo_root: Path, limit: int = 10) -> dict:
 
     state = load(repo_root)
     state["releases"] = releases
+
+    # ── Correlate shipped rows with releases ──────────────────────────────────
+    # Sort releases oldest-first for the scan; each shipped row gets tagged with
+    # the earliest release whose published_at >= shipped_at.
+    releases_asc = sorted(
+        [r for r in releases if r.get("published_at")],
+        key=lambda r: r["published_at"],
+    )
+    correlated = 0
+    for row in state.get("shipped", []):
+        shipped_at = row.get("shipped_at", "")
+        if not shipped_at:
+            continue
+        matched = next(
+            (r for r in releases_asc if r["published_at"] >= shipped_at), None
+        )
+        new_release = matched["version"] if matched else ""
+        if row.get("release") != new_release:
+            row["release"] = new_release
+            correlated += 1
+
     save(repo_root, state)
     render(repo_root)
 
     count = len(releases)
     latest = releases[0]["version"] if releases else "—"
     console.print(f"  [green]✔[/green] Synced {count} release(s) — latest: {latest}")
+    if correlated:
+        console.print(
+            f"  [green]✔[/green] Correlated {correlated} shipped item(s) with releases"
+        )
     return {"ok": True, "count": count, "latest": latest, "releases": releases}
 
 
@@ -466,9 +510,18 @@ def status(repo_root: Path, repo: str = "", last: int = 5) -> None:
         t = Table(show_header=True, header_style="bold", box=None, padding=(0, 1))
         t.add_column("PR")
         t.add_column("Issue")
+        t.add_column("Date")
+        t.add_column("Release")
         t.add_column("What")
         for r in shipped_slice:
-            t.add_row(r["pr"], r["issue"], r["what"])
+            release_val = r.get("release") or "[dim]—[/dim]"
+            t.add_row(
+                r["pr"],
+                r["issue"],
+                r.get("shipped_at", "—"),
+                release_val,
+                r["what"],
+            )
         console.print(t)
     else:
         console.print("  [dim]Nothing shipped yet.[/dim]")

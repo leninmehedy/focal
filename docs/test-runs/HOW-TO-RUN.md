@@ -242,7 +242,7 @@ cp ~/.focal/config.json.bak ~/.focal/config.json
 
 ## Known bugs (as of 2026-06-08)
 
-These are expected failures — do not file duplicates. Check if they are fixed.
+These are expected failures — do not file duplicates. Check if they are fixed before marking them as FAIL.
 
 | Bug | Test | Issue | Description |
 |---|---|---|---|
@@ -252,6 +252,16 @@ These are expected failures — do not file duplicates. Check if they are fixed.
 | BUG-4 | AP2–AP4 | [#164](https://github.com/leninmehedy/focal/issues/164) | `adopt-plan` stories not created on first `--apply` |
 | BUG-5 | PL3 | [#165](https://github.com/leninmehedy/focal/issues/165) | `--goals` flag silently ignored in plan doc |
 | BUG-6 | V1–V2 | [#166](https://github.com/leninmehedy/focal/issues/166) | Velocity parser returns all zeros; reads comment block |
+
+## Tests blocked by product gaps (as of 2026-06-08)
+
+These tests were **skipped** in the 2026-06-08 run because the required product feature does not yet exist.
+Once the issue is fixed, re-run the blocked tests and mark them.
+
+| Gap | Blocked tests | Issue | What needs to change |
+|---|---|---|---|
+| GAP-1 | BS6, SC5, ST2–ST4, PS6 | [#167](https://github.com/leninmehedy/focal/issues/167) | `board setup --create-board` must call `set_status_options()` so canonical 7 columns are created |
+| GAP-2 | BS2, SC5, ST2–ST4 | [#168](https://github.com/leninmehedy/focal/issues/168) | `focal board status` needs a `--json` flag for machine-readable output |
 
 ---
 

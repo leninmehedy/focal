@@ -19,7 +19,6 @@ focal pm solo sync   REPO [--limit N]     # sync GitHub releases/tags → releas
 from __future__ import annotations
 
 import json
-from datetime import date
 from pathlib import Path
 
 from rich.console import Console
@@ -301,8 +300,31 @@ def set_pr(repo_root: Path, issue: str, pr: str) -> None:
     console.print(f"  [green]✔[/green] {issue} PR set to {pr_str}")
 
 
+def _pr_merged_at(repo: str, pr_num: str) -> str:
+    """Return the merge date (YYYY-MM-DD) for a PR, or '' on failure."""
+    import subprocess
+
+    num = pr_num.lstrip("#")
+    if not num.isdigit():
+        return ""
+    result = subprocess.run(
+        ["gh", "pr", "view", num, "--repo", repo, "--json", "mergedAt"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return ""
+    data = json.loads(result.stdout or "{}")
+    merged_at = data.get("mergedAt") or ""
+    return merged_at[:10]  # date only
+
+
 def ship(repo_root: Path, issue: str, pr: str | None = None) -> None:
-    """Move an item from In flight → Shipped (prepended, most recent first)."""
+    """Move an item from In flight → Shipped (prepended, most recent first).
+
+    Looks up the PR merge date from GitHub (gh pr view) so shipped_at reflects
+    when the PR actually merged, not when this command was run.
+    """
     state = load(repo_root)
     in_flight: list[dict] = state.get("in_flight", [])
     shipped: list[dict] = state.setdefault("shipped", [])
@@ -318,13 +340,25 @@ def ship(repo_root: Path, issue: str, pr: str | None = None) -> None:
     if pr:
         pr_str = pr if pr.startswith("#") else f"#{pr}"
 
+    # Fetch real merge date from GitHub
+    repo_name = state.get("repo", "")
+    merged_at = ""
+    if repo_name and pr_str != "—":
+        merged_at = _pr_merged_at(repo_name, pr_str)
+        if merged_at:
+            console.print(f"  [dim]PR {pr_str} merged {merged_at}[/dim]")
+        else:
+            console.print(
+                f"  [dim]Could not fetch merge date for {pr_str} — leaving blank[/dim]"
+            )
+
     shipped.insert(
         0,
         {
             "pr": pr_str,
             "issue": issue,
             "what": row.get("what", ""),
-            "shipped_at": date.today().isoformat(),
+            "shipped_at": merged_at,
             "release": "",
         },
     )
@@ -394,25 +428,12 @@ def sync(repo: str, repo_root: Path, limit: int = 10) -> dict:
     state = load(repo_root)
     state["releases"] = releases
 
-    # ── Correlate shipped rows with releases ──────────────────────────────────
-    # Sort releases oldest-first for the scan; each shipped row gets tagged with
-    # the earliest release whose published_at >= shipped_at.
-    releases_asc = sorted(
-        [r for r in releases if r.get("published_at")],
-        key=lambda r: r["published_at"],
-    )
-    correlated = 0
-    for row in state.get("shipped", []):
-        shipped_at = row.get("shipped_at", "")
-        if not shipped_at:
-            continue
-        matched = next(
-            (r for r in releases_asc if r["published_at"] >= shipped_at), None
-        )
-        new_release = matched["version"] if matched else ""
-        if row.get("release") != new_release:
-            row["release"] = new_release
-            correlated += 1
+    # ── Correlate shipped rows with releases via tag comparison ───────────────
+    # For each consecutive pair of release tags (prev, curr), fetch the commits
+    # between them and extract PR numbers from commit messages.  Each shipped row
+    # whose PR appears in that commit range is tagged with curr's version.
+    # This is exact — multiple releases on the same day are handled correctly.
+    correlated = _correlate_via_tags(repo, state.get("shipped", []), releases)
 
     save(repo_root, state)
     render(repo_root)
@@ -425,6 +446,72 @@ def sync(repo: str, repo_root: Path, limit: int = 10) -> dict:
             f"  [green]✔[/green] Correlated {correlated} shipped item(s) with releases"
         )
     return {"ok": True, "count": count, "latest": latest, "releases": releases}
+
+
+def _correlate_via_tags(repo: str, shipped: list[dict], releases: list[dict]) -> int:
+    """Tag each shipped row with the release it landed in using git tag comparison.
+
+    Compares consecutive release tags via the GitHub compare API to find which
+    PRs are included in each release. Returns the number of rows updated.
+    """
+    import re
+    import subprocess
+
+    if not releases or not shipped:
+        return 0
+
+    # Build a lookup: pr_number (str, no #) → release version
+    pr_to_release: dict[str, str] = {}
+
+    # Sort releases oldest → newest for the range scan
+    releases_asc = sorted(releases, key=lambda r: r.get("published_at", ""))
+
+    for i, release in enumerate(releases_asc):
+        curr_tag = release["tag"]
+        prev_tag = releases_asc[i - 1]["tag"] if i > 0 else None
+
+        if prev_tag:
+            # Commits between prev_tag and curr_tag
+            api_path = f"repos/{repo}/compare/{prev_tag}...{curr_tag}"
+            jq_expr = "[.commits[].commit.message]"
+        else:
+            # All commits up to the first release tag
+            api_path = f"repos/{repo}/commits?sha={curr_tag}&per_page=100"
+            jq_expr = "[.[].commit.message]"
+
+        result = subprocess.run(
+            ["gh", "api", api_path, "--jq", jq_expr],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            console.print(
+                f"  [yellow]⚠[/yellow]  Could not compare tags for {curr_tag}: "
+                f"{result.stderr.strip()}"
+            )
+            continue
+
+        messages: list[str] = json.loads(result.stdout or "[]")
+
+        # Extract PR numbers from:
+        #   "Merge pull request #157 from ..."  (merge commit)
+        #   "feat: something (#157)"             (squash merge)
+        for msg in messages:
+            for match in re.finditer(r"#(\d+)", msg):
+                pr_to_release[match.group(1)] = release["version"]
+
+    # Apply to shipped rows
+    correlated = 0
+    for row in shipped:
+        pr_num = row.get("pr", "").lstrip("#")
+        if not pr_num.isdigit():
+            continue
+        new_release = pr_to_release.get(pr_num, "")
+        if row.get("release") != new_release:
+            row["release"] = new_release
+            correlated += 1
+
+    return correlated
 
 
 def status(repo_root: Path, repo: str = "", last: int = 5) -> None:

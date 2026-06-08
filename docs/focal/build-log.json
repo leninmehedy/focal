@@ -62,14 +62,14 @@
       "issue": "—",
       "what": "Fix gaps in user-guide, pm-guide, testing-guide",
       "shipped_at": "2026-05-20",
-      "release": "v1.15.0"
+      "release": "v1.16.0"
     },
     {
       "pr": "#127",
       "issue": "—",
       "what": "MCP server — 13 tools exposing all PM and board commands",
       "shipped_at": "2026-05-20",
-      "release": "v1.15.0"
+      "release": "v1.16.0"
     }
   ],
   "releases": [

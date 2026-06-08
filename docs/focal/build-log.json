@@ -1,5 +1,6 @@
 {
   "repo": "leninmehedy/focal",
+  "mode": "solo",
   "current_state": {
     "last_action": "Closed 21 stale open issues across E2 (what-if #70-78), E3 (adopt #84-91), E4 (--from-design #111, #144), and their epics #142 #143 — all shipped in PRs #122, #100, #112 respectively; cache refreshed",
     "next_step": "Merge PR #158 (focal pm solo, issue #146); then identify next backlog items from open issues"

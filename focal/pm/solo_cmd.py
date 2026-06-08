@@ -43,6 +43,7 @@ def _md_path(repo_root: Path) -> Path:
 def _empty_state(repo: str) -> dict:
     return {
         "repo": repo,
+        "mode": "solo",
         "current_state": {
             "last_action": "",
             "next_step": "",

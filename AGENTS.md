@@ -361,6 +361,19 @@ Use solo mode for repos where you want lightweight tracking without full iterati
 State lives in `docs/focal/build-log.json` (source of truth); `docs/build-log.md` is
 rendered from it and is **focal-managed** — do not hand-edit it.
 
+**Detecting solo mode at session start:**
+
+Check `docs/focal/build-log.json` — if it exists and contains `"mode": "solo"`, the repo
+uses solo mode. Use `focal pm solo` commands for all task tracking; do not use
+`focal pm plan`, `focal pm retro`, or `focal pm status` for iteration management.
+
+```bash
+# Recommended session-start sequence for a solo-mode repo:
+focal pm solo status owner/repo      # see current state, in-flight, and up-next
+focal pm solo render                 # ensure build-log.md is up to date
+focal pm epics-render                # ensure epics.md reflects latest GitHub state
+```
+
 **Agent workflow for a task:**
 ```
 focal pm solo queue #146 feat/146-no-plan-mode --sp 5 --what "focal pm solo commands"

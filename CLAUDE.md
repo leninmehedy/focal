@@ -3,8 +3,11 @@
 ## ▶ Resume command (copy-paste this to start any session)
 
 ```
-Read focal/README.md, then focal/CLAUDE.md, then focal/docs/build-log.md — then tell me what to work on next.
+Read CLAUDE.md, then docs/build-log.md — then tell me what to work on next.
 ```
+
+This repo uses **solo mode** (`"mode": "solo"` in `docs/focal/build-log.json`).
+Use `focal pm solo` commands for all task tracking — not `focal pm plan`/`retro`/`status`.
 
 ---
 
